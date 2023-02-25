@@ -15,6 +15,12 @@ impl FieldElement {
             ..Default::default()
         }
     }
+
+    // Exp operator
+    fn exp(self, exponent: u32) -> FieldElement {
+        let n = (self.num.pow(exponent)).rem_euclid(self.prime);
+        return FieldElement::new(n, self.prime);
+    }
 }
 
 impl Add for FieldElement {
@@ -131,6 +137,7 @@ mod field_element_test {
 
         assert_eq!(field1 * field2, field3);
     }
+
     #[test]
     #[should_panic(expected = "cannot mul two numbers in different fields")]
     fn multiplying_different_fields() {
@@ -138,5 +145,13 @@ mod field_element_test {
         let field2 = FieldElement::new(12, 13);
 
         let _r_ = field1 * field2;
+    }
+
+    #[test]
+    fn exponentiationing_fields() {
+        let field1 = FieldElement::new(3, 13);
+        let field2 = FieldElement::new(1, 13);
+
+        assert_eq!(field1.exp(3), field2);
     }
 }

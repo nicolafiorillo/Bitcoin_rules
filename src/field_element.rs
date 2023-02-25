@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
@@ -41,6 +41,20 @@ impl Sub for FieldElement {
         }
 
         let n = (self.num - other.num).rem_euclid(self.prime);
+        return FieldElement::new(n, self.prime);
+    }
+}
+
+impl Mul for FieldElement {
+    type Output = Self;
+
+    // Mul operator
+    fn mul(self, other: Self) -> Self {
+        if self.prime != other.prime {
+            panic!("cannot mul two numbers in different fields");
+        }
+
+        let n = (self.num * other.num).rem_euclid(self.prime);
         return FieldElement::new(n, self.prime);
     }
 }
@@ -107,5 +121,22 @@ mod field_element_test {
         let field2 = FieldElement::new(12, 13);
 
         let _r_ = field1 - field2;
+    }
+
+    #[test]
+    fn multiplying_fields() {
+        let field1 = FieldElement::new(3, 13);
+        let field2 = FieldElement::new(12, 13);
+        let field3 = FieldElement::new(10, 13);
+
+        assert_eq!(field1 * field2, field3);
+    }
+    #[test]
+    #[should_panic(expected = "cannot mul two numbers in different fields")]
+    fn multiplying_different_fields() {
+        let field1 = FieldElement::new(76, 10);
+        let field2 = FieldElement::new(12, 13);
+
+        let _r_ = field1 * field2;
     }
 }

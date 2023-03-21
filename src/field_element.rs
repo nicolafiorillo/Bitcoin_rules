@@ -154,4 +154,40 @@ mod field_element_test {
 
         assert_eq!(field1.exp(3), field2);
     }
+
+    // #[test]
+    // fn exponentiationing_a_serie_7() {
+    //     let v = a_serie(7);
+    //     assert_eq!(v, a_serie_of_ones(7))
+    // }
+
+    #[test]
+    fn exponentiationing_a_serie_11() {
+        //let v = a_serie(11);
+        let n: u64 = 10;
+        let a = n.pow(10);
+        let n1 = (n.pow(10)).rem_euclid(11);
+        FieldElement::new(10, 11).exp(10);
+        //        assert_eq!(v, a_serie_of_ones(10))
+    }
+
+    // fn a_serie_of_ones(p: u32) -> Vec<FieldElement> {
+    //     let mut v = vec![];
+
+    //     for _i in 1..p {
+    //         v.push(FieldElement::new(1, p));
+    //     }
+
+    //     return v;
+    // }
+
+    // fn a_serie(p: u32) -> Vec<FieldElement> {
+    //     let mut v = vec![];
+
+    //     for i in 1..p {
+    //         v.push(FieldElement::new(i, p).exp(p - 1));
+    //     }
+
+    //     return v;
+    // }
 }

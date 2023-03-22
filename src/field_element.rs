@@ -1,14 +1,15 @@
+use rug::{ops::Pow, Integer};
 use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
-    num: u32,
+    num: Integer,
     prime: u32,
 }
 
 impl FieldElement {
     // Create a new FieldElement
-    pub fn new(num: u32, prime: u32) -> FieldElement {
+    pub fn new(num: Integer, prime: u32) -> FieldElement {
         FieldElement {
             num,
             prime,
@@ -18,8 +19,8 @@ impl FieldElement {
 
     // Exp operator
     fn exp(self, exponent: u32) -> FieldElement {
-        let n = (self.num.pow(exponent)).rem_euclid(self.prime);
-        return FieldElement::new(n, self.prime);
+        let (_q, rem) = (self.num.pow(exponent)).div_rem_euc(Into::into(self.prime));
+        return FieldElement::new(rem, self.prime);
     }
 }
 
@@ -32,8 +33,10 @@ impl Add for FieldElement {
             panic!("cannot add two numbers in different fields");
         }
 
-        let n = (self.num + other.num).rem_euclid(self.prime);
-        return FieldElement::new(n, self.prime);
+        let s = &self.num + &other.num;
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+
+        return FieldElement::new(rem, self.prime);
     }
 }
 
@@ -46,8 +49,9 @@ impl Sub for FieldElement {
             panic!("cannot sub two numbers in different fields");
         }
 
-        let n = (self.num - other.num).rem_euclid(self.prime);
-        return FieldElement::new(n, self.prime);
+        let s = &self.num - &other.num;
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+        return FieldElement::new(rem, self.prime);
     }
 }
 
@@ -60,8 +64,9 @@ impl Mul for FieldElement {
             panic!("cannot mul two numbers in different fields");
         }
 
-        let n = (self.num * other.num).rem_euclid(self.prime);
-        return FieldElement::new(n, self.prime);
+        let s = &self.num * &other.num;
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+        return FieldElement::new(rem, self.prime);
     }
 }
 
@@ -71,33 +76,33 @@ mod field_element_test {
 
     #[test]
     fn fields_are_equals() {
-        let field1 = FieldElement::new(1, 2);
-        let field2 = FieldElement::new(1, 2);
+        let field1 = FieldElement::new(Integer::from(1), 2);
+        let field2 = FieldElement::new(Integer::from(1), 2);
 
         assert_eq!(field1, field2);
     }
 
     #[test]
     fn fields_are_different_by_num() {
-        let field1 = FieldElement::new(1, 2);
-        let field2 = FieldElement::new(2, 2);
+        let field1 = FieldElement::new(Integer::from(1), 2);
+        let field2 = FieldElement::new(Integer::from(2), 2);
 
         assert_ne!(field1, field2);
     }
 
     #[test]
     fn fields_are_different_by_prime() {
-        let field1 = FieldElement::new(1, 2);
-        let field2 = FieldElement::new(1, 3);
+        let field1 = FieldElement::new(Integer::from(1), 2);
+        let field2 = FieldElement::new(Integer::from(1), 3);
 
         assert_ne!(field1, field2);
     }
 
     #[test]
     fn adding_fields() {
-        let field1 = FieldElement::new(7, 13);
-        let field2 = FieldElement::new(12, 13);
-        let field3 = FieldElement::new(6, 13);
+        let field1 = FieldElement::new(Integer::from(7), 13);
+        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field3 = FieldElement::new(Integer::from(6), 13);
 
         assert_eq!(field1 + field2, field3);
     }
@@ -105,17 +110,17 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot add two numbers in different fields")]
     fn adding_different_fields() {
-        let field1 = FieldElement::new(7, 10);
-        let field2 = FieldElement::new(12, 13);
+        let field1 = FieldElement::new(Integer::from(7), 10);
+        let field2 = FieldElement::new(Integer::from(12), 13);
 
         let _r_ = field1 + field2;
     }
 
     #[test]
     fn subtracting_fields() {
-        let field1 = FieldElement::new(76, 13);
-        let field2 = FieldElement::new(12, 13);
-        let field3 = FieldElement::new(12, 13);
+        let field1 = FieldElement::new(Integer::from(76), 13);
+        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field3 = FieldElement::new(Integer::from(12), 13);
 
         assert_eq!(field1 - field2, field3);
     }
@@ -123,17 +128,17 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot sub two numbers in different fields")]
     fn subtracting_different_fields() {
-        let field1 = FieldElement::new(76, 10);
-        let field2 = FieldElement::new(12, 13);
+        let field1 = FieldElement::new(Integer::from(76), 10);
+        let field2 = FieldElement::new(Integer::from(12), 13);
 
         let _r_ = field1 - field2;
     }
 
     #[test]
     fn multiplying_fields() {
-        let field1 = FieldElement::new(3, 13);
-        let field2 = FieldElement::new(12, 13);
-        let field3 = FieldElement::new(10, 13);
+        let field1 = FieldElement::new(Integer::from(3), 13);
+        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field3 = FieldElement::new(Integer::from(10), 13);
 
         assert_eq!(field1 * field2, field3);
     }
@@ -141,53 +146,61 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot mul two numbers in different fields")]
     fn multiplying_different_fields() {
-        let field1 = FieldElement::new(76, 10);
-        let field2 = FieldElement::new(12, 13);
+        let field1 = FieldElement::new(Integer::from(76), 10);
+        let field2 = FieldElement::new(Integer::from(12), 13);
 
         let _r_ = field1 * field2;
     }
 
     #[test]
     fn exponentiationing_fields() {
-        let field1 = FieldElement::new(3, 13);
-        let field2 = FieldElement::new(1, 13);
+        let field1 = FieldElement::new(Integer::from(3), 13);
+        let field2 = FieldElement::new(Integer::from(1), 13);
 
         assert_eq!(field1.exp(3), field2);
     }
 
-    // #[test]
-    // fn exponentiationing_a_serie_7() {
-    //     let v = a_serie(7);
-    //     assert_eq!(v, a_serie_of_ones(7))
-    // }
+    #[test]
+    fn exponentiationing_a_serie_7() {
+        let v = a_serie(7);
+        assert_eq!(v, a_vector_of_ones(7))
+    }
 
     #[test]
     fn exponentiationing_a_serie_11() {
-        //let v = a_serie(11);
-        let n: u64 = 10;
-        let a = n.pow(10);
-        let n1 = (n.pow(10)).rem_euclid(11);
-        FieldElement::new(10, 11).exp(10);
-        //        assert_eq!(v, a_serie_of_ones(10))
+        let v = a_serie(11);
+        assert_eq!(v, a_vector_of_ones(11))
     }
 
-    // fn a_serie_of_ones(p: u32) -> Vec<FieldElement> {
-    //     let mut v = vec![];
+    #[test]
+    fn exponentiationing_a_serie_17() {
+        let v = a_serie(17);
+        assert_eq!(v, a_vector_of_ones(17))
+    }
 
-    //     for _i in 1..p {
-    //         v.push(FieldElement::new(1, p));
-    //     }
+    #[test]
+    fn exponentiationing_a_serie_31() {
+        let v = a_serie(31);
+        assert_eq!(v, a_vector_of_ones(31))
+    }
 
-    //     return v;
-    // }
+    fn a_vector_of_ones(p: u32) -> Vec<FieldElement> {
+        let mut v = vec![];
 
-    // fn a_serie(p: u32) -> Vec<FieldElement> {
-    //     let mut v = vec![];
+        for _i in 1..p {
+            v.push(FieldElement::new(Integer::from(1), p));
+        }
 
-    //     for i in 1..p {
-    //         v.push(FieldElement::new(i, p).exp(p - 1));
-    //     }
+        return v;
+    }
 
-    //     return v;
-    // }
+    fn a_serie(p: u32) -> Vec<FieldElement> {
+        let mut v = vec![];
+
+        for i in 1..p {
+            v.push(FieldElement::new(Integer::from(i), p).exp(p - 1));
+        }
+
+        return v;
+    }
 }

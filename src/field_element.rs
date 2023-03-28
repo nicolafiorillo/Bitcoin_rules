@@ -1,3 +1,4 @@
+///! Finite field element management
 use rug::{ops::Pow, Integer};
 use std::ops::{Add, Mul, Sub};
 

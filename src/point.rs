@@ -1,3 +1,4 @@
+///! Point management in elliptic curve
 use rug::{ops::Pow, Integer};
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]

@@ -11,10 +11,5 @@ fn main() {
 
     println!("r: {}", r.rem_euclid(13));
 
-    let _point = Point::new(
-        Integer::from(-1),
-        Integer::from(-1),
-        Integer::from(5),
-        Integer::from(7),
-    );
+    let _point = Point::new(Some(-1), Some(-1), 5, 7);
 }

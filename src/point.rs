@@ -50,6 +50,14 @@ impl Add for Point {
             return self.clone();
         }
 
+        if self.x != other.x {
+            let s = (other.y.unwrap() - self.y.unwrap()) / (other.x.unwrap() - self.x.unwrap());
+            let x = s.pow(2) - self.x.unwrap() - other.x.unwrap();
+            let y = s * (self.x.unwrap() - x) - self.y.unwrap();
+
+            return Point::new(Some(x), Some(y), self.a, self.b);
+        }
+
         return Point::new(Some(0), Some(0), 0, 0);
     }
 }
@@ -169,6 +177,16 @@ mod point_test {
         let p2 = Point::new(Some(18), Some(-77), 5, 7);
 
         let p3 = Point::new(None, None, 5, 7);
+
+        assert_eq!(p1 + p2, p3);
+    }
+
+    #[test]
+    fn adding_with_different_x() {
+        let p1 = Point::new(Some(2), Some(5), 5, 7);
+        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
+
+        let p3 = Point::new(Some(3), Some(-7), 5, 7);
 
         assert_eq!(p1 + p2, p3);
     }

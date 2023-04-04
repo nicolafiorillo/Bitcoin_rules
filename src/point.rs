@@ -63,6 +63,17 @@ impl Add for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
+        if self == other {
+            let y1 = self.y.unwrap();
+            let x1 = self.x.unwrap();
+
+            let s = (3 * x1.pow(2) + self.a) / (2 * y1);
+            let x = s.pow(2) - (2 * x1);
+            let y = s * (x1 - x) - y1;
+
+            return Point::new(Some(x), Some(y), self.a, self.b);
+        }
+
         return Point::new(Some(0), Some(0), 0, 0);
     }
 }
@@ -192,6 +203,16 @@ mod point_test {
         let p2 = Point::new(Some(-1), Some(-1), 5, 7);
 
         let p3 = Point::new(Some(3), Some(-7), 5, 7);
+
+        assert_eq!(p1 + p2, p3);
+    }
+
+    #[test]
+    fn adding_two_same_points() {
+        let p1 = Point::new(Some(-1), Some(-1), 5, 7);
+        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
+
+        let p3 = Point::new(Some(18), Some(77), 5, 7);
 
         assert_eq!(p1 + p2, p3);
     }

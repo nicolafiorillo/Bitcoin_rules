@@ -63,6 +63,10 @@ impl Add for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
+        if self == other && self.y.is_some() && self.y.unwrap() == 0 {
+            return Point::new(None, None, self.a, self.b);
+        }
+
         if self == other {
             let y1 = self.y.unwrap();
             let x1 = self.x.unwrap();

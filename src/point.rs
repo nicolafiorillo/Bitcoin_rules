@@ -51,9 +51,14 @@ impl Add for Point {
         }
 
         if self.x != other.x {
-            let s = (other.y.unwrap() - self.y.unwrap()) / (other.x.unwrap() - self.x.unwrap());
-            let x = s.pow(2) - self.x.unwrap() - other.x.unwrap();
-            let y = s * (self.x.unwrap() - x) - self.y.unwrap();
+            let y2 = other.y.unwrap();
+            let y1 = self.y.unwrap();
+            let x1 = self.x.unwrap();
+            let x2 = other.x.unwrap();
+
+            let s = (y2 - y1) / (x2 - x1);
+            let x = s.pow(2) - x1 - x2;
+            let y = s * (x1 - x) - y1;
 
             return Point::new(Some(x), Some(y), self.a, self.b);
         }

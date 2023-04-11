@@ -1,4 +1,13 @@
-///! Point management in elliptic curve
+/// *Point* is a point i an elliptic curve.
+/// Curve is expressed as in
+///     y^2 = x^3 + ax + b
+///
+/// Elliptic curve used in Bitcoin's public-key cryptography is *Secp256k1*.
+///
+/// See
+///     https://en.bitcoin.it/wiki/Secp256k1
+///     sec2-v2.pdf
+///
 use std::ops::Add;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]

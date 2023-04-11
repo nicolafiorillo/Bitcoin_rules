@@ -1,6 +1,6 @@
 ///! Finite field element management
 use rug::{ops::Pow, Integer};
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
@@ -23,11 +23,17 @@ impl FieldElement {
     }
 
     // Exp operator (Fermat's lIttle Theorem)
-    fn exp(self, exponent: i32) -> FieldElement {
+    pub fn pow(self, exponent: i32) -> FieldElement {
         let exp = exponent.rem_euclid(self.prime as i32 - 1) as u32;
 
         let (_q, rem) = (self.num.pow(exp)).div_rem_euc(Into::into(self.prime));
         return FieldElement::new(rem, self.prime);
+    }
+}
+
+impl Clone for FieldElement {
+    fn clone(&self) -> FieldElement {
+        return FieldElement::new(self.num.clone(), self.prime);
     }
 }
 
@@ -73,6 +79,22 @@ impl Mul for FieldElement {
 
         let s = &self.num * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+        return FieldElement::new(rem, self.prime);
+    }
+}
+
+impl Div for FieldElement {
+    type Output = Self;
+
+    // Div operator
+    fn div(self, other: Self) -> Self {
+        if self.prime != other.prime {
+            panic!("cannot div two numbers in different fields");
+        }
+
+        let s = &self.num * (other.num.pow(self.prime - 2));
+        let (_q, rem) = s.div_rem_euc(Into::into(self.prime));
+
         return FieldElement::new(rem, self.prime);
     }
 }
@@ -160,11 +182,38 @@ mod field_element_test {
     }
 
     #[test]
+    fn dividing_fields_1() {
+        let field1 = FieldElement::new(Integer::from(3), 31);
+        let field2 = FieldElement::new(Integer::from(24), 31);
+        let field3 = FieldElement::new(Integer::from(4), 31);
+
+        assert_eq!(field1 / field2, field3);
+    }
+
+    #[test]
+    fn dividing_fields_2() {
+        let field1 = FieldElement::new(Integer::from(3), 31);
+        let field2 = FieldElement::new(Integer::from(24), 31);
+        let field3 = FieldElement::new(Integer::from(4), 31);
+
+        assert_eq!(field1 / field2, field3);
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot div two numbers in different fields")]
+    fn dividing_different_fields() {
+        let field1 = FieldElement::new(Integer::from(76), 10);
+        let field2 = FieldElement::new(Integer::from(12), 13);
+
+        let _r_ = field1 / field2;
+    }
+
+    #[test]
     fn exponentiationing_fields() {
         let field1 = FieldElement::new(Integer::from(3), 13);
         let field2 = FieldElement::new(Integer::from(1), 13);
 
-        assert_eq!(field1.exp(3), field2);
+        assert_eq!(field1.pow(3), field2);
     }
 
     #[test]
@@ -173,7 +222,7 @@ mod field_element_test {
         let field2 = FieldElement::new(Integer::from(24), 31);
         let field3 = FieldElement::new(Integer::from(4), 31);
 
-        assert_eq!(field1 * field2.exp(-1), field3);
+        assert_eq!(field1 * field2.pow(-1), field3);
     }
 
     #[test]
@@ -181,7 +230,7 @@ mod field_element_test {
         let field1 = FieldElement::new(Integer::from(17), 31);
         let field2 = FieldElement::new(Integer::from(29), 31);
 
-        assert_eq!(field1.exp(-3), field2);
+        assert_eq!(field1.pow(-3), field2);
     }
 
     #[test]
@@ -190,7 +239,7 @@ mod field_element_test {
         let field2 = FieldElement::new(Integer::from(11), 31);
         let field3 = FieldElement::new(Integer::from(13), 31);
 
-        assert_eq!(field1.exp(-4) * field2, field3);
+        assert_eq!(field1.pow(-4) * field2, field3);
     }
 
     #[test]
@@ -231,7 +280,7 @@ mod field_element_test {
         let mut v = vec![];
 
         for i in 1..p {
-            v.push(FieldElement::new(Integer::from(i), p).exp(p as i32 - 1));
+            v.push(FieldElement::new(Integer::from(i), p).pow(p as i32 - 1));
         }
 
         return v;

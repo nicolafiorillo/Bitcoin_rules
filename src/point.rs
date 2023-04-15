@@ -8,7 +8,10 @@
 ///     https://en.bitcoin.it/wiki/Secp256k1
 ///     sec2-v2.pdf
 ///
-use std::ops::Add;
+use std::{
+    fmt::{Display, Formatter, Result},
+    ops::Add,
+};
 
 use rug::Integer;
 
@@ -30,11 +33,6 @@ impl Point {
         b: FieldElement,
     ) -> Point {
         if let (Some(x_value), Some(y_value)) = (x.clone(), y.clone()) {
-            println!("{:?}", x_value);
-            println!("{:?}", y_value);
-            println!("{:?}", a);
-            println!("{:?}", b);
-
             if y_value.pow(2) != x_value.clone().pow(3) + a.clone() * x_value + b.clone() {
                 panic!("point is not in the curve");
             }
@@ -49,6 +47,24 @@ impl Point {
         };
 
         return point;
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let x = if self.x.is_none() {
+            "None".to_string()
+        } else {
+            self.x.as_ref().unwrap().to_string()
+        };
+
+        let y = if self.y.is_none() {
+            "None".to_string()
+        } else {
+            self.x.as_ref().unwrap().to_string()
+        };
+
+        write!(f, "{}, {} <a: {}, b: {}>", x, y, self.a, self.b)
     }
 }
 

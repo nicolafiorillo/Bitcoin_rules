@@ -1,6 +1,9 @@
 ///! Finite field element management
 use rug::{ops::Pow, Integer};
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    fmt::{Display, Formatter, Result},
+    ops::{Add, Div, Mul, Sub},
+};
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
@@ -28,6 +31,12 @@ impl FieldElement {
 
         let (_q, rem) = (self.num.clone().pow(exp)).div_rem_euc(Into::into(self.prime));
         return FieldElement::new(rem, self.prime);
+    }
+}
+
+impl Display for FieldElement {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{} <{}>", self.num, self.prime)
     }
 }
 

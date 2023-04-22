@@ -7,7 +7,7 @@ use point::Point;
 
 fn main() {
     let p1 = a_point(192, 105, 0, 7, 223);
-    let p2 = p1 * 2;
+    let p2 = &p1 * 2;
 
     println!("p: {}", p2);
 }

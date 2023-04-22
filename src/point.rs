@@ -13,8 +13,6 @@ use std::{
     ops::{Add, Mul},
 };
 
-use rug::Integer;
-
 use crate::field_element::FieldElement;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -38,15 +36,7 @@ impl Point {
             }
         }
 
-        let point = Point {
-            x,
-            y,
-            a,
-            b,
-            ..Default::default()
-        };
-
-        return point;
+        Point { x, y, a, b }
     }
 
     pub fn is_infinite(&self) -> bool {
@@ -74,16 +64,16 @@ impl Display for Point {
 
 impl Clone for Point {
     fn clone(&self) -> Point {
-        return Point::new(
+        Point::new(
             self.x.clone(),
             self.y.clone(),
             self.a.clone(),
             self.b.clone(),
-        );
+        )
     }
 }
 
-impl<'a, 'b> Add<&'b Point> for Point {
+impl Add<&Self> for Point {
     type Output = Self;
 
     // Add operator
@@ -97,7 +87,7 @@ impl<'a, 'b> Add<&'b Point> for Point {
         }
 
         if other.x.is_none() {
-            return self.clone();
+            return self;
         }
 
         if self.x == other.x && self.y != other.y {
@@ -111,16 +101,13 @@ impl<'a, 'b> Add<&'b Point> for Point {
             let x2 = &other.x.clone().unwrap();
 
             let s = (y2 - y1) / (x2 - x1);
-            let x = s.clone().pow(2) - x1 - x2;
+            let x = s.pow(2) - x1 - x2;
             let y = &s * &(x1 - &x) - y1;
 
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        if self == other.clone()
-            && self.y.is_some()
-            && self.y.clone().unwrap() == (0 * self.x.clone().unwrap())
-        {
+        if self == other.clone() && self.y.is_some() && self.y.clone().unwrap().is_zero() {
             return Point::new(None, None, self.a, self.b);
         }
 
@@ -129,17 +116,17 @@ impl<'a, 'b> Add<&'b Point> for Point {
             let x1 = &self.x.unwrap();
 
             let s = (3 * x1.clone().pow(2) + self.a.clone()) / (2 * y1);
-            let x = s.clone().pow(2) - (2 * x1.clone());
+            let x = s.pow(2) - (2 * x1.clone());
             let y = s * (x1 - &x) - y1;
 
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        return Point::new(None, None, self.a, self.b);
+        Point::new(None, None, self.a, self.b)
     }
 }
 
-impl<'a, 'b> Mul<u32> for Point {
+impl Mul<u32> for &Point {
     type Output = Point;
 
     fn mul(self, other: u32) -> Point {
@@ -148,19 +135,20 @@ impl<'a, 'b> Mul<u32> for Point {
         }
 
         let p: Point = self.clone();
-        let mut product = p.clone();
+        let mut product = p;
 
         for _x in 1..other {
-            product = product.clone() + &self;
+            product = product.clone() + self;
         }
 
-        return product;
+        product
     }
 }
 
 #[cfg(test)]
 mod point_test {
     use crate::point::*;
+    use rug::Integer;
 
     #[test]
     fn a_point_in_curve_1() {
@@ -331,7 +319,7 @@ mod point_test {
     #[test]
     fn adding_two_points_4() {
         let p1 = a_point(192, 105, 0, 7, 223);
-        let p2 = p1.clone() * 2;
+        let p2 = &p1 * 2;
         let p3 = a_point(49, 71, 0, 7, 223);
 
         assert_eq!(p2, p3);
@@ -340,7 +328,7 @@ mod point_test {
     #[test]
     fn adding_two_points_5() {
         let p1 = a_point(143, 98, 0, 7, 223);
-        let p2 = p1.clone() * 2;
+        let p2 = &p1 * 2;
         let p3 = a_point(64, 168, 0, 7, 223);
 
         assert_eq!(p2, p3);
@@ -349,7 +337,7 @@ mod point_test {
     #[test]
     fn adding_two_points_6() {
         let p1 = a_point(47, 71, 0, 7, 223);
-        let p2 = p1.clone() * 2;
+        let p2 = &p1 * 2;
         let p3 = a_point(36, 111, 0, 7, 223);
 
         assert_eq!(p2, p3);
@@ -358,7 +346,7 @@ mod point_test {
     #[test]
     fn adding_two_points_7() {
         let p1 = a_point(47, 71, 0, 7, 223);
-        let p2 = p1.clone() * 4;
+        let p2 = &p1 * 4;
         let p3 = a_point(194, 51, 0, 7, 223);
 
         assert_eq!(p2, p3);
@@ -367,7 +355,7 @@ mod point_test {
     #[test]
     fn adding_two_points_8() {
         let p1 = a_point(47, 71, 0, 7, 223);
-        let p2 = p1.clone() * 8;
+        let p2 = &p1 * 8;
 
         let p3 = a_point(116, 55, 0, 7, 223);
 
@@ -377,7 +365,7 @@ mod point_test {
     #[test]
     fn adding_two_points_infinite() {
         let p1 = a_point(47, 71, 0, 7, 223);
-        let p2 = p1.clone() * 21;
+        let p2 = &p1 * 21;
 
         assert!(p2.is_infinite());
     }

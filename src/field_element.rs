@@ -18,19 +18,19 @@ impl FieldElement {
             panic!("invalid base: it must be equal or greater than 2");
         }
 
-        FieldElement {
-            num,
-            prime,
-            ..Default::default()
-        }
+        FieldElement { num, prime }
     }
 
     // Exp operator (Fermat's lIttle Theorem)
-    pub fn pow(self, exponent: i32) -> FieldElement {
+    pub fn pow(&self, exponent: i32) -> FieldElement {
         let exp = exponent.rem_euclid(self.prime as i32 - 1) as u32;
 
         let (_q, rem) = (self.num.clone().pow(exp)).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.num == 0
     }
 }
 
@@ -42,7 +42,7 @@ impl Display for FieldElement {
 
 impl Clone for FieldElement {
     fn clone(&self) -> FieldElement {
-        return FieldElement::new(self.num.clone(), self.prime);
+        FieldElement::new(self.num.clone(), self.prime)
     }
 }
 
@@ -58,7 +58,7 @@ impl Add for FieldElement {
         let s = &self.num + &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
 
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
@@ -73,35 +73,35 @@ impl Sub for FieldElement {
 
         let s = &self.num - &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Sub<&'b FieldElement> for &'a FieldElement {
+impl Sub<&FieldElement> for &FieldElement {
     type Output = FieldElement;
 
-    fn sub(self, other: &'b FieldElement) -> FieldElement {
+    fn sub(self, other: &FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot sub two numbers in different fields");
         }
 
         let s = &self.num - &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Sub<&'b FieldElement> for FieldElement {
-    type Output = FieldElement;
+impl Sub<&Self> for FieldElement {
+    type Output = Self;
 
-    fn sub(self, other: &'b FieldElement) -> FieldElement {
+    fn sub(self, other: &Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot sub two numbers in different fields");
         }
 
         let s = &self.num - &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
@@ -116,35 +116,35 @@ impl Mul for FieldElement {
 
         let s = &self.num * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Mul<&'b FieldElement> for &'a FieldElement {
+impl Mul<&FieldElement> for &FieldElement {
     type Output = FieldElement;
 
-    fn mul(self, other: &'b FieldElement) -> FieldElement {
+    fn mul(self, other: &FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
         }
 
         let s = &self.num * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Mul<&'b FieldElement> for FieldElement {
-    type Output = FieldElement;
+impl Mul<&Self> for FieldElement {
+    type Output = Self;
 
-    fn mul(self, other: &'b FieldElement) -> FieldElement {
+    fn mul(self, other: &Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
         }
 
         let s = &self.num * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
@@ -160,14 +160,14 @@ impl Div for FieldElement {
         let s = &self.num * (other.num.pow(self.prime - 2));
         let (_q, rem) = s.div_rem_euc(Into::into(self.prime));
 
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Div<&'b FieldElement> for &'a FieldElement {
+impl Div<Self> for &FieldElement {
     type Output = FieldElement;
 
-    fn div(self, other: &'b FieldElement) -> FieldElement {
+    fn div(self, other: &FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
         }
@@ -175,18 +175,18 @@ impl<'a, 'b> Div<&'b FieldElement> for &'a FieldElement {
         let s = &self.num * (other.num.clone().pow(self.prime - 2));
         let (_q, rem) = s.div_rem_euc(Into::into(self.prime));
 
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 
-impl<'a, 'b> Mul<&'b FieldElement> for i32 {
+impl Mul<&FieldElement> for i32 {
     type Output = FieldElement;
 
-    fn mul(self, other: &'b FieldElement) -> FieldElement {
+    fn mul(self, other: &FieldElement) -> FieldElement {
         let s = self * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime));
 
-        return FieldElement::new(rem, other.prime);
+        FieldElement::new(rem, other.prime)
     }
 }
 
@@ -197,18 +197,18 @@ impl Mul<FieldElement> for i32 {
         let s = self * &other.num;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime));
 
-        return FieldElement::new(rem, other.prime);
+        FieldElement::new(rem, other.prime)
     }
 }
 
 impl Mul<i32> for FieldElement {
-    type Output = FieldElement;
+    type Output = Self;
 
-    fn mul(self, other: i32) -> FieldElement {
+    fn mul(self, other: i32) -> Self {
         let s = &self.num * other;
         let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
 
-        return FieldElement::new(rem, self.prime);
+        FieldElement::new(rem, self.prime)
     }
 }
 

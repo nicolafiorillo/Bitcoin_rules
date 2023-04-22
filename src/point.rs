@@ -10,7 +10,7 @@
 ///
 use std::{
     fmt::{Display, Formatter, Result},
-    ops::Add,
+    ops::{Add, Mul},
 };
 
 use rug::Integer;
@@ -48,6 +48,10 @@ impl Point {
 
         return point;
     }
+
+    pub fn is_infinite(&self) -> bool {
+        self.x.is_none() && self.y.is_none()
+    }
 }
 
 impl Display for Point {
@@ -61,10 +65,10 @@ impl Display for Point {
         let y = if self.y.is_none() {
             "None".to_string()
         } else {
-            self.x.as_ref().unwrap().to_string()
+            self.y.as_ref().unwrap().to_string()
         };
 
-        write!(f, "{}, {} <a: {}, b: {}>", x, y, self.a, self.b)
+        write!(f, "{}, {} (a: {}, b: {})", x, y, self.a, self.b)
     }
 }
 
@@ -141,90 +145,63 @@ impl Add for Point {
     }
 }
 
+impl<'a, 'b> Mul<u32> for Point {
+    type Output = Point;
+
+    fn mul(self, other: u32) -> Point {
+        if other == 0 {
+            panic!("TODO: multiplication by zero not implemented");
+        }
+
+        let p: Point = self.clone();
+        let mut product = p.clone();
+
+        for _x in 1..other {
+            product = product.clone() + p.clone();
+        }
+
+        return product;
+    }
+}
+
 #[cfg(test)]
 mod point_test {
     use crate::point::*;
 
     #[test]
     fn a_point_in_curve_1() {
-        let prime = 256;
-
-        let x = FieldElement::new(Integer::from(-1), prime);
-        let y = FieldElement::new(Integer::from(-1), prime);
-        let a = FieldElement::new(Integer::from(5), prime);
-        let b = FieldElement::new(Integer::from(7), prime);
-
-        Point::new(Some(x), Some(y), a, b);
+        let _p = a_point(-1, -1, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_1() {
-        let prime = 256;
-
-        let x = FieldElement::new(Integer::from(-1), prime);
-        let y = FieldElement::new(Integer::from(-2), prime);
-        let a = FieldElement::new(Integer::from(5), prime);
-        let b = FieldElement::new(Integer::from(7), prime);
-
-        Point::new(Some(x), Some(y), a, b);
+        let _p = a_point(-1, 2, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_2() {
-        let prime = 256;
-
-        let x = FieldElement::new(Integer::from(2), prime);
-        let y = FieldElement::new(Integer::from(4), prime);
-        let a = FieldElement::new(Integer::from(5), prime);
-        let b = FieldElement::new(Integer::from(7), prime);
-
-        Point::new(Some(x), Some(y), a, b);
+        let _p = a_point(2, 4, 5, 7, 256);
     }
 
     #[test]
     fn a_point_in_curve_2() {
-        let prime = 256;
-
-        let x = FieldElement::new(Integer::from(18), prime);
-        let y = FieldElement::new(Integer::from(77), prime);
-        let a = FieldElement::new(Integer::from(5), prime);
-        let b = FieldElement::new(Integer::from(7), prime);
-
-        Point::new(Some(x), Some(y), a, b);
+        let _p = a_point(18, 77, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_3() {
-        let prime = 256;
-
-        let x = FieldElement::new(Integer::from(5), prime);
-        let y = FieldElement::new(Integer::from(7), prime);
-        let a = FieldElement::new(Integer::from(5), prime);
-        let b = FieldElement::new(Integer::from(7), prime);
-
-        Point::new(Some(x), Some(y), a, b);
+        let _p = a_point(5, 7, 5, 7, 256);
     }
 
     #[test]
     fn points_are_equal() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(18), prime);
-        let y2 = FieldElement::new(Integer::from(77), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
+        let p1 = a_point(18, 77, 5, 7, prime);
+        let p2 = a_point(18, 77, 5, 7, prime);
 
         assert_eq!(p1, p2);
     }
@@ -233,19 +210,8 @@ mod point_test {
     fn points_are_not_equal() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(-1), prime);
-        let y2 = FieldElement::new(Integer::from(-1), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
+        let p1 = a_point(18, 77, 5, 7, prime);
+        let p2 = a_point(-1, -1, 5, 7, prime);
 
         assert_ne!(p1, p2);
     }
@@ -254,17 +220,8 @@ mod point_test {
     fn points_with_x_inf_are_equal() {
         let prime = 256;
 
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(None, Some(y1), a1, b1);
-
-        let y2 = FieldElement::new(Integer::from(77), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(None, Some(y2), a2, b2);
+        let p1 = a_point_x_none(77, 5, 7, prime);
+        let p2 = a_point_x_none(77, 5, 7, prime);
 
         assert_eq!(p1, p2);
     }
@@ -273,17 +230,8 @@ mod point_test {
     fn points_with_y_inf_are_equal() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), None, a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(18), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), None, a2, b2);
+        let p1 = a_point_y_none(18, 5, 7, prime);
+        let p2 = a_point_y_none(18, 5, 7, prime);
 
         assert_eq!(p1, p2);
     }
@@ -292,15 +240,8 @@ mod point_test {
     fn points_with_both_x_and_y_inf_are_equal() {
         let prime = 256;
 
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(None, None, a1, b1);
-
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(None, None, a2, b2);
+        let p1 = a_infinite_point(5, 7, prime);
+        let p2 = a_infinite_point(5, 7, prime);
 
         assert_eq!(p1, p2);
     }
@@ -310,19 +251,8 @@ mod point_test {
     fn adding_points_in_different_curve_a() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(-1), prime);
-        let y1 = FieldElement::new(Integer::from(0), prime);
-        let a1 = FieldElement::new(Integer::from(6), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(18), prime);
-        let y2 = FieldElement::new(Integer::from(77), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
+        let p1 = a_point(-1, 0, 6, 7, prime);
+        let p2 = a_point(18, 77, 5, 7, prime);
 
         let _r_ = p1 + p2;
     }
@@ -332,19 +262,8 @@ mod point_test {
     fn adding_points_in_different_curve_b() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(0), prime);
-        let y2 = FieldElement::new(Integer::from(3), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(9), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
+        let p1 = a_point(18, 77, 5, 7, prime);
+        let p2 = a_point(0, 3, 5, 9, prime);
 
         let _r_ = p1 + p2;
     }
@@ -354,19 +273,8 @@ mod point_test {
     fn adding_points_in_different_curve_both_a_and_b() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(0), prime);
-        let y2 = FieldElement::new(Integer::from(3), prime);
-        let a2 = FieldElement::new(Integer::from(6), prime);
-        let b2 = FieldElement::new(Integer::from(9), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
+        let p1 = a_point(18, 77, 5, 7, prime);
+        let p2 = a_point(0, 3, 6, 9, prime);
 
         let _r_ = p1 + p2;
     }
@@ -375,19 +283,8 @@ mod point_test {
     fn adding_infinite_x_point() {
         let prime = 256;
 
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(None, Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(-1), prime);
-        let y2 = FieldElement::new(Integer::from(-1), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
-
+        let p1 = a_point_x_none(77, 5, 7, prime);
+        let p2 = a_point(-1, -1, 5, 7, prime);
         let p3 = p1 + p2.clone();
 
         assert_eq!(p3, p2);
@@ -397,24 +294,9 @@ mod point_test {
     fn adding_same_x_and_different_y_as_in_vertical_line() {
         let prime = 256;
 
-        let x1 = FieldElement::new(Integer::from(18), prime);
-        let y1 = FieldElement::new(Integer::from(77), prime);
-        let a1 = FieldElement::new(Integer::from(5), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(18), prime);
-        let y2 = FieldElement::new(Integer::from(-77), prime);
-        let a2 = FieldElement::new(Integer::from(5), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
-
-        let a3 = FieldElement::new(Integer::from(5), prime);
-        let b3 = FieldElement::new(Integer::from(7), prime);
-
-        let p3 = Point::new(None, None, a3, b3);
+        let p1 = a_point(18, 77, 5, 7, prime);
+        let p2 = a_point(18, -77, 5, 7, prime);
+        let p3 = a_infinite_point(5, 7, prime);
 
         assert_eq!(p1 + p2, p3);
     }
@@ -423,26 +305,9 @@ mod point_test {
     fn adding_two_points_1() {
         let prime = 223;
 
-        let x1 = FieldElement::new(Integer::from(170), prime);
-        let y1 = FieldElement::new(Integer::from(142), prime);
-        let a1 = FieldElement::new(Integer::from(0), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(60), prime);
-        let y2 = FieldElement::new(Integer::from(139), prime);
-        let a2 = FieldElement::new(Integer::from(0), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
-
-        let x3 = FieldElement::new(Integer::from(220), prime);
-        let y3 = FieldElement::new(Integer::from(181), prime);
-        let a3 = FieldElement::new(Integer::from(0), prime);
-        let b3 = FieldElement::new(Integer::from(7), prime);
-
-        let p3 = Point::new(Some(x3), Some(y3), a3, b3);
+        let p1 = a_point(170, 142, 0, 7, prime);
+        let p2 = a_point(60, 139, 0, 7, prime);
+        let p3 = a_point(220, 181, 0, 7, prime);
 
         assert_eq!(p1 + p2, p3);
     }
@@ -451,26 +316,9 @@ mod point_test {
     fn adding_two_points_2() {
         let prime = 223;
 
-        let x1 = FieldElement::new(Integer::from(47), prime);
-        let y1 = FieldElement::new(Integer::from(71), prime);
-        let a1 = FieldElement::new(Integer::from(0), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(17), prime);
-        let y2 = FieldElement::new(Integer::from(56), prime);
-        let a2 = FieldElement::new(Integer::from(0), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
-
-        let x3 = FieldElement::new(Integer::from(215), prime);
-        let y3 = FieldElement::new(Integer::from(68), prime);
-        let a3 = FieldElement::new(Integer::from(0), prime);
-        let b3 = FieldElement::new(Integer::from(7), prime);
-
-        let p3 = Point::new(Some(x3), Some(y3), a3, b3);
+        let p1 = a_point(47, 71, 0, 7, prime);
+        let p2 = a_point(17, 56, 0, 7, prime);
+        let p3 = a_point(215, 68, 0, 7, prime);
 
         assert_eq!(p1 + p2, p3);
     }
@@ -479,27 +327,110 @@ mod point_test {
     fn adding_two_points_3() {
         let prime = 223;
 
-        let x1 = FieldElement::new(Integer::from(143), prime);
-        let y1 = FieldElement::new(Integer::from(98), prime);
-        let a1 = FieldElement::new(Integer::from(0), prime);
-        let b1 = FieldElement::new(Integer::from(7), prime);
-
-        let p1 = Point::new(Some(x1), Some(y1), a1, b1);
-
-        let x2 = FieldElement::new(Integer::from(76), prime);
-        let y2 = FieldElement::new(Integer::from(66), prime);
-        let a2 = FieldElement::new(Integer::from(0), prime);
-        let b2 = FieldElement::new(Integer::from(7), prime);
-
-        let p2 = Point::new(Some(x2), Some(y2), a2, b2);
-
-        let x3 = FieldElement::new(Integer::from(47), prime);
-        let y3 = FieldElement::new(Integer::from(71), prime);
-        let a3 = FieldElement::new(Integer::from(0), prime);
-        let b3 = FieldElement::new(Integer::from(7), prime);
-
-        let p3 = Point::new(Some(x3), Some(y3), a3, b3);
+        let p1 = a_point(143, 98, 0, 7, prime);
+        let p2 = a_point(76, 66, 0, 7, prime);
+        let p3 = a_point(47, 71, 0, 7, prime);
 
         assert_eq!(p1 + p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_4() {
+        let p1 = a_point(192, 105, 0, 7, 223);
+        let p2 = p1.clone() * 2;
+        let p3 = a_point(49, 71, 0, 7, 223);
+
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_5() {
+        let p1 = a_point(143, 98, 0, 7, 223);
+        let p2 = p1.clone() * 2;
+        let p3 = a_point(64, 168, 0, 7, 223);
+
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_6() {
+        let p1 = a_point(47, 71, 0, 7, 223);
+        let p2 = p1.clone() * 2;
+        let p3 = a_point(36, 111, 0, 7, 223);
+
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_7() {
+        let p1 = a_point(47, 71, 0, 7, 223);
+        let p2 = p1.clone() * 4;
+        let p3 = a_point(194, 51, 0, 7, 223);
+
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_8() {
+        let p1 = a_point(47, 71, 0, 7, 223);
+        let p2 = p1.clone() * 8;
+
+        let p3 = a_point(116, 55, 0, 7, 223);
+
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn adding_two_points_infinite() {
+        let p1 = a_point(47, 71, 0, 7, 223);
+        let p2 = p1.clone() * 21;
+
+        assert!(p2.is_infinite());
+    }
+
+    #[test]
+    fn find_group_order() {
+        let p = a_point(15, 86, 0, 7, 223);
+        let mut product = p.clone();
+
+        let mut n = 1;
+        while !product.is_infinite() {
+            product = product.clone() + p.clone();
+            n += 1;
+        }
+
+        assert_eq!(n, 7);
+    }
+
+    fn a_point_x_none(y: i32, a: i32, b: i32, prime: u32) -> Point {
+        let yfe = FieldElement::new(Integer::from(y), prime);
+        let afe = FieldElement::new(Integer::from(a), prime);
+        let bfe = FieldElement::new(Integer::from(b), prime);
+
+        Point::new(None, Some(yfe), afe, bfe)
+    }
+
+    fn a_point_y_none(x: i32, a: i32, b: i32, prime: u32) -> Point {
+        let xfe = FieldElement::new(Integer::from(x), prime);
+        let afe = FieldElement::new(Integer::from(a), prime);
+        let bfe = FieldElement::new(Integer::from(b), prime);
+
+        Point::new(Some(xfe), None, afe, bfe)
+    }
+
+    fn a_infinite_point(a: i32, b: i32, prime: u32) -> Point {
+        let afe = FieldElement::new(Integer::from(a), prime);
+        let bfe = FieldElement::new(Integer::from(b), prime);
+
+        Point::new(None, None, afe, bfe)
+    }
+
+    fn a_point(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
+        let xfe = FieldElement::new(Integer::from(x), prime);
+        let yfe = FieldElement::new(Integer::from(y), prime);
+        let afe = FieldElement::new(Integer::from(a), prime);
+        let bfe = FieldElement::new(Integer::from(b), prime);
+
+        Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 }

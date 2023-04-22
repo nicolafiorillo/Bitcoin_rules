@@ -6,17 +6,17 @@ mod point;
 use point::Point;
 
 fn main() {
-    let _a = FieldElement::new(Integer::from(1), 8);
-    let r: i32 = 76 - 12;
+    let p1 = a_point(192, 105, 0, 7, 223);
+    let p2 = p1 * 2;
 
-    let _a = Integer::from(5);
+    println!("p: {}", p2);
+}
 
-    println!("r: {}", r.rem_euclid(13));
+fn a_point(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
+    let xfe = FieldElement::new(Integer::from(x), prime);
+    let yfe = FieldElement::new(Integer::from(y), prime);
+    let afe = FieldElement::new(Integer::from(a), prime);
+    let bfe = FieldElement::new(Integer::from(b), prime);
 
-    let x = FieldElement::new(Integer::from(-1), 256);
-    let y = FieldElement::new(Integer::from(-1), 256);
-    let a = FieldElement::new(Integer::from(5), 256);
-    let b = FieldElement::new(Integer::from(7), 256);
-
-    let _point = Point::new(Some(x), Some(y), a, b);
+    Point::new(Some(xfe), Some(yfe), afe, bfe)
 }

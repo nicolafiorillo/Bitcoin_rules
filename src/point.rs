@@ -48,6 +48,10 @@ impl Point {
         Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 
+    pub fn new_infinite(a: FieldElement, b: FieldElement) -> Point {
+        Point::new(None, None, a, b)
+    }
+
     pub fn is_infinite(&self) -> bool {
         self.x.is_none() && self.y.is_none()
     }
@@ -116,8 +120,10 @@ impl Add<&Self> for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        if self == other.clone() && self.y.is_some() && self.y.clone().unwrap().is_zero() {
-            return Point::new(None, None, self.a, self.b);
+        if let Some(y_value) = self.y.clone() {
+            if self == other.clone() && y_value.is_zero() {
+                return Point::new(None, None, self.a, self.b);
+            }
         }
 
         if self == other.clone() {
@@ -131,7 +137,7 @@ impl Add<&Self> for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        Point::new(None, None, self.a, self.b)
+        Point::new_infinite(self.a, self.b)
     }
 }
 
@@ -412,6 +418,6 @@ mod point_test {
         let afe = FieldElement::new(Integer::from(a), prime);
         let bfe = FieldElement::new(Integer::from(b), prime);
 
-        Point::new(None, None, afe, bfe)
+        Point::new_infinite(afe, bfe)
     }
 }

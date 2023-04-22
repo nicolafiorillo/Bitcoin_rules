@@ -83,11 +83,11 @@ impl Clone for Point {
     }
 }
 
-impl Add for Point {
+impl<'a, 'b> Add<&'b Point> for Point {
     type Output = Self;
 
     // Add operator
-    fn add(self, other: Self) -> Self {
+    fn add(self, other: &Self) -> Self {
         if self.a != other.a || self.b != other.b {
             panic!("points are not in the same curve");
         }
@@ -105,10 +105,10 @@ impl Add for Point {
         }
 
         if self.x != other.x {
-            let y2 = &other.y.unwrap();
+            let y2 = &other.y.clone().unwrap();
             let y1 = &self.y.unwrap();
             let x1 = &self.x.unwrap();
-            let x2 = &other.x.unwrap();
+            let x2 = &other.x.clone().unwrap();
 
             let s = (y2 - y1) / (x2 - x1);
             let x = s.clone().pow(2) - x1 - x2;
@@ -117,14 +117,14 @@ impl Add for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        if self == other
+        if self == other.clone()
             && self.y.is_some()
             && self.y.clone().unwrap() == (0 * self.x.clone().unwrap())
         {
             return Point::new(None, None, self.a, self.b);
         }
 
-        if self == other {
+        if self == other.clone() {
             let y1 = &self.y.unwrap();
             let x1 = &self.x.unwrap();
 
@@ -135,13 +135,7 @@ impl Add for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        return Point::new(
-            None,
-            None,
-            FieldElement::new(Integer::from(0), 0),
-            FieldElement::new(Integer::from(0), 0),
-        );
-        //        return Point::new(None, None, self.a, self.b);
+        return Point::new(None, None, self.a, self.b);
     }
 }
 
@@ -157,7 +151,7 @@ impl<'a, 'b> Mul<u32> for Point {
         let mut product = p.clone();
 
         for _x in 1..other {
-            product = product.clone() + p.clone();
+            product = product.clone() + &self;
         }
 
         return product;
@@ -254,7 +248,7 @@ mod point_test {
         let p1 = a_point(-1, 0, 6, 7, prime);
         let p2 = a_point(18, 77, 5, 7, prime);
 
-        let _r_ = p1 + p2;
+        let _r_ = p1 + &p2;
     }
 
     #[test]
@@ -265,7 +259,7 @@ mod point_test {
         let p1 = a_point(18, 77, 5, 7, prime);
         let p2 = a_point(0, 3, 5, 9, prime);
 
-        let _r_ = p1 + p2;
+        let _r_ = p1 + &p2;
     }
 
     #[test]
@@ -276,7 +270,7 @@ mod point_test {
         let p1 = a_point(18, 77, 5, 7, prime);
         let p2 = a_point(0, 3, 6, 9, prime);
 
-        let _r_ = p1 + p2;
+        let _r_ = p1 + &p2;
     }
 
     #[test]
@@ -285,7 +279,7 @@ mod point_test {
 
         let p1 = a_point_x_none(77, 5, 7, prime);
         let p2 = a_point(-1, -1, 5, 7, prime);
-        let p3 = p1 + p2.clone();
+        let p3 = p1 + &p2;
 
         assert_eq!(p3, p2);
     }
@@ -298,7 +292,7 @@ mod point_test {
         let p2 = a_point(18, -77, 5, 7, prime);
         let p3 = a_infinite_point(5, 7, prime);
 
-        assert_eq!(p1 + p2, p3);
+        assert_eq!(p1 + &p2, p3);
     }
 
     #[test]
@@ -309,7 +303,7 @@ mod point_test {
         let p2 = a_point(60, 139, 0, 7, prime);
         let p3 = a_point(220, 181, 0, 7, prime);
 
-        assert_eq!(p1 + p2, p3);
+        assert_eq!(p1 + &p2, p3);
     }
 
     #[test]
@@ -320,7 +314,7 @@ mod point_test {
         let p2 = a_point(17, 56, 0, 7, prime);
         let p3 = a_point(215, 68, 0, 7, prime);
 
-        assert_eq!(p1 + p2, p3);
+        assert_eq!(p1 + &p2, p3);
     }
 
     #[test]
@@ -331,7 +325,7 @@ mod point_test {
         let p2 = a_point(76, 66, 0, 7, prime);
         let p3 = a_point(47, 71, 0, 7, prime);
 
-        assert_eq!(p1 + p2, p3);
+        assert_eq!(p1 + &p2, p3);
     }
 
     #[test]
@@ -395,7 +389,7 @@ mod point_test {
 
         let mut n = 1;
         while !product.is_infinite() {
-            product = product.clone() + p.clone();
+            product = product.clone() + &p;
             n += 1;
         }
 

@@ -8,12 +8,12 @@
 ///     https://en.bitcoin.it/wiki/Secp256k1
 ///     sec2-v2.pdf
 ///
+use crate::field_element::FieldElement;
+use rug::Integer;
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Mul},
 };
-
-use crate::field_element::FieldElement;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Point {
@@ -37,6 +37,15 @@ impl Point {
         }
 
         Point { x, y, a, b }
+    }
+
+    pub fn new_with_numbers(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
+        let xfe = FieldElement::new(Integer::from(x), prime);
+        let yfe = FieldElement::new(Integer::from(y), prime);
+        let afe = FieldElement::new(Integer::from(a), prime);
+        let bfe = FieldElement::new(Integer::from(b), prime);
+
+        Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 
     pub fn is_infinite(&self) -> bool {
@@ -148,42 +157,41 @@ impl Mul<u32> for &Point {
 #[cfg(test)]
 mod point_test {
     use crate::point::*;
-    use rug::Integer;
 
     #[test]
     fn a_point_in_curve_1() {
-        let _p = a_point(-1, -1, 5, 7, 256);
+        let _p = Point::new_with_numbers(-1, -1, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_1() {
-        let _p = a_point(-1, 2, 5, 7, 256);
+        let _p = Point::new_with_numbers(-1, 2, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_2() {
-        let _p = a_point(2, 4, 5, 7, 256);
+        let _p = Point::new_with_numbers(2, 4, 5, 7, 256);
     }
 
     #[test]
     fn a_point_in_curve_2() {
-        let _p = a_point(18, 77, 5, 7, 256);
+        let _p = Point::new_with_numbers(18, 77, 5, 7, 256);
     }
 
     #[test]
     #[should_panic(expected = "point is not in the curve")]
     fn point_not_in_curve_3() {
-        let _p = a_point(5, 7, 5, 7, 256);
+        let _p = Point::new_with_numbers(5, 7, 5, 7, 256);
     }
 
     #[test]
     fn points_are_equal() {
         let prime = 256;
 
-        let p1 = a_point(18, 77, 5, 7, prime);
-        let p2 = a_point(18, 77, 5, 7, prime);
+        let p1 = Point::new_with_numbers(18, 77, 5, 7, prime);
+        let p2 = Point::new_with_numbers(18, 77, 5, 7, prime);
 
         assert_eq!(p1, p2);
     }
@@ -192,8 +200,8 @@ mod point_test {
     fn points_are_not_equal() {
         let prime = 256;
 
-        let p1 = a_point(18, 77, 5, 7, prime);
-        let p2 = a_point(-1, -1, 5, 7, prime);
+        let p1 = Point::new_with_numbers(18, 77, 5, 7, prime);
+        let p2 = Point::new_with_numbers(-1, -1, 5, 7, prime);
 
         assert_ne!(p1, p2);
     }
@@ -233,8 +241,8 @@ mod point_test {
     fn adding_points_in_different_curve_a() {
         let prime = 256;
 
-        let p1 = a_point(-1, 0, 6, 7, prime);
-        let p2 = a_point(18, 77, 5, 7, prime);
+        let p1 = Point::new_with_numbers(-1, 0, 6, 7, prime);
+        let p2 = Point::new_with_numbers(18, 77, 5, 7, prime);
 
         let _r_ = p1 + &p2;
     }
@@ -244,8 +252,8 @@ mod point_test {
     fn adding_points_in_different_curve_b() {
         let prime = 256;
 
-        let p1 = a_point(18, 77, 5, 7, prime);
-        let p2 = a_point(0, 3, 5, 9, prime);
+        let p1 = Point::new_with_numbers(18, 77, 5, 7, prime);
+        let p2 = Point::new_with_numbers(0, 3, 5, 9, prime);
 
         let _r_ = p1 + &p2;
     }
@@ -255,8 +263,8 @@ mod point_test {
     fn adding_points_in_different_curve_both_a_and_b() {
         let prime = 256;
 
-        let p1 = a_point(18, 77, 5, 7, prime);
-        let p2 = a_point(0, 3, 6, 9, prime);
+        let p1 = Point::new_with_numbers(18, 77, 5, 7, prime);
+        let p2 = Point::new_with_numbers(0, 3, 6, 9, prime);
 
         let _r_ = p1 + &p2;
     }
@@ -266,7 +274,7 @@ mod point_test {
         let prime = 256;
 
         let p1 = a_point_x_none(77, 5, 7, prime);
-        let p2 = a_point(-1, -1, 5, 7, prime);
+        let p2 = Point::new_with_numbers(-1, -1, 5, 7, prime);
         let p3 = p1 + &p2;
 
         assert_eq!(p3, p2);
@@ -276,8 +284,8 @@ mod point_test {
     fn adding_same_x_and_different_y_as_in_vertical_line() {
         let prime = 256;
 
-        let p1 = a_point(18, 77, 5, 7, prime);
-        let p2 = a_point(18, -77, 5, 7, prime);
+        let p1 = Point::new_with_numbers(18, 77, 5, 7, prime);
+        let p2 = Point::new_with_numbers(18, -77, 5, 7, prime);
         let p3 = a_infinite_point(5, 7, prime);
 
         assert_eq!(p1 + &p2, p3);
@@ -287,9 +295,9 @@ mod point_test {
     fn adding_two_points_1() {
         let prime = 223;
 
-        let p1 = a_point(170, 142, 0, 7, prime);
-        let p2 = a_point(60, 139, 0, 7, prime);
-        let p3 = a_point(220, 181, 0, 7, prime);
+        let p1 = Point::new_with_numbers(170, 142, 0, 7, prime);
+        let p2 = Point::new_with_numbers(60, 139, 0, 7, prime);
+        let p3 = Point::new_with_numbers(220, 181, 0, 7, prime);
 
         assert_eq!(p1 + &p2, p3);
     }
@@ -298,9 +306,9 @@ mod point_test {
     fn adding_two_points_2() {
         let prime = 223;
 
-        let p1 = a_point(47, 71, 0, 7, prime);
-        let p2 = a_point(17, 56, 0, 7, prime);
-        let p3 = a_point(215, 68, 0, 7, prime);
+        let p1 = Point::new_with_numbers(47, 71, 0, 7, prime);
+        let p2 = Point::new_with_numbers(17, 56, 0, 7, prime);
+        let p3 = Point::new_with_numbers(215, 68, 0, 7, prime);
 
         assert_eq!(p1 + &p2, p3);
     }
@@ -309,62 +317,62 @@ mod point_test {
     fn adding_two_points_3() {
         let prime = 223;
 
-        let p1 = a_point(143, 98, 0, 7, prime);
-        let p2 = a_point(76, 66, 0, 7, prime);
-        let p3 = a_point(47, 71, 0, 7, prime);
+        let p1 = Point::new_with_numbers(143, 98, 0, 7, prime);
+        let p2 = Point::new_with_numbers(76, 66, 0, 7, prime);
+        let p3 = Point::new_with_numbers(47, 71, 0, 7, prime);
 
         assert_eq!(p1 + &p2, p3);
     }
 
     #[test]
     fn adding_two_points_4() {
-        let p1 = a_point(192, 105, 0, 7, 223);
+        let p1 = Point::new_with_numbers(192, 105, 0, 7, 223);
         let p2 = &p1 * 2;
-        let p3 = a_point(49, 71, 0, 7, 223);
+        let p3 = Point::new_with_numbers(49, 71, 0, 7, 223);
 
         assert_eq!(p2, p3);
     }
 
     #[test]
     fn adding_two_points_5() {
-        let p1 = a_point(143, 98, 0, 7, 223);
+        let p1 = Point::new_with_numbers(143, 98, 0, 7, 223);
         let p2 = &p1 * 2;
-        let p3 = a_point(64, 168, 0, 7, 223);
+        let p3 = Point::new_with_numbers(64, 168, 0, 7, 223);
 
         assert_eq!(p2, p3);
     }
 
     #[test]
     fn adding_two_points_6() {
-        let p1 = a_point(47, 71, 0, 7, 223);
+        let p1 = Point::new_with_numbers(47, 71, 0, 7, 223);
         let p2 = &p1 * 2;
-        let p3 = a_point(36, 111, 0, 7, 223);
+        let p3 = Point::new_with_numbers(36, 111, 0, 7, 223);
 
         assert_eq!(p2, p3);
     }
 
     #[test]
     fn adding_two_points_7() {
-        let p1 = a_point(47, 71, 0, 7, 223);
+        let p1 = Point::new_with_numbers(47, 71, 0, 7, 223);
         let p2 = &p1 * 4;
-        let p3 = a_point(194, 51, 0, 7, 223);
+        let p3 = Point::new_with_numbers(194, 51, 0, 7, 223);
 
         assert_eq!(p2, p3);
     }
 
     #[test]
     fn adding_two_points_8() {
-        let p1 = a_point(47, 71, 0, 7, 223);
+        let p1 = Point::new_with_numbers(47, 71, 0, 7, 223);
         let p2 = &p1 * 8;
 
-        let p3 = a_point(116, 55, 0, 7, 223);
+        let p3 = Point::new_with_numbers(116, 55, 0, 7, 223);
 
         assert_eq!(p2, p3);
     }
 
     #[test]
     fn adding_two_points_infinite() {
-        let p1 = a_point(47, 71, 0, 7, 223);
+        let p1 = Point::new_with_numbers(47, 71, 0, 7, 223);
         let p2 = &p1 * 21;
 
         assert!(p2.is_infinite());
@@ -372,7 +380,7 @@ mod point_test {
 
     #[test]
     fn find_group_order() {
-        let p = a_point(15, 86, 0, 7, 223);
+        let p = Point::new_with_numbers(15, 86, 0, 7, 223);
         let mut product = p.clone();
 
         let mut n = 1;
@@ -405,14 +413,5 @@ mod point_test {
         let bfe = FieldElement::new(Integer::from(b), prime);
 
         Point::new(None, None, afe, bfe)
-    }
-
-    fn a_point(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
-        let xfe = FieldElement::new(Integer::from(x), prime);
-        let yfe = FieldElement::new(Integer::from(y), prime);
-        let afe = FieldElement::new(Integer::from(a), prime);
-        let bfe = FieldElement::new(Integer::from(b), prime);
-
-        Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 }

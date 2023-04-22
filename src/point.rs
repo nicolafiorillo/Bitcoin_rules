@@ -48,8 +48,8 @@ impl Point {
         Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 
-    pub fn new_infinite(a: FieldElement, b: FieldElement) -> Point {
-        Point::new(None, None, a, b)
+    pub fn new_infinite(a: &FieldElement, b: &FieldElement) -> Point {
+        Point::new(None, None, a.clone(), b.clone())
     }
 
     pub fn is_infinite(&self) -> bool {
@@ -137,26 +137,33 @@ impl Add<&Self> for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        Point::new_infinite(self.a, self.b)
+        Point::new_infinite(&self.a, &self.b)
     }
 }
 
 impl Mul<u32> for &Point {
     type Output = Point;
 
-    fn mul(self, other: u32) -> Point {
-        if other == 0 {
+    fn mul(self, coefficient: u32) -> Point {
+        if coefficient == 0 {
             panic!("TODO: multiplication by zero not implemented");
         }
 
-        let p: Point = self.clone();
-        let mut product = p;
+        let mut sel: Point = self.clone();
 
-        for _x in 1..other {
-            product = product.clone() + self;
+        let mut coef = coefficient;
+        let mut result = Point::new_infinite(&self.a, &self.b);
+
+        while coef > 0 {
+            if coef & 1 > 0 {
+                result = result + &sel;
+            }
+            sel = sel.clone() + &sel;
+
+            coef >>= 1;
         }
 
-        product
+        result
     }
 }
 
@@ -418,6 +425,6 @@ mod point_test {
         let afe = FieldElement::new(Integer::from(a), prime);
         let bfe = FieldElement::new(Integer::from(b), prime);
 
-        Point::new_infinite(afe, bfe)
+        Point::new_infinite(&afe, &bfe)
     }
 }

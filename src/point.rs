@@ -59,16 +59,16 @@ impl Point {
 
 impl Display for Point {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let x = if self.x.is_none() {
-            "None".to_string()
+        let x = if let Some(x_val) = &self.x {
+            x_val.to_string()
         } else {
-            self.x.as_ref().unwrap().to_string()
+            "None".to_string()
         };
 
-        let y = if self.y.is_none() {
-            "None".to_string()
+        let y = if let Some(y_val) = &self.y {
+            y_val.to_string()
         } else {
-            self.y.as_ref().unwrap().to_string()
+            "None".to_string()
         };
 
         write!(f, "{}, {} (a: {}, b: {})", x, y, self.a, self.b)

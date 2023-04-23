@@ -1,3 +1,4 @@
+use once_cell::sync::Lazy;
 ///! Finite field element management
 use rug::{ops::Pow, Integer};
 use std::{
@@ -10,6 +11,20 @@ pub struct FieldElement {
     num: Integer,
     prime: u32,
 }
+
+pub const GX: Lazy<Integer> = Lazy::new(|| {
+    Integer::from_str_radix("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 256).unwrap()
+});
+
+pub const GY: Lazy<Integer> = Lazy::new(|| {
+    Integer::from_str_radix("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 256).unwrap()
+});
+
+pub const P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 997);
+
+pub const N: Lazy<Integer> = Lazy::new(|| {
+    Integer::from_str_radix("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 256).unwrap()
+});
 
 impl FieldElement {
     // Create a new FieldElement

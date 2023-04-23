@@ -24,12 +24,7 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(
-        x: Option<FieldElement>,
-        y: Option<FieldElement>,
-        a: FieldElement,
-        b: FieldElement,
-    ) -> Point {
+    pub fn new(x: Option<FieldElement>, y: Option<FieldElement>, a: FieldElement, b: FieldElement) -> Point {
         if let (Some(x_value), Some(y_value)) = (x.clone(), y.clone()) {
             if y_value.pow(2) != x_value.clone().pow(3) + a.clone() * x_value + b.clone() {
                 panic!("point is not in the curve");
@@ -77,12 +72,7 @@ impl Display for Point {
 
 impl Clone for Point {
     fn clone(&self) -> Point {
-        Point::new(
-            self.x.clone(),
-            self.y.clone(),
-            self.a.clone(),
-            self.b.clone(),
-        )
+        Point::new(self.x.clone(), self.y.clone(), self.a.clone(), self.b.clone())
     }
 }
 

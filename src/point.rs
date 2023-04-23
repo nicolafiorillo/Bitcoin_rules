@@ -35,10 +35,10 @@ impl Point {
     }
 
     pub fn new_with_numbers(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
-        let xfe = FieldElement::new(Integer::from(x), prime);
-        let yfe = FieldElement::new(Integer::from(y), prime);
-        let afe = FieldElement::new(Integer::from(a), prime);
-        let bfe = FieldElement::new(Integer::from(b), prime);
+        let xfe = FieldElement::new(Integer::from(x), Integer::from(prime));
+        let yfe = FieldElement::new(Integer::from(y), Integer::from(prime));
+        let afe = FieldElement::new(Integer::from(a), Integer::from(prime));
+        let bfe = FieldElement::new(Integer::from(b), Integer::from(prime));
 
         Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
@@ -396,24 +396,24 @@ mod point_test {
     }
 
     fn a_point_x_none(y: i32, a: i32, b: i32, prime: u32) -> Point {
-        let yfe = FieldElement::new(Integer::from(y), prime);
-        let afe = FieldElement::new(Integer::from(a), prime);
-        let bfe = FieldElement::new(Integer::from(b), prime);
+        let yfe = FieldElement::new(Integer::from(y), Integer::from(prime));
+        let afe = FieldElement::new(Integer::from(a), Integer::from(prime));
+        let bfe = FieldElement::new(Integer::from(b), Integer::from(prime));
 
         Point::new(None, Some(yfe), afe, bfe)
     }
 
     fn a_point_y_none(x: i32, a: i32, b: i32, prime: u32) -> Point {
-        let xfe = FieldElement::new(Integer::from(x), prime);
-        let afe = FieldElement::new(Integer::from(a), prime);
-        let bfe = FieldElement::new(Integer::from(b), prime);
+        let xfe = FieldElement::new(Integer::from(x), Integer::from(prime));
+        let afe = FieldElement::new(Integer::from(a), Integer::from(prime));
+        let bfe = FieldElement::new(Integer::from(b), Integer::from(prime));
 
         Point::new(Some(xfe), None, afe, bfe)
     }
 
     fn a_infinite_point(a: i32, b: i32, prime: u32) -> Point {
-        let afe = FieldElement::new(Integer::from(a), prime);
-        let bfe = FieldElement::new(Integer::from(b), prime);
+        let afe = FieldElement::new(Integer::from(a), Integer::from(prime));
+        let bfe = FieldElement::new(Integer::from(b), Integer::from(prime));
 
         Point::new_infinite(&afe, &bfe)
     }

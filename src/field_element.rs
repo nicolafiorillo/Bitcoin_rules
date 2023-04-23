@@ -1,6 +1,9 @@
 use once_cell::sync::Lazy;
 ///! Finite field element management
-use rug::{ops::Pow, Integer};
+use rug::{
+    ops::{Pow, RemRounding},
+    Integer,
+};
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Div, Mul, Sub},
@@ -9,26 +12,25 @@ use std::{
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
     num: Integer,
-    prime: u32,
+    prime: Integer,
 }
 
-pub const GX: Lazy<Integer> = Lazy::new(|| {
+pub static GX: Lazy<Integer> = Lazy::new(|| {
     Integer::from_str_radix("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 256).unwrap()
 });
 
-pub const GY: Lazy<Integer> = Lazy::new(|| {
+pub static GY: Lazy<Integer> = Lazy::new(|| {
     Integer::from_str_radix("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 256).unwrap()
 });
 
-pub const P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 997);
+pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 997);
 
-pub const N: Lazy<Integer> = Lazy::new(|| {
+pub static N: Lazy<Integer> = Lazy::new(|| {
     Integer::from_str_radix("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 256).unwrap()
 });
 
 impl FieldElement {
-    // Create a new FieldElement
-    pub fn new(num: Integer, prime: u32) -> FieldElement {
+    pub fn new(num: Integer, prime: Integer) -> FieldElement {
         if prime < 2 {
             panic!("invalid base: it must be equal or greater than 2");
         }
@@ -38,10 +40,17 @@ impl FieldElement {
 
     // Exp operator (Fermat's lIttle Theorem)
     pub fn pow(&self, exponent: i32) -> FieldElement {
-        let exp = exponent.rem_euclid(self.prime as i32 - 1) as u32;
+        let big_exp = Integer::from(exponent);
+        let n: Integer = self.prime.clone() - 1;
 
-        let (_q, rem) = (self.num.clone().pow(exp)).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let exp = big_exp.rem_euc(n);
+
+        let res = match self.num.clone().pow_mod(&exp, &self.prime) {
+            Ok(power) => power,
+            Err(_) => unreachable!(),
+        };
+
+        FieldElement::new(res, self.prime.clone())
     }
 
     pub fn is_zero(&self) -> bool {
@@ -57,7 +66,7 @@ impl Display for FieldElement {
 
 impl Clone for FieldElement {
     fn clone(&self) -> FieldElement {
-        FieldElement::new(self.num.clone(), self.prime)
+        FieldElement::new(self.num.clone(), self.prime.clone())
     }
 }
 
@@ -71,9 +80,9 @@ impl Add for FieldElement {
         }
 
         let s = &self.num + &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
 
-        FieldElement::new(rem, self.prime)
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -87,8 +96,8 @@ impl Sub for FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -101,8 +110,8 @@ impl Sub<&FieldElement> for &FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -115,8 +124,8 @@ impl Sub<&Self> for FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -130,8 +139,8 @@ impl Mul for FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -144,8 +153,8 @@ impl Mul<&FieldElement> for &FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -158,8 +167,8 @@ impl Mul<&Self> for FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
-        FieldElement::new(rem, self.prime)
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -172,8 +181,15 @@ impl Div for FieldElement {
             panic!("cannot div two numbers in different fields");
         }
 
-        let s = &self.num * (other.num.pow(self.prime - 2));
-        let (_q, rem) = s.div_rem_euc(Into::into(self.prime));
+        let prime = self.prime.clone();
+
+        let o = match other.num.pow_mod(&(prime.clone() - 2), &prime) {
+            Ok(power) => power,
+            Err(_) => unreachable!(),
+        };
+
+        let s: Integer = &self.num * o;
+        let (_q, rem) = s.div_rem_euc(Into::into(prime));
 
         FieldElement::new(rem, self.prime)
     }
@@ -187,10 +203,19 @@ impl Div<Self> for &FieldElement {
             panic!("cannot div two numbers in different fields");
         }
 
-        let s = &self.num * (other.num.clone().pow(self.prime - 2));
-        let (_q, rem) = s.div_rem_euc(Into::into(self.prime));
+        let o = match other
+            .num
+            .clone()
+            .pow_mod(&(self.prime.clone() - 2), &self.prime.clone())
+        {
+            Ok(power) => power,
+            Err(_) => unreachable!(),
+        };
 
-        FieldElement::new(rem, self.prime)
+        let s: Integer = &self.num * o;
+        let (_q, rem) = s.div_rem_euc(Into::into(self.prime.clone()));
+
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -199,9 +224,9 @@ impl Mul<&FieldElement> for i32 {
 
     fn mul(self, other: &FieldElement) -> FieldElement {
         let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime));
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime.clone()));
 
-        FieldElement::new(rem, other.prime)
+        FieldElement::new(rem, other.prime.clone())
     }
 }
 
@@ -210,9 +235,9 @@ impl Mul<FieldElement> for i32 {
 
     fn mul(self, other: FieldElement) -> FieldElement {
         let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime));
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime.clone()));
 
-        FieldElement::new(rem, other.prime)
+        FieldElement::new(rem, other.prime.clone())
     }
 }
 
@@ -221,9 +246,9 @@ impl Mul<i32> for FieldElement {
 
     fn mul(self, other: i32) -> Self {
         let s = &self.num * other;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime));
+        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
 
-        FieldElement::new(rem, self.prime)
+        FieldElement::new(rem, self.prime.clone())
     }
 }
 
@@ -233,33 +258,33 @@ mod field_element_test {
 
     #[test]
     fn fields_are_equals() {
-        let field1 = FieldElement::new(Integer::from(1), 2);
-        let field2 = FieldElement::new(Integer::from(1), 2);
+        let field1 = FieldElement::new(Integer::from(1), Integer::from(2));
+        let field2 = FieldElement::new(Integer::from(1), Integer::from(2));
 
         assert_eq!(field1, field2);
     }
 
     #[test]
     fn fields_are_different_by_num() {
-        let field1 = FieldElement::new(Integer::from(1), 2);
-        let field2 = FieldElement::new(Integer::from(2), 2);
+        let field1 = FieldElement::new(Integer::from(1), Integer::from(2));
+        let field2 = FieldElement::new(Integer::from(2), Integer::from(2));
 
         assert_ne!(field1, field2);
     }
 
     #[test]
     fn fields_are_different_by_prime() {
-        let field1 = FieldElement::new(Integer::from(1), 2);
-        let field2 = FieldElement::new(Integer::from(1), 3);
+        let field1 = FieldElement::new(Integer::from(1), Integer::from(2));
+        let field2 = FieldElement::new(Integer::from(1), Integer::from(3));
 
         assert_ne!(field1, field2);
     }
 
     #[test]
     fn adding_fields() {
-        let field1 = FieldElement::new(Integer::from(7), 13);
-        let field2 = FieldElement::new(Integer::from(12), 13);
-        let field3 = FieldElement::new(Integer::from(6), 13);
+        let field1 = FieldElement::new(Integer::from(7), Integer::from(13));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
+        let field3 = FieldElement::new(Integer::from(6), Integer::from(13));
 
         assert_eq!(field1 + field2, field3);
     }
@@ -267,17 +292,17 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot add two numbers in different fields")]
     fn adding_different_fields() {
-        let field1 = FieldElement::new(Integer::from(7), 10);
-        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field1 = FieldElement::new(Integer::from(7), Integer::from(10));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
 
         let _r_ = field1 + field2;
     }
 
     #[test]
     fn subtracting_fields() {
-        let field1 = FieldElement::new(Integer::from(76), 13);
-        let field2 = FieldElement::new(Integer::from(12), 13);
-        let field3 = FieldElement::new(Integer::from(12), 13);
+        let field1 = FieldElement::new(Integer::from(76), Integer::from(13));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
+        let field3 = FieldElement::new(Integer::from(12), Integer::from(13));
 
         assert_eq!(field1 - field2, field3);
     }
@@ -285,17 +310,17 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot sub two numbers in different fields")]
     fn subtracting_different_fields() {
-        let field1 = FieldElement::new(Integer::from(76), 10);
-        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field1 = FieldElement::new(Integer::from(76), Integer::from(10));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
 
         let _r_ = field1 - field2;
     }
 
     #[test]
     fn multiplying_fields() {
-        let field1 = FieldElement::new(Integer::from(3), 13);
-        let field2 = FieldElement::new(Integer::from(12), 13);
-        let field3 = FieldElement::new(Integer::from(10), 13);
+        let field1 = FieldElement::new(Integer::from(3), Integer::from(13));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
+        let field3 = FieldElement::new(Integer::from(10), Integer::from(13));
 
         assert_eq!(field1 * field2, field3);
     }
@@ -303,26 +328,26 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot mul two numbers in different fields")]
     fn multiplying_different_fields() {
-        let field1 = FieldElement::new(Integer::from(76), 10);
-        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field1 = FieldElement::new(Integer::from(76), Integer::from(10));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
 
         let _r_ = field1 * field2;
     }
 
     #[test]
     fn dividing_fields_1() {
-        let field1 = FieldElement::new(Integer::from(3), 31);
-        let field2 = FieldElement::new(Integer::from(24), 31);
-        let field3 = FieldElement::new(Integer::from(4), 31);
+        let field1 = FieldElement::new(Integer::from(3), Integer::from(31));
+        let field2 = FieldElement::new(Integer::from(24), Integer::from(31));
+        let field3 = FieldElement::new(Integer::from(4), Integer::from(31));
 
         assert_eq!(field1 / field2, field3);
     }
 
     #[test]
     fn dividing_fields_2() {
-        let field1 = FieldElement::new(Integer::from(3), 31);
-        let field2 = FieldElement::new(Integer::from(24), 31);
-        let field3 = FieldElement::new(Integer::from(4), 31);
+        let field1 = FieldElement::new(Integer::from(3), Integer::from(31));
+        let field2 = FieldElement::new(Integer::from(24), Integer::from(31));
+        let field3 = FieldElement::new(Integer::from(4), Integer::from(31));
 
         assert_eq!(field1 / field2, field3);
     }
@@ -330,42 +355,42 @@ mod field_element_test {
     #[test]
     #[should_panic(expected = "cannot div two numbers in different fields")]
     fn dividing_different_fields() {
-        let field1 = FieldElement::new(Integer::from(76), 10);
-        let field2 = FieldElement::new(Integer::from(12), 13);
+        let field1 = FieldElement::new(Integer::from(76), Integer::from(10));
+        let field2 = FieldElement::new(Integer::from(12), Integer::from(13));
 
         let _r_ = field1 / field2;
     }
 
     #[test]
     fn exponentiationing_fields() {
-        let field1 = FieldElement::new(Integer::from(3), 13);
-        let field2 = FieldElement::new(Integer::from(1), 13);
+        let field1 = FieldElement::new(Integer::from(3), Integer::from(13));
+        let field2 = FieldElement::new(Integer::from(1), Integer::from(13));
 
         assert_eq!(field1.pow(3), field2);
     }
 
     #[test]
     fn exercise8_1() {
-        let field1 = FieldElement::new(Integer::from(3), 31);
-        let field2 = FieldElement::new(Integer::from(24), 31);
-        let field3 = FieldElement::new(Integer::from(4), 31);
+        let field1 = FieldElement::new(Integer::from(3), Integer::from(31));
+        let field2 = FieldElement::new(Integer::from(24), Integer::from(31));
+        let field3 = FieldElement::new(Integer::from(4), Integer::from(31));
 
         assert_eq!(field1 * field2.pow(-1), field3);
     }
 
     #[test]
     fn exercise8_2() {
-        let field1 = FieldElement::new(Integer::from(17), 31);
-        let field2 = FieldElement::new(Integer::from(29), 31);
+        let field1 = FieldElement::new(Integer::from(17), Integer::from(31));
+        let field2 = FieldElement::new(Integer::from(29), Integer::from(31));
 
         assert_eq!(field1.pow(-3), field2);
     }
 
     #[test]
     fn exercise8_3() {
-        let field1 = FieldElement::new(Integer::from(4), 31);
-        let field2 = FieldElement::new(Integer::from(11), 31);
-        let field3 = FieldElement::new(Integer::from(13), 31);
+        let field1 = FieldElement::new(Integer::from(4), Integer::from(31));
+        let field2 = FieldElement::new(Integer::from(11), Integer::from(31));
+        let field3 = FieldElement::new(Integer::from(13), Integer::from(31));
 
         assert_eq!(field1.pow(-4) * field2, field3);
     }
@@ -398,7 +423,7 @@ mod field_element_test {
         let mut v = vec![];
 
         for _i in 1..p {
-            v.push(FieldElement::new(Integer::from(1), p));
+            v.push(FieldElement::new(Integer::from(1), Integer::from(p)));
         }
 
         return v;
@@ -408,7 +433,7 @@ mod field_element_test {
         let mut v = vec![];
 
         for i in 1..p {
-            v.push(FieldElement::new(Integer::from(i), p).pow(p as i32 - 1));
+            v.push(FieldElement::new(Integer::from(i), Integer::from(p)).pow(p as i32 - 1));
         }
 
         return v;

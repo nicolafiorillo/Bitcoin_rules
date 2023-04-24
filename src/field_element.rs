@@ -1,9 +1,5 @@
-use once_cell::sync::Lazy;
 ///! Finite field element management
-use rug::{
-    ops::{Pow, RemRounding},
-    Integer,
-};
+use rug::{ops::RemRounding, Integer};
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Div, Mul, Sub},
@@ -14,20 +10,6 @@ pub struct FieldElement {
     num: Integer,
     prime: Integer,
 }
-
-pub static GX: Lazy<Integer> = Lazy::new(|| {
-    Integer::from_str_radix("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 256).unwrap()
-});
-
-pub static GY: Lazy<Integer> = Lazy::new(|| {
-    Integer::from_str_radix("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 256).unwrap()
-});
-
-pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 997);
-
-pub static N: Lazy<Integer> = Lazy::new(|| {
-    Integer::from_str_radix("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 256).unwrap()
-});
 
 impl FieldElement {
     pub fn new(num: Integer, prime: Integer) -> FieldElement {
@@ -55,6 +37,10 @@ impl FieldElement {
 
     pub fn is_zero(&self) -> bool {
         self.num == 0
+    }
+
+    pub fn num(&self) -> Integer {
+        self.num.clone()
     }
 }
 

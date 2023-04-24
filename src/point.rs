@@ -157,6 +157,33 @@ impl Mul<u32> for &Point {
     }
 }
 
+impl Mul<Integer> for &Point {
+    type Output = Point;
+
+    fn mul(self, coefficient: Integer) -> Point {
+        if coefficient == 0 {
+            panic!("TODO: multiplication by zero not implemented");
+        }
+
+        let mut sel: Point = self.clone();
+
+        let mut coef = coefficient.clone();
+        let mut result = Point::new_infinite(&self.a, &self.b);
+
+        while coef > 0 {
+            if coef.get_bit(0) {
+                result = result + &sel;
+            }
+
+            sel = sel.clone() + &sel;
+
+            coef >>= 1;
+        }
+
+        result
+    }
+}
+
 #[cfg(test)]
 mod point_test {
     use crate::point::*;

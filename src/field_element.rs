@@ -83,7 +83,7 @@ impl Add for FieldElement {
         }
 
         let s = &self.num + &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
 
         FieldElement::new(rem, self.prime.clone())
     }
@@ -99,7 +99,7 @@ impl Sub for FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -113,7 +113,7 @@ impl Sub<&FieldElement> for &FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -127,7 +127,7 @@ impl Sub<&Self> for FieldElement {
         }
 
         let s = &self.num - &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -142,7 +142,7 @@ impl Mul for FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -156,7 +156,7 @@ impl Mul<&FieldElement> for &FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -170,7 +170,7 @@ impl Mul<&Self> for FieldElement {
         }
 
         let s = &self.num * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
         FieldElement::new(rem, self.prime.clone())
     }
 }
@@ -192,7 +192,7 @@ impl Div for FieldElement {
         };
 
         let s: Integer = &self.num * o;
-        let (_q, rem) = s.div_rem_euc(Into::into(prime));
+        let (_q, rem) = s.div_rem_euc(prime);
 
         FieldElement::new(rem, self.prime)
     }
@@ -216,7 +216,7 @@ impl Div<Self> for &FieldElement {
         };
 
         let s: Integer = &self.num * o;
-        let (_q, rem) = s.div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = s.div_rem_euc(self.prime.clone());
 
         FieldElement::new(rem, self.prime.clone())
     }
@@ -227,7 +227,7 @@ impl Mul<&FieldElement> for i32 {
 
     fn mul(self, other: &FieldElement) -> FieldElement {
         let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
 
         FieldElement::new(rem, other.prime.clone())
     }
@@ -238,7 +238,7 @@ impl Mul<FieldElement> for i32 {
 
     fn mul(self, other: FieldElement) -> FieldElement {
         let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(other.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
 
         FieldElement::new(rem, other.prime.clone())
     }
@@ -249,7 +249,7 @@ impl Mul<i32> for FieldElement {
 
     fn mul(self, other: i32) -> Self {
         let s = &self.num * other;
-        let (_q, rem) = Integer::from(s).div_rem_euc(Into::into(self.prime.clone()));
+        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
 
         FieldElement::new(rem, self.prime.clone())
     }

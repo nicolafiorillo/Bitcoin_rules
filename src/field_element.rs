@@ -9,6 +9,7 @@ use std::{
 pub struct FieldElement {
     num: Integer,
     prime: Integer,
+    is_secp256k1: bool,
 }
 
 impl FieldElement {
@@ -17,10 +18,22 @@ impl FieldElement {
             panic!("invalid base: it must be equal or greater than 2");
         }
 
-        FieldElement { num, prime }
+        FieldElement {
+            num,
+            prime,
+            is_secp256k1: false,
+        }
     }
 
-    // Exp operator (Fermat's lIttle Theorem)
+    pub fn new_secp256k1(num: Integer) -> FieldElement {
+        use crate::s256::P;
+
+        FieldElement {
+            num,
+            prime: (*P).clone(),
+            is_secp256k1: true,
+        }
+    }
     pub fn pow(&self, exponent: i32) -> FieldElement {
         let big_exp = Integer::from(exponent);
         let n: Integer = self.prime.clone() - 1;
@@ -37,6 +50,10 @@ impl FieldElement {
 
     pub fn is_zero(&self) -> bool {
         self.num == 0
+    }
+
+    pub fn is_secp256k1(&self) -> bool {
+        self.is_secp256k1
     }
 
     pub fn num(&self) -> Integer {

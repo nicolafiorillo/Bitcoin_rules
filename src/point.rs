@@ -8,7 +8,7 @@
 ///     https://en.bitcoin.it/wiki/Secp256k1
 ///     sec2-v2.pdf
 ///
-use crate::field_element::FieldElement;
+use crate::{field_element::FieldElement, s256::N};
 use rug::Integer;
 use std::{
     fmt::{Display, Formatter, Result},
@@ -30,6 +30,13 @@ impl Point {
                 panic!("point is not in the curve");
             }
         }
+
+        Point { x, y, a, b }
+    }
+
+    pub fn new_secp256k1(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
+        let a = FieldElement::new_secp256k1(Integer::from(0));
+        let b = FieldElement::new_secp256k1(Integer::from(7));
 
         Point { x, y, a, b }
     }
@@ -166,8 +173,7 @@ impl Mul<Integer> for &Point {
         }
 
         let mut sel: Point = self.clone();
-
-        let mut coef = coefficient.clone();
+        let (_q, mut coef) = coefficient.div_rem_euc((*N).clone());
         let mut result = Point::new_infinite(&self.a, &self.b);
 
         while coef > 0 {
@@ -186,7 +192,7 @@ impl Mul<Integer> for &Point {
 
 #[cfg(test)]
 mod point_test {
-    use crate::point::*;
+    use crate::{point::*, s256::*};
 
     #[test]
     fn a_point_in_curve_1() {
@@ -443,5 +449,17 @@ mod point_test {
         let bfe = FieldElement::new(Integer::from(b), Integer::from(prime));
 
         Point::new_infinite(&afe, &bfe)
+    }
+
+    #[test]
+    fn a_secp256k1_test() {
+        let x = FieldElement::new((*GX).clone(), (*P).clone());
+        let y = FieldElement::new((*GY).clone(), (*P).clone());
+
+        let g = Point::new_secp256k1(Some(x), Some(y));
+
+        let p = &g * (*N).clone();
+
+        assert!(p.is_infinite());
     }
 }

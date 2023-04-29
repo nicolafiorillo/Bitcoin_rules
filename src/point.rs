@@ -8,7 +8,11 @@
 ///     https://en.bitcoin.it/wiki/Secp256k1
 ///     sec2-v2.pdf
 ///
-use crate::{field_element::FieldElement, s256::N};
+use crate::{
+    btc_ecdsa::{G, N},
+    field_element::FieldElement,
+    signature::Signature,
+};
 use rug::Integer;
 use std::{
     fmt::{Display, Formatter, Result},
@@ -56,6 +60,27 @@ impl Point {
 
     pub fn is_infinite(&self) -> bool {
         self.x.is_none() && self.y.is_none()
+    }
+
+    pub fn x_as_num(&self) -> Integer {
+        self.x.clone().unwrap().num()
+    }
+
+    pub fn verify(&self, z: Integer, sig: Signature) -> bool {
+        let s_inv = match sig.s.pow_mod(&((*N).clone() - 2), &(*N).clone()) {
+            Ok(power) => power,
+            Err(_) => unreachable!(),
+        };
+
+        let mu = &z * &s_inv;
+        let (_q, u) = Integer::from(mu).div_rem_euc((*N).clone());
+
+        let mv = &sig.r * &s_inv;
+        let (_q, v) = Integer::from(mv).div_rem_euc((*N).clone());
+
+        let total = (&(*G).clone() * u) + &(self * v);
+
+        total.x_as_num() == sig.r
     }
 }
 
@@ -192,7 +217,7 @@ impl Mul<Integer> for &Point {
 
 #[cfg(test)]
 mod point_test {
-    use crate::{point::*, s256::*};
+    use crate::{btc_ecdsa::*, point::*};
 
     #[test]
     fn a_point_in_curve_1() {
@@ -453,13 +478,89 @@ mod point_test {
 
     #[test]
     fn a_secp256k1_test() {
-        let x = FieldElement::new((*GX).clone(), (*P).clone());
-        let y = FieldElement::new((*GY).clone(), (*P).clone());
-
-        let g = Point::new_secp256k1(Some(x), Some(y));
-
-        let p = &g * (*N).clone();
-
+        let p = &(*G).clone() * (*N).clone();
         assert!(p.is_infinite());
+    }
+
+    #[test]
+    fn a_signature_1_verification() {
+        let z = integer(
+            0xec208baa0fc1c19f,
+            0x708a9ca96fdeff3a,
+            0xc3f230bb4a7ba4ae,
+            0xde4942ad003c0f60,
+        );
+        let r = integer(
+            0xac8d1c87e51d0d44,
+            0x1be8b3dd5b05c879,
+            0x5b48875dffe00b7f,
+            0xfcfac23010d3a395,
+        );
+        let s = integer(
+            0x068342ceff8935ed,
+            0xedd102dd876ffd6b,
+            0xa72d6a427a3edb13,
+            0xd26eb0781cb423c4,
+        );
+        let px = integer(
+            0x887387e452b8eacc,
+            0x4acfde10d9aaf7f6,
+            0xd9a0f975aabb10d0,
+            0x06e4da568744d06c,
+        );
+        let py = integer(
+            0x61de6d95231cd890,
+            0x26e286df3b6ae4a8,
+            0x94a3378e393e93a0,
+            0xf45b666329a0ae34,
+        );
+
+        let ppx = FieldElement::new(px, (*P).clone());
+        let ppy = FieldElement::new(py, (*P).clone());
+        let point = Point::new_secp256k1(Some(ppx), Some(ppy));
+        let sig = Signature::new(r, s);
+
+        assert!(point.verify(z, sig));
+    }
+
+    #[test]
+    fn a_signature_2_verification() {
+        let z = integer(
+            0x7c076ff316692a3d,
+            0x7eb3c3bb0f8b1488,
+            0xcf72e1afcd929e29,
+            0x307032997a838a3d,
+        );
+        let r = integer(
+            0x00eff69ef2b1bd93,
+            0xa66ed5219add4fb5,
+            0x1e11a840f4048763,
+            0x25a1e8ffe0529a2c,
+        );
+        let s = integer(
+            0xc7207fee197d27c6,
+            0x18aea621406f6bf5,
+            0xef6fca38681d82b2,
+            0xf06fddbdce6feab6,
+        );
+        let px = integer(
+            0x887387e452b8eacc,
+            0x4acfde10d9aaf7f6,
+            0xd9a0f975aabb10d0,
+            0x06e4da568744d06c,
+        );
+        let py = integer(
+            0x61de6d95231cd890,
+            0x26e286df3b6ae4a8,
+            0x94a3378e393e93a0,
+            0xf45b666329a0ae34,
+        );
+
+        let ppx = FieldElement::new(px, (*P).clone());
+        let ppy = FieldElement::new(py, (*P).clone());
+        let point = Point::new_secp256k1(Some(ppx), Some(ppy));
+        let sig = Signature::new(r, s);
+
+        assert!(point.verify(z, sig));
     }
 }

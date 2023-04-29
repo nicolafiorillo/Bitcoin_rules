@@ -26,7 +26,7 @@ impl FieldElement {
     }
 
     pub fn new_secp256k1(num: Integer) -> FieldElement {
-        use crate::s256::P;
+        use crate::btc_ecdsa::P;
 
         FieldElement {
             num,
@@ -63,7 +63,7 @@ impl FieldElement {
 
 impl Display for FieldElement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{} <{}>", self.num, self.prime)
+        write!(f, "{:x} <{:x}>", self.num, self.prime)
     }
 }
 

@@ -1,6 +1,7 @@
+mod btc_ecdsa;
 mod field_element;
 mod point;
-mod s256;
+mod signature;
 
 fn main() {
     println!("Bitcoin in Rust");

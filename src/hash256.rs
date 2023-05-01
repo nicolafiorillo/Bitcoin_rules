@@ -1,7 +1,9 @@
+///! Hashing helper.
 use crate::integer_ex::IntegerEx;
 use rug::Integer;
 use sha256::digest;
 
+/// Apply the SHA-256 algorithm twice to a string an return the relative Integer.
 pub fn hash256(s: String) -> Integer {
     let mut ll_s = digest(digest(s));
     let mut lr_s = ll_s.split_off(16);

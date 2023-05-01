@@ -1,8 +1,10 @@
+///! Bitcoin protocol magic numbers.
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
 
 use crate::{field_element::FieldElement, integer_ex::IntegerEx, point::Point};
 
+// X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> = Lazy::new(|| {
     Integer::new_from_256_digits(
         0x79be667ef9dcbbac,
@@ -12,6 +14,7 @@ pub static GX: Lazy<Integer> = Lazy::new(|| {
     )
 });
 
+// Y coordinate of Generator Point as per bitcoin protocol.
 pub static GY: Lazy<Integer> = Lazy::new(|| {
     Integer::new_from_256_digits(
         0x483ada7726a3c465,
@@ -21,6 +24,7 @@ pub static GY: Lazy<Integer> = Lazy::new(|| {
     )
 });
 
+// Prime number P as per bitcoin protocol.
 pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 977);
 
 pub static N: Lazy<Integer> = Lazy::new(|| {
@@ -32,6 +36,7 @@ pub static N: Lazy<Integer> = Lazy::new(|| {
     )
 });
 
+// Generator Point as per bitcoin protocol.
 pub static G: Lazy<Point> = Lazy::new(|| {
     let x = FieldElement::new((*GX).clone(), (*P).clone());
     let y = FieldElement::new((*GY).clone(), (*P).clone());

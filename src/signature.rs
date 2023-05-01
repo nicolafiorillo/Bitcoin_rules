@@ -60,7 +60,7 @@ mod signature_test {
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
-        let point = Point::new_secp256k1(Some(ppx), Some(ppy));
+        let point = Point::new_in_btc(Some(ppx), Some(ppy));
 
         let s_inv = s.invert_by_modulo(&N);
 

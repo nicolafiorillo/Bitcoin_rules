@@ -1,8 +1,9 @@
-/// 'Point' is a point i an elliptic curve.
+/// 'Point' is a point on an elliptic curve.
 /// Curve is expressed as in
-///     'y^2 = x^3 + ax + b'
+///     `y^2 = x^3 + ax + b`
 ///
-/// Elliptic curve used in Bitcoin's public-key cryptography is 'Secp256k1'.
+/// Elliptic curve used in Bitcoin's public-key cryptography is 'Secp256k1' (a = 0, b = 7).
+///     `y^2 = x^3 + 7`
 ///
 /// See
 ///     https://en.bitcoin.it/wiki/Secp256k1
@@ -20,6 +21,8 @@ use std::{
     ops::{Add, Mul},
 };
 
+/// `Point` is a point on an elliptic curve.
+/// Both `x` and `y` as `None` indicates point at infinite.
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Point {
     x: Option<FieldElement>,
@@ -29,6 +32,7 @@ pub struct Point {
 }
 
 impl Point {
+    /// New `Point` from all elements.
     pub fn new(x: Option<FieldElement>, y: Option<FieldElement>, a: FieldElement, b: FieldElement) -> Point {
         if let (Some(x_value), Some(y_value)) = (x.clone(), y.clone()) {
             if y_value.pow(2) != x_value.clone().pow(3) + a.clone() * x_value + b.clone() {
@@ -39,13 +43,15 @@ impl Point {
         Point { x, y, a, b }
     }
 
-    pub fn new_secp256k1(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
-        let a = FieldElement::new_secp256k1(Integer::from(0));
-        let b = FieldElement::new_secp256k1(Integer::from(7));
+    /// New `Point` by `x` and `y` in btc field.
+    pub fn new_in_btc(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
+        let a = FieldElement::new_in_btc_field(Integer::from(0));
+        let b = FieldElement::new_in_btc_field(Integer::from(7));
 
         Point { x, y, a, b }
     }
 
+    /// New `Point` from raw numbers.
     pub fn new_with_numbers(x: i32, y: i32, a: i32, b: i32, prime: u32) -> Point {
         let xfe = FieldElement::new(Integer::from(x), Integer::from(prime));
         let yfe = FieldElement::new(Integer::from(y), Integer::from(prime));
@@ -55,18 +61,24 @@ impl Point {
         Point::new(Some(xfe), Some(yfe), afe, bfe)
     }
 
+    /// New `Point` expressing "infinite".
     pub fn new_infinite(a: &FieldElement, b: &FieldElement) -> Point {
         Point::new(None, None, a.clone(), b.clone())
     }
 
+    /// `true` if `Point` is infinite..
     pub fn is_infinite(&self) -> bool {
         self.x.is_none() && self.y.is_none()
     }
 
+    /// Get `x` value.
     pub fn x_as_num(&self) -> Integer {
         self.x.clone().unwrap().num()
     }
 
+    /// Verify `z` versus a `Signature`.
+    /// `z`: the hashed message
+    /// `sig`: the public signature
     pub fn verify(&self, z: Integer, sig: Signature) -> bool {
         let s_inv = sig.s.invert_by_modulo(&N);
 
@@ -109,7 +121,7 @@ impl Clone for Point {
 impl Add<&Self> for Point {
     type Output = Self;
 
-    // Add operator
+    // Add operator: `Point` + `&Point`.
     fn add(self, other: &Self) -> Self {
         if self.a != other.a || self.b != other.b {
             panic!("points are not in the same curve");
@@ -157,13 +169,14 @@ impl Add<&Self> for Point {
             return Point::new(Some(x), Some(y), self.a, self.b);
         }
 
-        Point::new_infinite(&self.a, &self.b)
+        unreachable!();
     }
 }
 
 impl Mul<u32> for &Point {
     type Output = Point;
 
+    // Mul operator: `Point` * `u32`.
     fn mul(self, coefficient: u32) -> Point {
         if coefficient == 0 {
             panic!("TODO: multiplication by zero not implemented");
@@ -190,6 +203,7 @@ impl Mul<u32> for &Point {
 impl Mul<Integer> for &Point {
     type Output = Point;
 
+    // Mul operator: `&Point` * `Integer`.
     fn mul(self, coefficient: Integer) -> Point {
         if coefficient == 0 {
             panic!("TODO: multiplication by zero not implemented");
@@ -515,7 +529,7 @@ mod point_test {
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
-        let point = Point::new_secp256k1(Some(ppx), Some(ppy));
+        let point = Point::new_in_btc(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
         assert!(point.verify(z, sig));
@@ -556,7 +570,7 @@ mod point_test {
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
-        let point = Point::new_secp256k1(Some(ppx), Some(ppy));
+        let point = Point::new_in_btc(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
         assert!(point.verify(z, sig));

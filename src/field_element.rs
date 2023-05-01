@@ -9,12 +9,16 @@ use crate::integer_ex::IntegerEx;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
+    /// value
     num: Integer,
+    // reference prime number
     prime: Integer,
-    is_secp256k1: bool,
+    // value is included in bitcoin field (P)
+    is_in_btc_field: bool,
 }
 
 impl FieldElement {
+    /// New `FieldElement` with given `num` and `prime`.
     pub fn new(num: Integer, prime: Integer) -> FieldElement {
         if prime < 2 {
             panic!("invalid base: it must be equal or greater than 2");
@@ -23,19 +27,22 @@ impl FieldElement {
         FieldElement {
             num,
             prime,
-            is_secp256k1: false,
+            is_in_btc_field: false,
         }
     }
 
-    pub fn new_secp256k1(num: Integer) -> FieldElement {
+    /// New `FieldElement` with given `num` and bitcoin P as prime.
+    pub fn new_in_btc_field(num: Integer) -> FieldElement {
         use crate::btc_ecdsa::P;
 
         FieldElement {
             num,
             prime: (*P).clone(),
-            is_secp256k1: true,
+            is_in_btc_field: true,
         }
     }
+
+    /// Power operation by i32.
     pub fn pow(&self, exponent: i32) -> FieldElement {
         let big_exp = Integer::from(exponent);
         let n: Integer = self.prime.clone() - 1;
@@ -46,14 +53,17 @@ impl FieldElement {
         FieldElement::new(res, self.prime.clone())
     }
 
+    /// `FieldElement` is zero.
     pub fn is_zero(&self) -> bool {
         self.num == 0
     }
 
-    pub fn is_secp256k1(&self) -> bool {
-        self.is_secp256k1
+    /// `FieldElement` is in bitcoin field.
+    pub fn is_in_bitcoin_field(&self) -> bool {
+        self.is_in_btc_field
     }
 
+    /// Get the value as Integer.
     pub fn num(&self) -> Integer {
         self.num.clone()
     }
@@ -74,7 +84,7 @@ impl Clone for FieldElement {
 impl Add for FieldElement {
     type Output = Self;
 
-    // Add operator
+    // Add operator: `FieldElement` + `FieldElement`.
     fn add(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot add two numbers in different fields");
@@ -90,7 +100,7 @@ impl Add for FieldElement {
 impl Sub for FieldElement {
     type Output = Self;
 
-    // Sub operator
+    // Sub operator: `FieldElement` - `FieldElement`.
     fn sub(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot sub two numbers in different fields");
@@ -102,10 +112,11 @@ impl Sub for FieldElement {
     }
 }
 
-impl Sub<&FieldElement> for &FieldElement {
+impl Sub<Self> for &FieldElement {
     type Output = FieldElement;
 
-    fn sub(self, other: &FieldElement) -> FieldElement {
+    // Sub operator: `&FieldElement` - `&FieldElement`.
+    fn sub(self, other: Self) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot sub two numbers in different fields");
         }
@@ -119,6 +130,7 @@ impl Sub<&FieldElement> for &FieldElement {
 impl Sub<&Self> for FieldElement {
     type Output = Self;
 
+    // Sub operator: `FieldElement` - `&FieldElement`.
     fn sub(self, other: &Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot sub two numbers in different fields");
@@ -133,7 +145,7 @@ impl Sub<&Self> for FieldElement {
 impl Mul for FieldElement {
     type Output = Self;
 
-    // Mul operator
+    // Mul operator: `FieldElement` * `FieldElement`.
     fn mul(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot mul two numbers in different fields");
@@ -148,6 +160,7 @@ impl Mul for FieldElement {
 impl Mul<&FieldElement> for &FieldElement {
     type Output = FieldElement;
 
+    // Mul operator: `&FieldElement` * `&FieldElement`.
     fn mul(self, other: &FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
@@ -162,6 +175,7 @@ impl Mul<&FieldElement> for &FieldElement {
 impl Mul<&Self> for FieldElement {
     type Output = Self;
 
+    // Mul operator: `FieldElement` * `&FieldElement`.
     fn mul(self, other: &Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
@@ -173,10 +187,34 @@ impl Mul<&Self> for FieldElement {
     }
 }
 
+impl Mul<&FieldElement> for i32 {
+    type Output = FieldElement;
+
+    // Mul operator: `i32` * `&FieldElement`.
+    fn mul(self, other: &FieldElement) -> FieldElement {
+        let s = self * &other.num;
+        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
+
+        FieldElement::new(rem, other.prime.clone())
+    }
+}
+
+impl Mul<FieldElement> for i32 {
+    type Output = FieldElement;
+
+    // Mul operator: `i32` * `FieldElement`.
+    fn mul(self, other: FieldElement) -> FieldElement {
+        let s = self * &other.num;
+        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
+
+        FieldElement::new(rem, other.prime.clone())
+    }
+}
+
 impl Div for FieldElement {
     type Output = Self;
 
-    // Div operator
+    // Div operator: `FieldElement` / `FieldElement`.
     fn div(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
@@ -195,6 +233,7 @@ impl Div for FieldElement {
 impl Div<Self> for &FieldElement {
     type Output = FieldElement;
 
+    // Div operator: `&FieldElement` / `&FieldElement`.
     fn div(self, other: &FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("cannot div two numbers in different fields");
@@ -206,39 +245,6 @@ impl Div<Self> for &FieldElement {
             .power_modulo(&(self.prime.clone() - 2), &self.prime.clone());
         let s: Integer = &self.num * o;
         let (_q, rem) = s.div_rem_euc(self.prime.clone());
-
-        FieldElement::new(rem, self.prime.clone())
-    }
-}
-
-impl Mul<&FieldElement> for i32 {
-    type Output = FieldElement;
-
-    fn mul(self, other: &FieldElement) -> FieldElement {
-        let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
-
-        FieldElement::new(rem, other.prime.clone())
-    }
-}
-
-impl Mul<FieldElement> for i32 {
-    type Output = FieldElement;
-
-    fn mul(self, other: FieldElement) -> FieldElement {
-        let s = self * &other.num;
-        let (_q, rem) = Integer::from(s).div_rem_euc(other.prime.clone());
-
-        FieldElement::new(rem, other.prime.clone())
-    }
-}
-
-impl Mul<i32> for FieldElement {
-    type Output = Self;
-
-    fn mul(self, other: i32) -> Self {
-        let s = &self.num * other;
-        let (_q, rem) = Integer::from(s).div_rem_euc(self.prime.clone());
 
         FieldElement::new(rem, self.prime.clone())
     }

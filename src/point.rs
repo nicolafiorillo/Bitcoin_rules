@@ -217,7 +217,7 @@ impl Mul<Integer> for &Point {
 
 #[cfg(test)]
 mod point_test {
-    use crate::{btc_ecdsa::*, point::*};
+    use crate::{btc_ecdsa::*, hash256::*, point::*};
 
     #[test]
     fn a_point_in_curve_1() {

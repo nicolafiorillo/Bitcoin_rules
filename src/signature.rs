@@ -23,11 +23,7 @@ impl Display for Signature {
 mod signature_test {
     use rug::Integer;
 
-    use crate::{
-        btc_ecdsa::{integer, G, N, P},
-        field_element::FieldElement,
-        point::Point,
-    };
+    use crate::{btc_ecdsa::*, field_element::FieldElement, hash256::integer, point::Point};
 
     #[test]
     fn a_signature() {

@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
-use rug::{integer::Order, ops::Pow, Integer};
+use rug::{ops::Pow, Integer};
 
-use crate::{field_element::FieldElement, point::Point};
+use crate::{field_element::FieldElement, hash256::integer, point::Point};
 
 pub static GX: Lazy<Integer> = Lazy::new(|| {
     integer(
@@ -41,11 +41,6 @@ pub static G: Lazy<Point> = Lazy::new(|| {
 
     Point::new(Some(x), Some(y), zero, seven)
 });
-
-pub fn integer(ll: u64, lr: u64, rl: u64, rr: u64) -> Integer {
-    let digits: [u64; 4] = [ll, lr, rl, rr];
-    Integer::from_digits(&digits, Order::Msf)
-}
 
 #[cfg(test)]
 mod s256_test {

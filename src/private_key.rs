@@ -4,6 +4,7 @@ use rug::{rand::RandState, Integer};
 
 use crate::{
     btc_ecdsa::{G, N},
+    integer_ex::IntegerEx,
     point::Point,
     signature::Signature,
 };
@@ -25,10 +26,7 @@ impl PrivateKey {
 
         let r = (&(*G).clone() * k.clone()).x_as_num();
 
-        let k_inv = match k.pow_mod(&((*N).clone() - 2), &(*N).clone()) {
-            Ok(power) => power,
-            Err(_) => unreachable!(),
-        };
+        let k_inv = k.invert_by_modulo(&N);
 
         let sl = (z + &r * &self.secret) * k_inv;
         let (_q, mut s) = sl.div_rem_euc((*N).clone());

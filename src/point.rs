@@ -11,6 +11,7 @@
 use crate::{
     btc_ecdsa::{G, N},
     field_element::FieldElement,
+    integer_ex::IntegerEx,
     signature::Signature,
 };
 use rug::Integer;
@@ -67,10 +68,7 @@ impl Point {
     }
 
     pub fn verify(&self, z: Integer, sig: Signature) -> bool {
-        let s_inv = match sig.s.pow_mod(&((*N).clone() - 2), &(*N).clone()) {
-            Ok(power) => power,
-            Err(_) => unreachable!(),
-        };
+        let s_inv = sig.s.invert_by_modulo(&N);
 
         let mu = &z * &s_inv;
         let (_q, u) = Integer::from(mu).div_rem_euc((*N).clone());
@@ -217,7 +215,7 @@ impl Mul<Integer> for &Point {
 
 #[cfg(test)]
 mod point_test {
-    use crate::{btc_ecdsa::*, hash256::*, point::*};
+    use crate::{btc_ecdsa::*, integer_ex::IntegerEx, point::*};
 
     #[test]
     fn a_point_in_curve_1() {
@@ -484,31 +482,31 @@ mod point_test {
 
     #[test]
     fn a_signature_1_verification() {
-        let z = integer(
+        let z = Integer::new_from_256_digits(
             0xec208baa0fc1c19f,
             0x708a9ca96fdeff3a,
             0xc3f230bb4a7ba4ae,
             0xde4942ad003c0f60,
         );
-        let r = integer(
+        let r = Integer::new_from_256_digits(
             0xac8d1c87e51d0d44,
             0x1be8b3dd5b05c879,
             0x5b48875dffe00b7f,
             0xfcfac23010d3a395,
         );
-        let s = integer(
+        let s = Integer::new_from_256_digits(
             0x068342ceff8935ed,
             0xedd102dd876ffd6b,
             0xa72d6a427a3edb13,
             0xd26eb0781cb423c4,
         );
-        let px = integer(
+        let px = Integer::new_from_256_digits(
             0x887387e452b8eacc,
             0x4acfde10d9aaf7f6,
             0xd9a0f975aabb10d0,
             0x06e4da568744d06c,
         );
-        let py = integer(
+        let py = Integer::new_from_256_digits(
             0x61de6d95231cd890,
             0x26e286df3b6ae4a8,
             0x94a3378e393e93a0,
@@ -525,31 +523,31 @@ mod point_test {
 
     #[test]
     fn a_signature_2_verification() {
-        let z = integer(
+        let z = Integer::new_from_256_digits(
             0x7c076ff316692a3d,
             0x7eb3c3bb0f8b1488,
             0xcf72e1afcd929e29,
             0x307032997a838a3d,
         );
-        let r = integer(
+        let r = Integer::new_from_256_digits(
             0x00eff69ef2b1bd93,
             0xa66ed5219add4fb5,
             0x1e11a840f4048763,
             0x25a1e8ffe0529a2c,
         );
-        let s = integer(
+        let s = Integer::new_from_256_digits(
             0xc7207fee197d27c6,
             0x18aea621406f6bf5,
             0xef6fca38681d82b2,
             0xf06fddbdce6feab6,
         );
-        let px = integer(
+        let px = Integer::new_from_256_digits(
             0x887387e452b8eacc,
             0x4acfde10d9aaf7f6,
             0xd9a0f975aabb10d0,
             0x06e4da568744d06c,
         );
-        let py = integer(
+        let py = Integer::new_from_256_digits(
             0x61de6d95231cd890,
             0x26e286df3b6ae4a8,
             0x94a3378e393e93a0,

@@ -1,10 +1,10 @@
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
 
-use crate::{field_element::FieldElement, hash256::integer, point::Point};
+use crate::{field_element::FieldElement, integer_ex::IntegerEx, point::Point};
 
 pub static GX: Lazy<Integer> = Lazy::new(|| {
-    integer(
+    Integer::new_from_256_digits(
         0x79be667ef9dcbbac,
         0x55a06295ce870b07,
         0x029bfcdb2dce28d9,
@@ -13,7 +13,7 @@ pub static GX: Lazy<Integer> = Lazy::new(|| {
 });
 
 pub static GY: Lazy<Integer> = Lazy::new(|| {
-    integer(
+    Integer::new_from_256_digits(
         0x483ada7726a3c465,
         0x5da4fbfc0e1108a8,
         0xfd17b448a6855419,
@@ -24,7 +24,7 @@ pub static GY: Lazy<Integer> = Lazy::new(|| {
 pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 977);
 
 pub static N: Lazy<Integer> = Lazy::new(|| {
-    integer(
+    Integer::new_from_256_digits(
         0xffffffffffffffff,
         0xfffffffffffffffe,
         0xbaaedce6af48a03b,
@@ -46,14 +46,12 @@ pub static G: Lazy<Point> = Lazy::new(|| {
 mod s256_test {
     use crate::btc_ecdsa::*;
     use crate::field_element::*;
+    use crate::integer_ex::IntegerEx;
     use crate::point::Point;
 
     #[test]
     fn on_correct_secp256k1_numbers() {
-        let left = match (*GY).clone().pow_mod(&Integer::from(2), &(*P).clone()) {
-            Ok(left) => left,
-            Err(_) => unreachable!(),
-        };
+        let left = (*GY).clone().power_modulo(&Integer::from(2), &(*P).clone());
 
         let r: Integer = (*GX).clone().pow(3) + 7;
         let (_q, right) = r.div_rem_euc((*P).clone());

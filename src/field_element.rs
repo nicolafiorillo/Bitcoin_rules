@@ -5,6 +5,8 @@ use std::{
     ops::{Add, Div, Mul, Sub},
 };
 
+use crate::integer_ex::IntegerEx;
+
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {
     num: Integer,
@@ -40,11 +42,7 @@ impl FieldElement {
 
         let exp = big_exp.rem_euc(n);
 
-        let res = match self.num.clone().pow_mod(&exp, &self.prime) {
-            Ok(power) => power,
-            Err(_) => unreachable!(),
-        };
-
+        let res = self.num.clone().power_modulo(&exp, &self.prime);
         FieldElement::new(res, self.prime.clone())
     }
 
@@ -186,11 +184,7 @@ impl Div for FieldElement {
 
         let prime = self.prime.clone();
 
-        let o = match other.num.pow_mod(&(prime.clone() - 2), &prime) {
-            Ok(power) => power,
-            Err(_) => unreachable!(),
-        };
-
+        let o = other.num.power_modulo(&(prime.clone() - 2), &prime);
         let s: Integer = &self.num * o;
         let (_q, rem) = s.div_rem_euc(prime);
 
@@ -206,15 +200,10 @@ impl Div<Self> for &FieldElement {
             panic!("cannot div two numbers in different fields");
         }
 
-        let o = match other
+        let o = other
             .num
             .clone()
-            .pow_mod(&(self.prime.clone() - 2), &self.prime.clone())
-        {
-            Ok(power) => power,
-            Err(_) => unreachable!(),
-        };
-
+            .power_modulo(&(self.prime.clone() - 2), &self.prime.clone());
         let s: Integer = &self.num * o;
         let (_q, rem) = s.div_rem_euc(self.prime.clone());
 

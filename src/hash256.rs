@@ -1,4 +1,5 @@
-use rug::{integer::Order, Integer};
+use crate::integer_ex::IntegerEx;
+use rug::Integer;
 use sha256::digest;
 
 pub fn hash256(s: String) -> Integer {
@@ -12,22 +13,21 @@ pub fn hash256(s: String) -> Integer {
     let rl = u64::from_str_radix(rl_s.as_str(), 16).unwrap();
     let rr = u64::from_str_radix(rr_s.as_str(), 16).unwrap();
 
-    integer(ll, lr, rl, rr)
-}
-
-pub fn integer(ll: u64, lr: u64, rl: u64, rr: u64) -> Integer {
-    let digits: [u64; 4] = [ll, lr, rl, rr];
-    Integer::from_digits(&digits, Order::Msf)
+    Integer::new_from_256_digits(ll, lr, rl, rr)
 }
 
 #[cfg(test)]
 mod hash256_test {
-    use super::{hash256, integer};
+    use rug::Integer;
+
+    use crate::integer_ex::IntegerEx;
+
+    use super::hash256;
 
     #[test]
     fn verify_a_hash() {
         let hashed = hash256("A SECRET".to_string());
-        let expected = integer(
+        let expected = Integer::new_from_256_digits(
             850352716611885034,
             2634878701457754521,
             16998301821151769569,
@@ -40,7 +40,7 @@ mod hash256_test {
     #[test]
     fn verify_empty_string_hash() {
         let hashed = hash256("".to_string());
-        let expected = integer(
+        let expected = Integer::new_from_256_digits(
             14787340370178502671,
             12141869398808674207,
             6623462329246154534,

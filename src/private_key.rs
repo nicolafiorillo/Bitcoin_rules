@@ -1,7 +1,9 @@
 ///! Private key management
 use std::fmt::{Display, Formatter, Result};
 
-use rug::{rand::RandState, Integer};
+use hmac::{Hmac, Mac, NewMac};
+use rug::{integer::Order, Integer};
+use sha2::Sha256;
 
 use crate::{
     btc_ecdsa::{G, N},
@@ -29,8 +31,7 @@ impl PrivateKey {
     /// `z` is the hash of the message.
     /// Return the `Signature` for the signed message.
     pub fn sign(&self, z: Integer) -> Signature {
-        let mut rand = RandState::new();
-        let k = (*N).clone().random_below(&mut rand);
+        let k = PrivateKey::deterministic_k(&self.secret, &z);
 
         let r = (&(*G).clone() * k.clone()).x_as_num();
 
@@ -45,6 +46,72 @@ impl PrivateKey {
 
         Signature { r, s }
     }
+
+    /// https://www.rfc-editor.org/rfc/rfc6979.txt
+    pub fn deterministic_k(secret: &Integer, hashed: &Integer) -> Integer {
+        let mut z = hashed.clone();
+
+        let mut k: [u8; 32] = [0u8; 32];
+        let mut v: [u8; 32] = [1u8; 32];
+        let mut z_bytes: [u8; 32] = [0u8; 32];
+        let mut secret_bytes: [u8; 32] = [0u8; 32];
+
+        let n = (*N).clone();
+        if z > n.clone() {
+            z -= n.clone();
+        }
+
+        let zero = [0u8];
+        let one = [1u8];
+
+        let mut z_vect = z.to_digits::<u8>(Order::LsfBe);
+        z_vect.resize(32, 0);
+        z_vect.reverse();
+        z_bytes.clone_from_slice(&z_vect);
+
+        let mut secret_vect = secret.to_digits::<u8>(Order::LsfBe);
+        secret_vect.resize(32, 0);
+        secret_vect.reverse();
+        secret_bytes.copy_from_slice(&secret_vect);
+
+        let mut hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        let mut data = [v.as_slice(), zero.as_slice(), &secret_bytes, &z_bytes].concat();
+        hmac_sha256.update(&data);
+        k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        hmac_sha256.update(&v);
+        v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        data = [v.as_slice(), one.as_slice(), &secret_bytes, &z_bytes].concat();
+        hmac_sha256.update(&data);
+        k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        hmac_sha256.update(&v);
+        v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+        loop {
+            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+            hmac_sha256.update(&v);
+            v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+            let candidate: Integer = Integer::from_digits(&v, Order::MsfBe);
+
+            if candidate >= 1 && candidate < *N {
+                return candidate;
+            }
+
+            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+            data = [v.as_slice(), zero.as_slice()].concat();
+            hmac_sha256.update(&data);
+            k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+            hmac_sha256.update(&v);
+            v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+        }
+    }
 }
 
 impl Display for PrivateKey {
@@ -55,6 +122,8 @@ impl Display for PrivateKey {
 
 #[cfg(test)]
 mod private_key_test {
+    use rug::{Complete, Integer};
+
     use super::PrivateKey;
     use crate::hash256::hash256;
 
@@ -69,5 +138,38 @@ mod private_key_test {
         let sign = private_key.sign(z.clone());
 
         assert!(private_key.point.verify(z, sign));
+    }
+
+    #[test]
+    fn deterministic_k_1() {
+        let k = PrivateKey::deterministic_k(&Integer::from(10), &Integer::from(1));
+        assert_eq!(
+            k,
+            Integer::parse("23556289421633918234640030791776902309669950917001758018452865836473455104574")
+                .unwrap()
+                .complete()
+        );
+    }
+
+    #[test]
+    fn deterministic_k_2() {
+        let k = PrivateKey::deterministic_k(&Integer::from(2345), &Integer::from(6789));
+        assert_eq!(
+            k,
+            Integer::parse("34113680596947005563568962966999203522429670732921816689907697765389746251584")
+                .unwrap()
+                .complete()
+        );
+    }
+
+    #[test]
+    fn deterministic_k_3() {
+        let k = PrivateKey::deterministic_k(&Integer::from(1000000), &Integer::from(1000000));
+        assert_eq!(
+            k,
+            Integer::parse("35877450084421794080905523995859466786371393244910114637747627798158238933625")
+                .unwrap()
+                .complete()
+        );
     }
 }

@@ -47,69 +47,62 @@ impl PrivateKey {
         Signature { r, s }
     }
 
+    fn vect_to_array_32(v: &Vec<u8>) -> [u8; 32] {
+        let mut arr: [u8; 32] = [0u8; 32];
+        for i in 0..v.len() {
+            arr[31 - i] = v[i];
+        }
+
+        arr
+    }
+
+    fn hmac_for_data(data: &[u8], mut k: [u8; 32]) -> [u8; 32] {
+        let mut hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        hmac_sha256.update(&data);
+        k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+
+        k
+    }
+
     /// https://www.rfc-editor.org/rfc/rfc6979.txt
     pub fn deterministic_k(secret: &Integer, hashed: &Integer) -> Integer {
         let mut z = hashed.clone();
 
-        let mut k: [u8; 32] = [0u8; 32];
-        let mut v: [u8; 32] = [1u8; 32];
-        let mut z_bytes: [u8; 32] = [0u8; 32];
-        let mut secret_bytes: [u8; 32] = [0u8; 32];
-
-        let n = (*N).clone();
-        if z > n.clone() {
-            z -= n.clone();
+        if z > *N {
+            z -= (*N).clone();
         }
 
         let zero = [0u8];
         let one = [1u8];
 
-        let mut z_vect = z.to_digits::<u8>(Order::LsfBe);
-        z_vect.resize(32, 0);
-        z_vect.reverse();
-        z_bytes.clone_from_slice(&z_vect);
+        let z_vect = z.to_digits::<u8>(Order::LsfBe);
+        let z_bytes = PrivateKey::vect_to_array_32(&z_vect);
 
-        let mut secret_vect = secret.to_digits::<u8>(Order::LsfBe);
-        secret_vect.resize(32, 0);
-        secret_vect.reverse();
-        secret_bytes.copy_from_slice(&secret_vect);
+        let secret_vect = secret.to_digits::<u8>(Order::LsfBe);
+        let secret_bytes = PrivateKey::vect_to_array_32(&secret_vect);
 
-        let mut hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        let mut k: [u8; 32] = [0u8; 32];
+        let mut v: [u8; 32] = [1u8; 32];
+
         let mut data = [v.as_slice(), zero.as_slice(), &secret_bytes, &z_bytes].concat();
-        hmac_sha256.update(&data);
-        k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+        k = PrivateKey::hmac_for_data(&data, k);
+        v = PrivateKey::hmac_for_data(&v, k);
 
-        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
-        hmac_sha256.update(&v);
-        v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
-
-        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
         data = [v.as_slice(), one.as_slice(), &secret_bytes, &z_bytes].concat();
-        hmac_sha256.update(&data);
-        k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
-
-        hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
-        hmac_sha256.update(&v);
-        v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+        k = PrivateKey::hmac_for_data(&data, k);
+        v = PrivateKey::hmac_for_data(&v, k);
 
         loop {
-            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
-            hmac_sha256.update(&v);
-            v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+            v = PrivateKey::hmac_for_data(&v, k);
             let candidate: Integer = Integer::from_digits(&v, Order::MsfBe);
 
             if candidate >= 1 && candidate < *N {
                 return candidate;
             }
 
-            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
             data = [v.as_slice(), zero.as_slice()].concat();
-            hmac_sha256.update(&data);
-            k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
-
-            hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
-            hmac_sha256.update(&v);
-            v.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
+            k = PrivateKey::hmac_for_data(&data, k);
+            v = PrivateKey::hmac_for_data(&v, k);
         }
     }
 }

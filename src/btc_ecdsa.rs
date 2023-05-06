@@ -5,36 +5,18 @@ use rug::{ops::Pow, Integer};
 use crate::{field_element::FieldElement, integer_ex::IntegerEx, point::Point};
 
 // X coordinate of Generator Point as per bitcoin protocol.
-pub static GX: Lazy<Integer> = Lazy::new(|| {
-    Integer::new_from_256_digits(
-        0x79be667ef9dcbbac,
-        0x55a06295ce870b07,
-        0x029bfcdb2dce28d9,
-        0x59f2815b16f81798,
-    )
-});
+pub static GX: Lazy<Integer> =
+    Lazy::new(|| Integer::new_from_hex_str("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"));
 
 // Y coordinate of Generator Point as per bitcoin protocol.
-pub static GY: Lazy<Integer> = Lazy::new(|| {
-    Integer::new_from_256_digits(
-        0x483ada7726a3c465,
-        0x5da4fbfc0e1108a8,
-        0xfd17b448a6855419,
-        0x9c47d08ffb10d4b8,
-    )
-});
+pub static GY: Lazy<Integer> =
+    Lazy::new(|| Integer::new_from_hex_str("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"));
 
 // Prime number P as per bitcoin protocol.
 pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 977);
 
-pub static N: Lazy<Integer> = Lazy::new(|| {
-    Integer::new_from_256_digits(
-        0xffffffffffffffff,
-        0xfffffffffffffffe,
-        0xbaaedce6af48a03b,
-        0xbfd25e8cd0364141,
-    )
-});
+pub static N: Lazy<Integer> =
+    Lazy::new(|| Integer::new_from_hex_str("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"));
 
 // Generator Point as per bitcoin protocol.
 pub static G: Lazy<Point> = Lazy::new(|| {

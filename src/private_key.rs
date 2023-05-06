@@ -58,7 +58,7 @@ impl PrivateKey {
 
     fn hmac_for_data(data: &[u8], mut k: [u8; 32]) -> [u8; 32] {
         let mut hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
-        hmac_sha256.update(&data);
+        hmac_sha256.update(data);
         k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
 
         k
@@ -115,10 +115,10 @@ impl Display for PrivateKey {
 
 #[cfg(test)]
 mod private_key_test {
-    use rug::{Complete, Integer};
+    use rug::Integer;
 
     use super::PrivateKey;
-    use crate::hash256::hash256;
+    use crate::{hash256::hash256, integer_ex::IntegerEx};
 
     #[test]
     fn verify_a_signature() {
@@ -138,9 +138,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(10), &Integer::from(1));
         assert_eq!(
             k,
-            Integer::parse("23556289421633918234640030791776902309669950917001758018452865836473455104574")
-                .unwrap()
-                .complete()
+            Integer::new_from_dec_str("23556289421633918234640030791776902309669950917001758018452865836473455104574")
         );
     }
 
@@ -149,9 +147,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(2345), &Integer::from(6789));
         assert_eq!(
             k,
-            Integer::parse("34113680596947005563568962966999203522429670732921816689907697765389746251584")
-                .unwrap()
-                .complete()
+            Integer::new_from_dec_str("34113680596947005563568962966999203522429670732921816689907697765389746251584")
         );
     }
 
@@ -160,9 +156,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(1000000), &Integer::from(1000000));
         assert_eq!(
             k,
-            Integer::parse("35877450084421794080905523995859466786371393244910114637747627798158238933625")
-                .unwrap()
-                .complete()
+            Integer::new_from_dec_str("35877450084421794080905523995859466786371393244910114637747627798158238933625")
         );
     }
 }

@@ -152,6 +152,36 @@ mod private_key_test {
     }
 
     #[test]
+    fn verify_a_compressed_public_key_1() {
+        let private_key = PrivateKey::new(Integer::from(5001));
+        let sec = private_key.point.sec_compressed();
+        assert_eq!(
+            to_hex_string(&sec),
+            "0357A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1"
+        );
+    }
+
+    #[test]
+    fn verify_a_compressed_public_key_2() {
+        let private_key = PrivateKey::new(Integer::from(2019).pow(5));
+        let sec = private_key.point.sec_compressed();
+        assert_eq!(
+            to_hex_string(&sec),
+            "02933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701"
+        );
+    }
+
+    #[test]
+    fn verify_a_compressed_public_key_3() {
+        let private_key = PrivateKey::new(Integer::new_from_hex_str("DEADBEEF54321"));
+        let sec = private_key.point.sec_compressed();
+        assert_eq!(
+            to_hex_string(&sec),
+            "0296BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690"
+        );
+    }
+
+    #[test]
     fn deterministic_k_1() {
         let k = PrivateKey::deterministic_k(&Integer::from(10), &Integer::from(1));
         assert_eq!(

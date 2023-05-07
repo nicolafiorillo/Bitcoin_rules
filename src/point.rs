@@ -114,6 +114,19 @@ impl Point {
 
         res
     }
+
+    pub fn sec_compressed(&self) -> [u8; 33] {
+        let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
+
+        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
+        let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
+
+        let mut res: [u8; 33] = [0; 33];
+        res[0] = prefix;
+        res[1..33].copy_from_slice(&x);
+
+        res
+    }
 }
 
 impl Display for Point {

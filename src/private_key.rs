@@ -7,6 +7,7 @@ use sha2::Sha256;
 
 use crate::{
     btc_ecdsa::{G, N},
+    helper::vector,
     integer_ex::IntegerEx,
     point::Point,
     signature::Signature,
@@ -31,7 +32,7 @@ impl PrivateKey {
     /// `z` is the hash of the message.
     /// Return the `Signature` for the signed message.
     pub fn sign(&self, z: Integer) -> Signature {
-        let k = PrivateKey::deterministic_k(&self.secret, &z);
+        let k = Self::deterministic_k(&self.secret, &z);
 
         let r = (&(*G).clone() * k.clone()).x_as_num();
 
@@ -45,15 +46,6 @@ impl PrivateKey {
         };
 
         Signature { r, s }
-    }
-
-    fn vect_to_array_32(v: &Vec<u8>) -> [u8; 32] {
-        let mut arr: [u8; 32] = [0u8; 32];
-        for i in 0..v.len() {
-            arr[31 - i] = v[i];
-        }
-
-        arr
     }
 
     fn hmac_for_data(data: &[u8], mut k: [u8; 32]) -> [u8; 32] {
@@ -72,19 +64,19 @@ impl PrivateKey {
             z -= (*N).clone();
         }
 
-        let zero = [0u8];
-        let one = [1u8];
+        let zero: [u8; 1] = [0u8];
+        let one: [u8; 1] = [1u8];
 
-        let z_vect = z.to_digits::<u8>(Order::LsfBe);
-        let z_bytes = PrivateKey::vect_to_array_32(&z_vect);
+        let z_vect: Vec<u8> = z.to_digits::<u8>(Order::LsfBe);
+        let z_bytes: [u8; 32] = vector::vect_to_array_32(&z_vect);
 
-        let secret_vect = secret.to_digits::<u8>(Order::LsfBe);
-        let secret_bytes = PrivateKey::vect_to_array_32(&secret_vect);
+        let secret_vect: Vec<u8> = secret.to_digits::<u8>(Order::LsfBe);
+        let secret_bytes: [u8; 32] = vector::vect_to_array_32(&secret_vect);
 
         let mut k: [u8; 32] = [0u8; 32];
         let mut v: [u8; 32] = [1u8; 32];
 
-        let mut data = [v.as_slice(), zero.as_slice(), &secret_bytes, &z_bytes].concat();
+        let mut data: Vec<u8> = [v.as_slice(), zero.as_slice(), &secret_bytes, &z_bytes].concat();
         k = PrivateKey::hmac_for_data(&data, k);
         v = PrivateKey::hmac_for_data(&v, k);
 
@@ -115,7 +107,7 @@ impl Display for PrivateKey {
 
 #[cfg(test)]
 mod private_key_test {
-    use rug::Integer;
+    use rug::{ops::Pow, Integer};
 
     use super::PrivateKey;
     use crate::{hash256::hash256, integer_ex::IntegerEx};
@@ -131,6 +123,32 @@ mod private_key_test {
         let sign = private_key.sign(z.clone());
 
         assert!(private_key.point.verify(z, sign));
+    }
+
+    pub fn to_hex_string(bytes: &[u8]) -> String {
+        let strs: Vec<String> = bytes.iter().map(|b| format!("{:02X}", b)).collect();
+        strs.join("")
+    }
+
+    #[test]
+    fn verify_a_serialized_public_key_1() {
+        let private_key = PrivateKey::new(Integer::from(5000));
+        let sec = private_key.point.sec();
+        assert_eq!(to_hex_string(&sec), "04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10");
+    }
+
+    #[test]
+    fn verify_a_serialized_public_key_2() {
+        let private_key = PrivateKey::new(Integer::from(2018).pow(5));
+        let sec = private_key.point.sec();
+        assert_eq!(to_hex_string(&sec), "04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06");
+    }
+
+    #[test]
+    fn verify_a_serialized_public_key_3() {
+        let private_key = PrivateKey::new(Integer::new_from_hex_str("DEADBEEF12345"));
+        let sec = private_key.point.sec();
+        assert_eq!(to_hex_string(&sec), "04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121");
     }
 
     #[test]

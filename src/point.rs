@@ -12,10 +12,12 @@
 use crate::{
     btc_ecdsa::{G, N},
     field_element::FieldElement,
+    helper::vector,
     integer_ex::IntegerEx,
     signature::Signature,
 };
-use rug::Integer;
+use rug::{integer::Order, Integer};
+
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Mul},
@@ -76,6 +78,11 @@ impl Point {
         self.x.clone().unwrap().num()
     }
 
+    /// Get `y` value.
+    pub fn y_as_num(&self) -> Integer {
+        self.y.clone().unwrap().num()
+    }
+
     /// Verify `z` versus a `Signature`.
     /// `z`: the hashed message
     /// `sig`: the public signature
@@ -91,6 +98,21 @@ impl Point {
         let total = (&(*G).clone() * u) + &(self * v);
 
         total.x_as_num() == sig.r
+    }
+
+    pub fn sec(&self) -> [u8; 65] {
+        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
+        let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Lsf);
+
+        let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
+        let y: [u8; 32] = vector::vect_to_array_32(&y_vec);
+
+        let mut res: [u8; 65] = [0; 65];
+        res[0] = 4;
+        res[1..33].copy_from_slice(&x);
+        res[33..65].copy_from_slice(&y);
+
+        res
     }
 }
 

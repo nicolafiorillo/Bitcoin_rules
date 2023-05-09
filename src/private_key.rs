@@ -67,10 +67,10 @@ impl PrivateKey {
         let zero: [u8; 1] = [0u8];
         let one: [u8; 1] = [1u8];
 
-        let z_vect: Vec<u8> = z.to_digits::<u8>(Order::LsfBe);
+        let z_vect: Vec<u8> = z.to_digits::<u8>(Order::Msf);
         let z_bytes: [u8; 32] = vector::vect_to_array_32(&z_vect);
 
-        let secret_vect: Vec<u8> = secret.to_digits::<u8>(Order::LsfBe);
+        let secret_vect: Vec<u8> = secret.to_digits::<u8>(Order::Msf);
         let secret_bytes: [u8; 32] = vector::vect_to_array_32(&secret_vect);
 
         let mut k: [u8; 32] = [0u8; 32];

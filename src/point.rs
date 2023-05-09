@@ -101,8 +101,8 @@ impl Point {
     }
 
     pub fn serialize(&self) -> [u8; 65] {
-        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
-        let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Lsf);
+        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
+        let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Msf);
 
         let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
         let y: [u8; 32] = vector::vect_to_array_32(&y_vec);
@@ -118,7 +118,7 @@ impl Point {
     pub fn serialize_compressed(&self) -> [u8; 33] {
         let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
 
-        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
+        let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
         let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
 
         let mut res: [u8; 33] = [0; 33];

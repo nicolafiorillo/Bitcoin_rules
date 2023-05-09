@@ -10,9 +10,9 @@
 ///     sec2-v2.pdf
 ///
 use crate::{
-    btc_ecdsa::{G, N},
+    btc_ecdsa::{B, G, N, P},
     field_element::FieldElement,
-    helper::vector,
+    helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,
     signature::Signature,
 };
@@ -37,7 +37,7 @@ impl Point {
     /// New `Point` from all elements.
     pub fn new(x: Option<FieldElement>, y: Option<FieldElement>, a: FieldElement, b: FieldElement) -> Point {
         if let (Some(x_value), Some(y_value)) = (x.clone(), y.clone()) {
-            if y_value.pow(2) != x_value.clone().pow(3) + a.clone() * x_value + b.clone() {
+            if y_value.pow_by_i32(2) != x_value.clone().pow_by_i32(3) + a.clone() * x_value + b.clone() {
                 panic!("point is not in the curve");
             }
         }
@@ -100,7 +100,7 @@ impl Point {
         total.x_as_num() == sig.r
     }
 
-    pub fn sec(&self) -> [u8; 65] {
+    pub fn serialize(&self) -> [u8; 65] {
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
         let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Lsf);
 
@@ -115,7 +115,7 @@ impl Point {
         res
     }
 
-    pub fn sec_compressed(&self) -> [u8; 33] {
+    pub fn serialize_compressed(&self) -> [u8; 33] {
         let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
 
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Lsf);
@@ -126,6 +126,59 @@ impl Point {
         res[1..33].copy_from_slice(&x);
 
         res
+    }
+
+    fn deserialize_uncompressed(bytes: &[u8]) -> Point {
+        let x_digits = &bytes[1..33];
+        let x = Integer::from_digits(x_digits, Order::Msf);
+
+        let y_digits = &bytes[33..65];
+        let y = Integer::from_digits(y_digits, Order::Msf);
+
+        let x_field = FieldElement::new_in_btc_field(x);
+        let y_field = FieldElement::new_in_btc_field(y);
+
+        Point::new_in_btc(Some(x_field), Some(y_field))
+    }
+
+    fn deserialize_compressed(bytes: &[u8]) -> Point {
+        let x_digits = &bytes[1..33];
+        let x = FieldElement::new_in_btc_field(Integer::from_digits(x_digits, Order::Msf));
+
+        let right_side = x.pow_by_i32(3) + FieldElement::new_in_btc_field((*B).clone());
+
+        let left_side = right_side.sqrt();
+
+        let y_is_even = bytes[0] == 2;
+        let left_side_is_even = left_side.num().is_even();
+
+        let y = if y_is_even == left_side_is_even {
+            left_side
+        } else {
+            // left_side_inverted
+            FieldElement::new_in_btc_field((*P).clone() - left_side.num())
+        };
+
+        Point::new_in_btc(Some(x), Some(y))
+    }
+
+    pub fn deserialize(serialized: &str) -> Point {
+        let bytes = string_to_bytes(serialized);
+
+        let bytes_lenght = bytes.len();
+        if bytes_lenght != 65 && bytes_lenght != 33 {
+            panic!("invalid binary length");
+        }
+
+        if bytes[0] == 4 {
+            return Self::deserialize_uncompressed(&bytes);
+        }
+
+        if bytes[0] == 2 || bytes[0] == 3 {
+            return Self::deserialize_compressed(&bytes);
+        }
+
+        panic!("unknown binary type in deserialization");
     }
 }
 
@@ -181,7 +234,7 @@ impl Add<&Self> for Point {
             let x2 = &other.x.clone().unwrap();
 
             let s = (y2 - y1) / (x2 - x1);
-            let x = s.pow(2) - x1 - x2;
+            let x = s.pow_by_i32(2) - x1 - x2;
             let y = &s * &(x1 - &x) - y1;
 
             return Point::new(Some(x), Some(y), self.a, self.b);
@@ -197,8 +250,8 @@ impl Add<&Self> for Point {
             let y1 = &self.y.unwrap();
             let x1 = &self.x.unwrap();
 
-            let s = (3 * x1.clone().pow(2) + self.a.clone()) / (2 * y1);
-            let x = s.pow(2) - (2 * x1.clone());
+            let s = (3 * x1.clone().pow_by_i32(2) + self.a.clone()) / (2 * y1);
+            let x = s.pow_by_i32(2) - (2 * x1.clone());
             let y = s * (x1 - &x) - y1;
 
             return Point::new(Some(x), Some(y), self.a, self.b);

@@ -18,13 +18,16 @@ pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::
 pub static N: Lazy<Integer> =
     Lazy::new(|| Integer::new_from_hex_str("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"));
 
+pub static A: Lazy<Integer> = Lazy::new(|| Integer::from(0));
+pub static B: Lazy<Integer> = Lazy::new(|| Integer::from(7));
+
 // Generator Point as per bitcoin protocol.
 pub static G: Lazy<Point> = Lazy::new(|| {
     let x = FieldElement::new((*GX).clone(), (*P).clone());
     let y = FieldElement::new((*GY).clone(), (*P).clone());
 
-    let zero = FieldElement::new(Integer::from(0), (*P).clone());
-    let seven = FieldElement::new(Integer::from(7), (*P).clone());
+    let zero = FieldElement::new((*A).clone(), (*P).clone());
+    let seven = FieldElement::new((*B).clone(), (*P).clone());
 
     Point::new(Some(x), Some(y), zero, seven)
 });

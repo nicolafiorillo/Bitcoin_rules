@@ -43,7 +43,7 @@ impl FieldElement {
     }
 
     /// Power operation by i32.
-    pub fn pow(&self, exponent: i32) -> FieldElement {
+    pub fn pow_by_i32(&self, exponent: i32) -> FieldElement {
         let big_exp = Integer::from(exponent);
         let n: Integer = self.prime.clone() - 1;
 
@@ -51,6 +51,22 @@ impl FieldElement {
 
         let res = self.num.clone().power_modulo(&exp, &self.prime);
         FieldElement::new(res, self.prime.clone())
+    }
+
+    /// Power operation by Integer.
+    pub fn pow_by_integer(&self, exponent: Integer) -> FieldElement {
+        let n: Integer = self.prime.clone() - 1;
+
+        let exp = exponent.rem_euc(n);
+
+        let res = self.num.clone().power_modulo(&exp, &self.prime);
+        FieldElement::new(res, self.prime.clone())
+    }
+
+    /// Square root should be available only as per bitcoin protocol.
+    /// It works for `p % 4 = 3` only.
+    pub fn sqrt(&self) -> FieldElement {
+        self.pow_by_integer((self.prime.clone() + 1) / Integer::from(4))
     }
 
     /// `FieldElement` is zero.
@@ -364,7 +380,7 @@ mod field_element_test {
         let field1 = FieldElement::new(Integer::from(3), Integer::from(13));
         let field2 = FieldElement::new(Integer::from(1), Integer::from(13));
 
-        assert_eq!(field1.pow(3), field2);
+        assert_eq!(field1.pow_by_i32(3), field2);
     }
 
     #[test]
@@ -373,7 +389,7 @@ mod field_element_test {
         let field2 = FieldElement::new(Integer::from(24), Integer::from(31));
         let field3 = FieldElement::new(Integer::from(4), Integer::from(31));
 
-        assert_eq!(field1 * field2.pow(-1), field3);
+        assert_eq!(field1 * field2.pow_by_i32(-1), field3);
     }
 
     #[test]
@@ -381,7 +397,7 @@ mod field_element_test {
         let field1 = FieldElement::new(Integer::from(17), Integer::from(31));
         let field2 = FieldElement::new(Integer::from(29), Integer::from(31));
 
-        assert_eq!(field1.pow(-3), field2);
+        assert_eq!(field1.pow_by_i32(-3), field2);
     }
 
     #[test]
@@ -390,7 +406,7 @@ mod field_element_test {
         let field2 = FieldElement::new(Integer::from(11), Integer::from(31));
         let field3 = FieldElement::new(Integer::from(13), Integer::from(31));
 
-        assert_eq!(field1.pow(-4) * field2, field3);
+        assert_eq!(field1.pow_by_i32(-4) * field2, field3);
     }
 
     #[test]
@@ -431,7 +447,7 @@ mod field_element_test {
         let mut v = vec![];
 
         for i in 1..p {
-            v.push(FieldElement::new(Integer::from(i), Integer::from(p)).pow(p as i32 - 1));
+            v.push(FieldElement::new(Integer::from(i), Integer::from(p)).pow_by_i32(p as i32 - 1));
         }
 
         return v;

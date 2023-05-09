@@ -100,6 +100,7 @@ impl Point {
         total.x_as_num() == sig.r
     }
 
+    /// https://www.secg.org/
     pub fn serialize(&self) -> [u8; 65] {
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
         let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Msf);

@@ -21,4 +21,59 @@ pub mod vector {
 
         res
     }
+
+    /// trim left leading byte
+    pub fn trim_left(v: &Vec<u8>, value: u8) -> Vec<u8> {
+        let mut l: usize = 0;
+        let len = v.len();
+
+        while l != len && v[l] == value {
+            l += 1;
+        }
+
+        v[l..v.len()].to_vec()
+    }
+}
+
+#[cfg(test)]
+mod helper_test {
+    use crate::helper::vector;
+
+    #[test]
+    fn no_left_trim() {
+        let v = vector::trim_left(&vec![1, 2, 3, 4, 5], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn one_left_trim() {
+        let v = vector::trim_left(&vec![0, 1, 2, 3, 4, 5], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn more_left_trim() {
+        let v = vector::trim_left(&vec![0, 0, 0, 1, 2, 3, 4, 5], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn some_right_left_trim() {
+        let v = vector::trim_left(&vec![0, 0, 0, 1, 2, 3, 4, 5, 0, 0], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5, 0, 0])
+    }
+
+    #[test]
+    fn all_left_trim() {
+        let v = vector::trim_left(&vec![0, 0, 0, 0, 0, 0, 0], 0);
+        let expected: Vec<u8> = Vec::new();
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn none_left_trim() {
+        let v = vector::trim_left(&vec![], 0);
+        let expected: Vec<u8> = Vec::new();
+        assert_eq!(v, expected)
+    }
 }

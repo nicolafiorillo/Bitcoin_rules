@@ -3,9 +3,7 @@ pub mod vector {
     pub fn vect_to_array_32(v: &Vec<u8>) -> [u8; 32] {
         let mut arr: [u8; 32] = [0u8; 32];
         let cursor = 32 - v.len();
-        for i in 0..v.len() {
-            arr[cursor + i] = v[i];
-        }
+        arr[cursor..(v.len() + cursor)].copy_from_slice(&v[..]);
 
         arr
     }

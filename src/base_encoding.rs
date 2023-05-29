@@ -1,0 +1,113 @@
+pub mod base58 {
+
+    use once_cell::sync::Lazy;
+    use rug::{integer::Order, Integer};
+
+    pub static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
+        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+            .chars()
+            .collect()
+    });
+    pub static BASE58_ALPHABET_LENGTH: u8 = 58;
+
+    pub fn base58_encode(binary: &[u8]) -> String {
+        // We will need it for pay-to-pubkey-hash (p2pkh)
+        // let zeroes: usize = count_first(binary, 0);
+        // let mut result = "1".repeat(zeroes);
+        let mut result = "".to_string();
+        let mut num = Integer::from_digits(binary, Order::Msf);
+
+        while num > 0 {
+            let (new_num, remainder) = num.clone().div_rem(Integer::from(58));
+            num = new_num;
+
+            let prefix = (*BASE58_ALPHABET)[remainder.to_usize().unwrap()].to_string();
+            result = prefix + &result;
+        }
+
+        result
+    }
+
+    pub fn base58_decode(s: &str) -> Integer {
+        // We will need it for pay-to-pubkey-hash (p2pkh)
+        // manage leading 1 to zeros
+
+        let mut result = Integer::from(0);
+        let mut multi = Integer::from(1);
+
+        for val in s.chars().rev() {
+            result += (multi.clone()) * (*BASE58_ALPHABET).iter().position(|v| v == &val).unwrap();
+            multi *= BASE58_ALPHABET_LENGTH;
+        }
+
+        result
+    }
+
+    // We will need it for pay-to-pubkey-hash (p2pkh)
+    // fn count_first(binary: &[u8], val: u8) -> usize {
+    //     let mut counter: usize = 0;
+    //     let len = binary.len();
+
+    //     while counter < len && binary[counter] == val {
+    //         counter += 1;
+    //     }
+
+    //     counter
+    // }
+}
+
+#[cfg(test)]
+mod base58_test {
+    use rug::{integer::Order, Integer};
+
+    use crate::{base_encoding::base58::base58_decode, integer_ex::IntegerEx};
+
+    use super::base58::base58_encode;
+
+    #[test]
+    fn encode_1() {
+        let val = Integer::new_from_hex_str("7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d");
+        let v = val.to_digits::<u8>(Order::Msf);
+
+        assert_eq!("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6", base58_encode(&v))
+    }
+
+    #[test]
+    fn encode_2() {
+        let val = Integer::new_from_hex_str("eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
+        let v = val.to_digits::<u8>(Order::Msf);
+
+        assert_eq!("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd", base58_encode(&v))
+    }
+
+    #[test]
+    fn encode_3() {
+        let val = Integer::new_from_hex_str("c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
+        let v = val.to_digits::<u8>(Order::Msf);
+
+        assert_eq!("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7", base58_encode(&v))
+    }
+
+    #[test]
+    fn decode_1() {
+        let res = base58_decode("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6");
+        let expected = Integer::new_from_hex_str("7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d");
+
+        assert_eq!(expected, res)
+    }
+
+    #[test]
+    fn decode_2() {
+        let res = base58_decode("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd");
+        let expected = Integer::new_from_hex_str("eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
+
+        assert_eq!(expected, res)
+    }
+    #[test]
+    fn decode_3() {
+        let res = base58_decode("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7");
+        let expected = Integer::new_from_hex_str("c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
+
+        assert_eq!(expected, res)
+    }
+}

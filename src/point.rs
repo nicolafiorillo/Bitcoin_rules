@@ -33,6 +33,12 @@ pub struct Point {
     b: FieldElement,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum Compression {
+    Compressed,
+    Uncompressed,
+}
+
 impl Point {
     /// New `Point` from all elements.
     pub fn new(x: Option<FieldElement>, y: Option<FieldElement>, a: FieldElement, b: FieldElement) -> Point {
@@ -101,7 +107,14 @@ impl Point {
     }
 
     /// https://www.secg.org/
-    pub fn serialize(&self) -> [u8; 65] {
+    pub fn serialize(&self, compression: Compression) -> Vec<u8> {
+        match compression {
+            Compression::Compressed => self.serialize_compressed().to_vec(),
+            Compression::Uncompressed => self.serialize_uncompressed().to_vec(),
+        }
+    }
+
+    fn serialize_uncompressed(&self) -> [u8; 65] {
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
         let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Msf);
 
@@ -116,7 +129,7 @@ impl Point {
         res
     }
 
-    pub fn serialize_compressed(&self) -> [u8; 33] {
+    fn serialize_compressed(&self) -> [u8; 33] {
         let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
 
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);

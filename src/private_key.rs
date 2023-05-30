@@ -1,7 +1,7 @@
 ///! Private key management
 use std::fmt::{Display, Formatter, Result};
 
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use rug::{integer::Order, Integer};
 use sha2::Sha256;
 
@@ -49,7 +49,7 @@ impl PrivateKey {
     }
 
     fn hmac_for_data(data: &[u8], mut k: [u8; 32]) -> [u8; 32] {
-        let mut hmac_sha256 = Hmac::<Sha256>::new_varkey(&k).expect("HMAC initialization failed");
+        let mut hmac_sha256 = Hmac::<Sha256>::new_from_slice(&k).expect("HMAC initialization failed");
         hmac_sha256.update(data);
         k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
 

@@ -107,7 +107,7 @@ impl Display for PrivateKey {
 
 #[cfg(test)]
 mod private_key_test {
-    use rug::{ops::Pow, Integer};
+    use rug::{integer::Order, ops::Pow, Integer};
 
     use super::PrivateKey;
     use crate::{
@@ -123,10 +123,13 @@ mod private_key_test {
         let e = hash256(&secret.as_bytes().to_vec());
         let z = hash256(&message.as_bytes().to_vec());
 
-        let private_key = PrivateKey::new(e);
-        let sign = private_key.sign(z.clone());
+        let e_integer = Integer::from_digits(&e, Order::Msf);
+        let z_integer = Integer::from_digits(&z, Order::Msf);
 
-        assert!(private_key.point.verify(z, sign));
+        let private_key = PrivateKey::new(e_integer);
+        let sign = private_key.sign(z_integer.clone());
+
+        assert!(private_key.point.verify(z_integer, sign));
     }
 
     pub fn to_hex_string(bytes: &[u8]) -> String {

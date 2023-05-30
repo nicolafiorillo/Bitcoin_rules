@@ -12,6 +12,7 @@
 use crate::{
     btc_ecdsa::{B, G, N, P},
     field_element::FieldElement,
+    hash160::hash160,
     helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,
     signature::Signature,
@@ -193,6 +194,11 @@ impl Point {
         }
 
         panic!("unknown binary type in deserialization");
+    }
+
+    fn hash160(&self, compression: Compression) -> Vec<u8> {
+        let serialized = self.serialize(compression);
+        hash160(&serialized)
     }
 }
 

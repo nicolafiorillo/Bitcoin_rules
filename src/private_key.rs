@@ -116,8 +116,8 @@ mod private_key_test {
     fn verify_a_signature() {
         let secret = "A SECRET".to_string();
         let message = "A MESSAGE".to_string();
-        let e = hash256(secret);
-        let z = hash256(message);
+        let e = hash256(&secret.as_bytes().to_vec());
+        let z = hash256(&message.as_bytes().to_vec());
 
         let private_key = PrivateKey::new(e);
         let sign = private_key.sign(z.clone());

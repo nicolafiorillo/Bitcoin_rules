@@ -54,13 +54,26 @@ pub mod base58 {
 
     //     counter
     // }
+
+    pub fn encode_base58_checksum(b: &[u8]) -> String {
+        use crate::hash256::hash256;
+
+        let checksum: Vec<u8> = hash256(b).to_digits(Order::Msf).drain(0..4).collect();
+        let mut bin: Vec<u8> = b.to_vec();
+        bin.extend(checksum);
+
+        base58_encode(&bin)
+    }
 }
 
 #[cfg(test)]
 mod base58_test {
     use rug::{integer::Order, Integer};
 
-    use crate::{base_encoding::base58::base58_decode, integer_ex::IntegerEx};
+    use crate::{
+        base_encoding::base58::{base58_decode, encode_base58_checksum},
+        integer_ex::IntegerEx,
+    };
 
     use super::base58::base58_encode;
 
@@ -109,5 +122,27 @@ mod base58_test {
         let expected = Integer::new_from_hex_str("c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
 
         assert_eq!(expected, res)
+    }
+
+    #[test]
+    fn encode_checksum_1() {
+        let res = encode_base58_checksum(&"11".to_string().as_bytes().to_vec());
+        assert_eq!("RVnPfpC2", res)
+    }
+
+    #[test]
+    fn encode_checksum_2() {
+        let res = encode_base58_checksum(&"".to_string().as_bytes().to_vec());
+        assert_eq!("3QJmnh", res)
+    }
+    #[test]
+    fn encode_checksum_3() {
+        let res = encode_base58_checksum(
+            &"4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd"
+                .to_string()
+                .as_bytes()
+                .to_vec(),
+        );
+        assert_eq!("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBf", res)
     }
 }

@@ -111,7 +111,7 @@ mod private_key_test {
 
     use super::PrivateKey;
     use crate::{
-        hash256::hash256,
+        hashing::hash256,
         integer_ex::IntegerEx,
         point::{Compression, Point},
     };

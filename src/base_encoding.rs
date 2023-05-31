@@ -56,7 +56,7 @@ pub mod base58 {
     // }
 
     pub fn encode_base58_checksum(b: &[u8]) -> String {
-        use crate::hash256::hash256;
+        use crate::hashing::hash256;
 
         let checksum: Vec<u8> = hash256(b).drain(0..4).collect();
         let mut bin: Vec<u8> = b.to_vec();

@@ -10,8 +10,7 @@
 mod base_encoding;
 mod btc_ecdsa;
 mod field_element;
-mod hash160;
-mod hash256;
+mod hashing;
 mod helper;
 mod integer_ex;
 mod point;

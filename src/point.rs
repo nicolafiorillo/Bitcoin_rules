@@ -12,7 +12,7 @@
 use crate::{
     btc_ecdsa::{B, G, N, P},
     field_element::FieldElement,
-    hash160::hash160,
+    hashing::hash160,
     helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,
     signature::Signature,

@@ -109,7 +109,7 @@ impl Display for PrivateKey {
 mod private_key_test {
     use rug::{integer::Order, ops::Pow, Integer};
 
-    use super::PrivateKey;
+    use super::*;
     use crate::{
         hashing::hash256,
         integer_ex::IntegerEx,

@@ -7,8 +7,8 @@
 //     clippy::missing_panics_doc
 // )]
 
-mod base_encoding;
 mod btc_ecdsa;
+mod encoding;
 mod field_element;
 mod hashing;
 mod helper;

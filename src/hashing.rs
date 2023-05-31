@@ -28,9 +28,9 @@ pub fn hash256(s: &[u8]) -> Vec<u8> {
 mod hashing_test {
     use rug::{integer::Order, Integer};
 
-    use crate::{hashing::hash160, integer_ex::IntegerEx};
-
+    use super::hash160;
     use super::hash256;
+    use crate::integer_ex::IntegerEx;
 
     #[test]
     fn verify_a_hash256() {

@@ -1,81 +1,75 @@
-pub mod base58 {
+use once_cell::sync::Lazy;
+use rug::{integer::Order, Integer};
 
-    use once_cell::sync::Lazy;
-    use rug::{integer::Order, Integer};
+static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
+    "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        .chars()
+        .collect()
+});
+static BASE58_ALPHABET_LENGTH: u8 = 58;
 
-    pub static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
-        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-            .chars()
-            .collect()
-    });
-    pub static BASE58_ALPHABET_LENGTH: u8 = 58;
-
-    pub fn base58_encode(binary: &[u8]) -> String {
-        // We will need it for pay-to-pubkey-hash (p2pkh)
-        // let zeroes: usize = count_first(binary, 0);
-        // let mut result = "1".repeat(zeroes);
-        let mut result = "".to_string();
-        let mut num = Integer::from_digits(binary, Order::Msf);
-
-        while num > 0 {
-            let (new_num, remainder) = num.clone().div_rem(Integer::from(58));
-            num = new_num;
-
-            let prefix = (*BASE58_ALPHABET)[remainder.to_usize().unwrap()].to_string();
-            result = prefix + &result;
-        }
-
-        result
-    }
-
-    pub fn base58_decode(s: &str) -> Integer {
-        // We will need it for pay-to-pubkey-hash (p2pkh)
-        // manage leading 1 to zeros
-
-        let mut result = Integer::from(0);
-        let mut multi = Integer::from(1);
-
-        for val in s.chars().rev() {
-            result += (multi.clone()) * (*BASE58_ALPHABET).iter().position(|v| v == &val).unwrap();
-            multi *= BASE58_ALPHABET_LENGTH;
-        }
-
-        result
-    }
-
+pub fn base58_encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)
-    // fn count_first(binary: &[u8], val: u8) -> usize {
-    //     let mut counter: usize = 0;
-    //     let len = binary.len();
+    // let zeroes: usize = count_first(binary, 0);
+    // let mut result = "1".repeat(zeroes);
+    let mut result = "".to_string();
+    let mut num = Integer::from_digits(binary, Order::Msf);
 
-    //     while counter < len && binary[counter] == val {
-    //         counter += 1;
-    //     }
+    while num > 0 {
+        let (new_num, remainder) = num.clone().div_rem(Integer::from(58));
+        num = new_num;
 
-    //     counter
-    // }
-
-    pub fn encode_base58_checksum(b: &[u8]) -> String {
-        use crate::hashing::hash256;
-
-        let checksum: Vec<u8> = hash256(b).drain(0..4).collect();
-        let mut bin: Vec<u8> = b.to_vec();
-        bin.extend(checksum);
-
-        base58_encode(&bin)
+        let prefix = (*BASE58_ALPHABET)[remainder.to_usize().unwrap()].to_string();
+        result = prefix + &result;
     }
+
+    result
+}
+
+pub fn base58_decode(s: &str) -> Integer {
+    // We will need it for pay-to-pubkey-hash (p2pkh)
+    // manage leading 1 to zeros
+
+    let mut result = Integer::from(0);
+    let mut multi = Integer::from(1);
+
+    for val in s.chars().rev() {
+        result += (multi.clone()) * (*BASE58_ALPHABET).iter().position(|v| v == &val).unwrap();
+        multi *= BASE58_ALPHABET_LENGTH;
+    }
+
+    result
+}
+
+// We will need it for pay-to-pubkey-hash (p2pkh)
+// fn count_first(binary: &[u8], val: u8) -> usize {
+//     let mut counter: usize = 0;
+//     let len = binary.len();
+
+//     while counter < len && binary[counter] == val {
+//         counter += 1;
+//     }
+
+//     counter
+// }
+
+pub fn encode_base58_checksum(b: &[u8]) -> String {
+    use crate::hashing::hash256;
+
+    let checksum: Vec<u8> = hash256(b).drain(0..4).collect();
+    let mut bin: Vec<u8> = b.to_vec();
+    bin.extend(checksum);
+
+    base58_encode(&bin)
 }
 
 #[cfg(test)]
-mod base58_test {
+mod encoding_test {
     use rug::{integer::Order, Integer};
 
-    use crate::{
-        base_encoding::base58::{base58_decode, encode_base58_checksum},
-        integer_ex::IntegerEx,
-    };
+    use crate::integer_ex::IntegerEx;
 
-    use super::base58::base58_encode;
+    use super::{base58_decode, base58_encode, encode_base58_checksum};
 
     #[test]
     fn encode_1() {

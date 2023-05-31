@@ -337,7 +337,8 @@ impl Mul<Integer> for &Point {
 
 #[cfg(test)]
 mod point_test {
-    use crate::{btc_ecdsa::*, integer_ex::IntegerEx, point::*};
+    use super::*;
+    use crate::integer_ex::IntegerEx;
 
     #[test]
     fn a_point_in_curve_1() {

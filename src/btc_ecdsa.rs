@@ -34,7 +34,7 @@ pub static G: Lazy<Point> = Lazy::new(|| {
 
 #[cfg(test)]
 mod s256_test {
-    use crate::btc_ecdsa::*;
+    use super::*;
     use crate::field_element::*;
     use crate::integer_ex::IntegerEx;
     use crate::point::Point;

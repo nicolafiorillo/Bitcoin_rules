@@ -95,7 +95,8 @@ impl Display for Signature {
 mod signature_test {
     use rug::{integer::Order, Integer};
 
-    use crate::{btc_ecdsa::*, field_element::FieldElement, integer_ex::IntegerEx, point::Point, signature::Signature};
+    use super::*;
+    use crate::{btc_ecdsa::*, field_element::FieldElement, integer_ex::IntegerEx, point::Point};
 
     #[test]
     fn a_signature() {

@@ -35,7 +35,7 @@ pub mod vector {
 
 #[cfg(test)]
 mod helper_test {
-    use crate::helper::vector;
+    use super::vector;
 
     #[test]
     fn no_left_trim() {

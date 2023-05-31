@@ -268,7 +268,7 @@ impl Div<Self> for &FieldElement {
 
 #[cfg(test)]
 mod field_element_test {
-    use crate::field_element::*;
+    use super::*;
 
     #[test]
     fn fields_are_equals() {

@@ -19,4 +19,6 @@ mod signature;
 
 fn main() {
     println!("Bitcoin in Rust");
+
+    env_logger::init();
 }

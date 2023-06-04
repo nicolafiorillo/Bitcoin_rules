@@ -6,7 +6,8 @@ static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
         .chars()
         .collect()
 });
-static BASE58_ALPHABET_LENGTH: u8 = 58;
+
+const BASE58_ALPHABET_LENGTH: u8 = 58;
 
 pub fn base58_encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)

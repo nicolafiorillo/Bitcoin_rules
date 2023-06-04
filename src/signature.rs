@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, Result};
+use std::fmt::{Display, Formatter};
 use std::str;
 
 use rug::{integer::Order, Integer};
@@ -10,40 +10,52 @@ pub struct Signature {
     pub s: Integer,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum DerError {
+    InvalidSignatureLength,
+    InvalidInitialMarker,
+    SignatureLengthsDoNotMatch,
+    InvalidRMarker,
+    InvalidSMarker,
+}
+
+const DER_MARKER: u8 = 0x30;
+const DER_RS_MARKER: u8 = 0x02;
+
 impl Signature {
     pub fn new(r: Integer, s: Integer) -> Signature {
         Signature { r, s }
     }
 
-    pub fn new_from_der(der: &str) -> Self {
+    pub fn new_from_der(der: &str) -> Result<Self, DerError> {
         let der_vect = string_to_bytes(der);
         println!("der_vect: {:?}", der_vect);
 
         if der_vect.len() < 70 || der_vect.len() > 72 {
-            panic!("invalid DER signature lenght: {:?}", der_vect.len()); // TODO: to log
+            return Err(DerError::InvalidSignatureLength);
         }
 
-        if der_vect[0] != 0x30 {
-            panic!("invalid DER signature initial marker"); // TODO: to log
+        if der_vect[0] != DER_MARKER {
+            return Err(DerError::InvalidInitialMarker);
         }
 
         if der_vect[1] != (der_vect.len() - 2) as u8 {
-            panic!("DER signature length does not match"); // TODO: to log
+            return Err(DerError::SignatureLengthsDoNotMatch);
         }
 
-        if der_vect[2] != 0x02 {
-            panic!("invalid DER signature r marker"); // TODO: to log
+        if der_vect[2] != DER_RS_MARKER {
+            return Err(DerError::InvalidRMarker);
         }
 
         let (r, next) = Self::der_deserialize(&der_vect, 3);
 
-        if der_vect[next] != 0x02 {
-            panic!("invalid DER signature s marker"); // TODO: to log
+        if der_vect[next] != DER_RS_MARKER {
+            return Err(DerError::InvalidSMarker);
         }
 
         let (s, _next) = Self::der_deserialize(&der_vect, next + 1);
 
-        Signature { r, s }
+        Ok(Signature { r, s })
     }
 
     pub fn der(&self) -> Vec<u8> {
@@ -53,7 +65,7 @@ impl Signature {
         let mut result = r_value;
         result.extend(s_value);
 
-        let mut res: Vec<u8> = vec![0x30, result.len() as u8];
+        let mut res: Vec<u8> = vec![DER_MARKER, result.len() as u8];
         res.extend(result);
 
         res
@@ -67,7 +79,7 @@ impl Signature {
             v.insert(0, 0);
         }
 
-        let mut res: Vec<u8> = vec![0x02, v.len() as u8];
+        let mut res: Vec<u8> = vec![DER_RS_MARKER, v.len() as u8];
         res.extend(v);
 
         res
@@ -86,7 +98,7 @@ impl Signature {
 }
 
 impl Display for Signature {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Signature({:x}, {:x})", self.r, self.s)
     }
 }
@@ -138,44 +150,48 @@ mod signature_test {
     }
 
     #[test]
-    #[should_panic(expected = "invalid DER signature lenght")]
     fn deserialize_a_der_signature_invalid_lenght_less_than_70() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c";
-        Signature::new_from_der(der);
+        assert_eq!(
+            Signature::new_from_der(der).err().unwrap(),
+            DerError::InvalidSignatureLength
+        );
     }
 
     #[test]
-    #[should_panic(expected = "invalid DER signature lenght")]
     fn deserialize_a_der_signature_invalid_lenght_more_than_72() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000";
-        Signature::new_from_der(der);
+        assert_eq!(
+            Signature::new_from_der(der).err().unwrap(),
+            DerError::InvalidSignatureLength
+        );
     }
 
     #[test]
-    #[should_panic(expected = "invalid DER signature initial marker")]
     fn deserialize_a_der_signature_invalid_initial_marker() {
         let der = "3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
-        Signature::new_from_der(der);
+        assert_eq!(
+            Signature::new_from_der(der).err().unwrap(),
+            DerError::InvalidInitialMarker
+        );
     }
 
     #[test]
-    #[should_panic(expected = "invalid DER signature r marker")]
     fn deserialize_a_der_signature_invalid_r_marker() {
         let der = "3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
-        Signature::new_from_der(der);
+        assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidRMarker);
     }
 
     #[test]
-    #[should_panic(expected = "invalid DER signature s marker")]
     fn deserialize_a_der_signature_invalid_s_marker() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
-        Signature::new_from_der(der);
+        assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidSMarker);
     }
 
     #[test]
     fn deserialize_a_der_signature() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
-        let sig = Signature::new_from_der(der);
+        let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::new_from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
         let expected_s = Integer::new_from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");

@@ -11,8 +11,7 @@ const BASE58_ALPHABET_LENGTH: u8 = 58;
 
 pub fn base58_encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)
-    // let zeroes: usize = count_first(binary, 0);
-    // let mut result = "1".repeat(zeroes);
+    let zeroes: usize = count_first(binary, 0);
     let mut result = "".to_string();
     let mut num = Integer::from_digits(binary, Order::Msf);
 
@@ -24,7 +23,7 @@ pub fn base58_encode(binary: &[u8]) -> String {
         result = prefix + &result;
     }
 
-    result
+    format!("{}{}", "1".repeat(zeroes), result)
 }
 
 pub fn base58_decode(s: &str) -> Integer {
@@ -43,16 +42,16 @@ pub fn base58_decode(s: &str) -> Integer {
 }
 
 // We will need it for pay-to-pubkey-hash (p2pkh)
-// fn count_first(binary: &[u8], val: u8) -> usize {
-//     let mut counter: usize = 0;
-//     let len = binary.len();
+fn count_first(binary: &[u8], val: u8) -> usize {
+    let mut counter: usize = 0;
+    let len = binary.len();
 
-//     while counter < len && binary[counter] == val {
-//         counter += 1;
-//     }
+    while counter < len && binary[counter] == val {
+        counter += 1;
+    }
 
-//     counter
-// }
+    counter
+}
 
 pub fn encode_base58_checksum(b: &[u8]) -> String {
     use crate::hashing::hash256;

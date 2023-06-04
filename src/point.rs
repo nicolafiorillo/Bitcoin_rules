@@ -11,6 +11,7 @@
 ///
 use crate::{
     btc_ecdsa::{B, G, N, P},
+    encoding::encode_base58_checksum,
     field_element::FieldElement,
     hashing::hash160,
     helper::vector::{self, string_to_bytes},
@@ -40,6 +41,11 @@ pub enum Compression {
     Uncompressed,
 }
 
+pub enum Network {
+    Mainnet = 0x00,
+    Testnet = 0x6F,
+}
+
 impl Point {
     /// New `Point` from all elements.
     pub fn new(x: Option<FieldElement>, y: Option<FieldElement>, a: FieldElement, b: FieldElement) -> Point {
@@ -53,9 +59,9 @@ impl Point {
     }
 
     /// New `Point` by `x` and `y` in btc field.
-    pub fn new_in_btc(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
-        let a = FieldElement::new_in_btc_field(Integer::from(0));
-        let b = FieldElement::new_in_btc_field(Integer::from(7));
+    pub fn new_in_secp256k1(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
+        let a = FieldElement::new_in_secp256k1(Integer::from(0));
+        let b = FieldElement::new_in_secp256k1(Integer::from(7));
 
         Point { x, y, a, b }
     }
@@ -150,17 +156,17 @@ impl Point {
         let y_digits = &bytes[33..65];
         let y = Integer::from_digits(y_digits, Order::Msf);
 
-        let x_field = FieldElement::new_in_btc_field(x);
-        let y_field = FieldElement::new_in_btc_field(y);
+        let x_field = FieldElement::new_in_secp256k1(x);
+        let y_field = FieldElement::new_in_secp256k1(y);
 
-        Point::new_in_btc(Some(x_field), Some(y_field))
+        Point::new_in_secp256k1(Some(x_field), Some(y_field))
     }
 
     fn deserialize_compressed(bytes: &[u8]) -> Point {
         let x_digits = &bytes[1..33];
-        let x = FieldElement::new_in_btc_field(Integer::from_digits(x_digits, Order::Msf));
+        let x = FieldElement::new_in_secp256k1(Integer::from_digits(x_digits, Order::Msf));
 
-        let right_side = x.pow_by_i32(3) + FieldElement::new_in_btc_field((*B).clone());
+        let right_side = x.pow_by_i32(3) + FieldElement::new_in_secp256k1((*B).clone());
 
         let left_side = right_side.sqrt();
 
@@ -171,10 +177,10 @@ impl Point {
             left_side
         } else {
             // left_side_inverted
-            FieldElement::new_in_btc_field((*P).clone() - left_side.num())
+            FieldElement::new_in_secp256k1((*P).clone() - left_side.num())
         };
 
-        Point::new_in_btc(Some(x), Some(y))
+        Point::new_in_secp256k1(Some(x), Some(y))
     }
 
     pub fn deserialize(serialized: &str) -> Point {
@@ -199,6 +205,14 @@ impl Point {
     fn hash160(&self, compression: Compression) -> Vec<u8> {
         let serialized = self.serialize(compression);
         hash160(&serialized)
+    }
+
+    pub fn address(&self, compression: Compression, network: Network) -> String {
+        let h160 = self.hash160(compression);
+        let mut p = vec![network as u8];
+        p.extend(h160);
+
+        encode_base58_checksum(&p)
     }
 }
 
@@ -638,7 +652,7 @@ mod point_test {
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
-        let point = Point::new_in_btc(Some(ppx), Some(ppy));
+        let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
         assert!(point.verify(z, sig));
@@ -679,7 +693,7 @@ mod point_test {
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
-        let point = Point::new_in_btc(Some(ppx), Some(ppy));
+        let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
         assert!(point.verify(z, sig));

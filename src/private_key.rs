@@ -113,7 +113,7 @@ mod private_key_test {
     use crate::{
         hashing::hash256,
         integer_ex::IntegerEx,
-        point::{Compression, Point},
+        point::{Compression, Network, Point},
     };
 
     #[test]
@@ -297,5 +297,29 @@ mod private_key_test {
             k,
             Integer::new_from_dec_str("35877450084421794080905523995859466786371393244910114637747627798158238933625")
         );
+    }
+
+    #[test]
+    fn address_1() {
+        let private_key = PrivateKey::new(Integer::from(5002));
+        let addr = private_key.point.address(Compression::Uncompressed, Network::Testnet);
+
+        assert_eq!("mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA", addr);
+    }
+
+    #[test]
+    fn address_2() {
+        let private_key = PrivateKey::new(Integer::from(2020).pow(5));
+        let addr = private_key.point.address(Compression::Compressed, Network::Testnet);
+
+        assert_eq!("mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH", addr);
+    }
+
+    #[test]
+    fn address_3() {
+        let private_key = PrivateKey::new(Integer::new_from_hex_str("12345deadbeef"));
+        let addr = private_key.point.address(Compression::Compressed, Network::Mainnet);
+
+        assert_eq!("1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1", addr);
     }
 }

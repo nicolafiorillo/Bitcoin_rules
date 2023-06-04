@@ -32,7 +32,7 @@ impl FieldElement {
     }
 
     /// New `FieldElement` with given `num` and bitcoin P as prime.
-    pub fn new_in_btc_field(num: Integer) -> FieldElement {
+    pub fn new_in_secp256k1(num: Integer) -> FieldElement {
         use crate::btc_ecdsa::P;
 
         FieldElement {

@@ -17,17 +17,17 @@ pub enum Network {
 
 // X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> =
-    Lazy::new(|| Integer::new_from_hex_str("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"));
+    Lazy::new(|| Integer::from_hex_str("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"));
 
 // Y coordinate of Generator Point as per bitcoin protocol.
 pub static GY: Lazy<Integer> =
-    Lazy::new(|| Integer::new_from_hex_str("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"));
+    Lazy::new(|| Integer::from_hex_str("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"));
 
 // Prime number P as per bitcoin protocol.
 pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 977);
 
 pub static N: Lazy<Integer> =
-    Lazy::new(|| Integer::new_from_hex_str("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"));
+    Lazy::new(|| Integer::from_hex_str("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"));
 
 pub static A: Lazy<Integer> = Lazy::new(|| Integer::from(0));
 pub static B: Lazy<Integer> = Lazy::new(|| Integer::from(7));

@@ -182,7 +182,7 @@ mod private_key_test {
 
     #[test]
     fn serialize_a_public_key_3() {
-        let private_key = PrivateKey::new(Integer::new_from_hex_str("DEADBEEF12345"));
+        let private_key = PrivateKey::new(Integer::from_hex_str("DEADBEEF12345"));
         let sec = private_key.point.serialize(Compression::Uncompressed);
         assert_eq!(to_hex_string(&sec), "04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121");
     }
@@ -209,7 +209,7 @@ mod private_key_test {
 
     #[test]
     fn serialize_a_compressed_public_key_3() {
-        let private_key = PrivateKey::new(Integer::new_from_hex_str("DEADBEEF54321"));
+        let private_key = PrivateKey::new(Integer::from_hex_str("DEADBEEF54321"));
         let sec = private_key.point.serialize(Compression::Compressed);
         assert_eq!(
             to_hex_string(&sec),
@@ -223,11 +223,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C")
+            Integer::from_hex_str("FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10")
+            Integer::from_hex_str("315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10")
         );
     }
 
@@ -237,11 +237,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9D")
+            Integer::from_hex_str("027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9D")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("FF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06")
+            Integer::from_hex_str("FF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06")
         );
     }
 
@@ -251,11 +251,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F")
+            Integer::from_hex_str("D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121")
+            Integer::from_hex_str("842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121")
         );
     }
 
@@ -265,11 +265,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("57A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1")
+            Integer::from_hex_str("57A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("D6CC87C5BC29B83368E17869E964F2F53D52EA3AA3E5A9EFA1FA578123A0C6D")
+            Integer::from_hex_str("D6CC87C5BC29B83368E17869E964F2F53D52EA3AA3E5A9EFA1FA578123A0C6D")
         );
     }
 
@@ -279,11 +279,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701")
+            Integer::from_hex_str("933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("96CBBFDD572F75ACE44D0AA59FBAB6326CB9F909385DCD066EA27AFFEF5A488C")
+            Integer::from_hex_str("96CBBFDD572F75ACE44D0AA59FBAB6326CB9F909385DCD066EA27AFFEF5A488C")
         );
     }
 
@@ -293,11 +293,11 @@ mod private_key_test {
 
         assert_eq!(
             point.x_as_num(),
-            Integer::new_from_hex_str("96BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690")
+            Integer::from_hex_str("96BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690")
         );
         assert_eq!(
             point.y_as_num(),
-            Integer::new_from_hex_str("32555D1B027C25C2828BA96A176D78419CD1236F71558F6187AEC09611325EB6")
+            Integer::from_hex_str("32555D1B027C25C2828BA96A176D78419CD1236F71558F6187AEC09611325EB6")
         );
     }
 
@@ -306,7 +306,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(10), &Integer::from(1));
         assert_eq!(
             k,
-            Integer::new_from_dec_str("23556289421633918234640030791776902309669950917001758018452865836473455104574")
+            Integer::from_dec_str("23556289421633918234640030791776902309669950917001758018452865836473455104574")
         );
     }
 
@@ -315,7 +315,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(2345), &Integer::from(6789));
         assert_eq!(
             k,
-            Integer::new_from_dec_str("34113680596947005563568962966999203522429670732921816689907697765389746251584")
+            Integer::from_dec_str("34113680596947005563568962966999203522429670732921816689907697765389746251584")
         );
     }
 
@@ -324,7 +324,7 @@ mod private_key_test {
         let k = PrivateKey::deterministic_k(&Integer::from(1000000), &Integer::from(1000000));
         assert_eq!(
             k,
-            Integer::new_from_dec_str("35877450084421794080905523995859466786371393244910114637747627798158238933625")
+            Integer::from_dec_str("35877450084421794080905523995859466786371393244910114637747627798158238933625")
         );
     }
 
@@ -346,7 +346,7 @@ mod private_key_test {
 
     #[test]
     fn address_3() {
-        let private_key = PrivateKey::new(Integer::new_from_hex_str("12345deadbeef"));
+        let private_key = PrivateKey::new(Integer::from_hex_str("12345deadbeef"));
         let addr = private_key.point.address(Compression::Compressed, Network::Mainnet);
 
         assert_eq!("1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1", addr);
@@ -370,7 +370,7 @@ mod private_key_test {
 
     #[test]
     fn wif_3() {
-        let private_key = PrivateKey::new(Integer::new_from_hex_str("54321deadbeef"));
+        let private_key = PrivateKey::new(Integer::from_hex_str("54321deadbeef"));
         let addr = private_key.wif(Compression::Compressed, Network::Mainnet);
 
         assert_eq!("KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a", addr);

@@ -112,11 +112,11 @@ mod signature_test {
 
     #[test]
     fn a_signature() {
-        let z = Integer::new_from_hex_str("bc62d4b80d9e36da29c16c5d4d9f11731f36052c72401a76c23c0fb5a9b74423");
-        let r = Integer::new_from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
-        let s = Integer::new_from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
-        let px = Integer::new_from_hex_str("04519fac3d910ca7e7138f7013706f619fa8f033e6ec6e09370ea38cee6a7574");
-        let py = Integer::new_from_hex_str("82b51eab8c27c66e26c858a079bcdf4f1ada34cec420cafc7eac1a42216fb6c4");
+        let z = Integer::from_hex_str("bc62d4b80d9e36da29c16c5d4d9f11731f36052c72401a76c23c0fb5a9b74423");
+        let r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
+        let s = Integer::from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let px = Integer::from_hex_str("04519fac3d910ca7e7138f7013706f619fa8f033e6ec6e09370ea38cee6a7574");
+        let py = Integer::from_hex_str("82b51eab8c27c66e26c858a079bcdf4f1ada34cec420cafc7eac1a42216fb6c4");
 
         let ppx = FieldElement::new(px, (*P).clone());
         let ppy = FieldElement::new(py, (*P).clone());
@@ -136,8 +136,8 @@ mod signature_test {
 
     #[test]
     fn serialize_a_der_signature() {
-        let r = Integer::new_from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
-        let s = Integer::new_from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
+        let s = Integer::from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
 
         let sig = Signature::new(r, s);
         let der = sig.der();
@@ -145,7 +145,7 @@ mod signature_test {
         let res = Integer::from_digits(&der, Order::Msf);
 
         let expected =
-            Integer::new_from_hex_str("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+            Integer::from_hex_str("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
         assert_eq!(expected, res);
     }
 
@@ -193,8 +193,8 @@ mod signature_test {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
         let sig = Signature::new_from_der(der).unwrap();
 
-        let expected_r = Integer::new_from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
-        let expected_s = Integer::new_from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let expected_r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
+        let expected_s = Integer::from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
 
         assert_eq!(expected_r, sig.r);
         assert_eq!(expected_s, sig.s);

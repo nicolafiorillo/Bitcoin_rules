@@ -2,25 +2,26 @@
 use rug::{integer::Order, Complete, Integer};
 
 pub trait IntegerEx {
-    fn new_from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;
-    fn new_from_hex_str(s: &str) -> Self;
-    fn new_from_dec_str(s: &str) -> Self;
+    fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;
+    fn from_hex_str(s: &str) -> Self;
+    fn from_dec_str(s: &str) -> Self;
     fn power_modulo(&self, exp: &Integer, modulo: &Integer) -> Self;
     fn invert_by_modulo(&self, modulo: &Integer) -> Self;
+    fn to_little_endian_bytes(&self) -> Vec<u8>;
 }
 
 impl IntegerEx for Integer {
     /// New Integer from 256 digits.
-    fn new_from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Integer {
+    fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Integer {
         let digits: [u64; 4] = [ll, lr, rl, rr];
         Integer::from_digits(&digits, Order::Msf)
     }
 
-    fn new_from_hex_str(s: &str) -> Integer {
+    fn from_hex_str(s: &str) -> Integer {
         Integer::parse_radix(s, 16).unwrap().complete()
     }
 
-    fn new_from_dec_str(s: &str) -> Integer {
+    fn from_dec_str(s: &str) -> Integer {
         Integer::parse(s).unwrap().complete()
     }
 
@@ -35,5 +36,35 @@ impl IntegerEx for Integer {
     /// Invert Integer by modulo (1/self).
     fn invert_by_modulo(&self, modulo: &Integer) -> Self {
         self.power_modulo(&(modulo.clone() - 2), modulo)
+    }
+
+    fn to_little_endian_bytes(&self) -> Vec<u8> {
+        self.to_digits::<u8>(Order::Lsf)
+    }
+}
+
+// big endian: most significant value first.
+// little endian: least significant value first.
+fn from_little_endian_bytes(bytes: &[u8]) -> Integer {
+    Integer::from_digits(bytes, Order::Lsf)
+}
+
+#[cfg(test)]
+mod integer_ex_test {
+    use rug::Integer;
+
+    use crate::integer_ex::{from_little_endian_bytes, IntegerEx};
+
+    #[test]
+    fn from_little_endians() {
+        let bytes = from_little_endian_bytes(&[0x39, 0x30]);
+        assert_eq!(bytes, 12345);
+    }
+
+    #[test]
+    fn to_little_endians() {
+        let n = Integer::from(12345);
+        let bytes = n.to_little_endian_bytes();
+        assert_eq!(bytes, [0x39, 0x30]);
     }
 }

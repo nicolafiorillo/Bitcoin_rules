@@ -6,8 +6,9 @@ use rug::{integer::Order, Integer};
 use sha2::Sha256;
 
 use crate::{
-    btc_ecdsa::{G, N},
-    helper::vector,
+    btc_ecdsa::{Compression, Network, G, N},
+    encoding::encode_base58_checksum,
+    helper::vector::{self, padding_left},
     integer_ex::IntegerEx,
     point::Point,
     signature::Signature,
@@ -97,6 +98,33 @@ impl PrivateKey {
             v = PrivateKey::hmac_for_data(&v, k);
         }
     }
+
+    pub fn wif(&self, compression: Compression, network: Network) -> String {
+        let secret_bytes = self.secret.to_digits::<u8>(Order::Msf);
+        let secret_bytes_padded = padding_left(&secret_bytes, 32, 0);
+
+        println!("secret_bytes_padded: {:?}", secret_bytes_padded);
+
+        let prefix = Self::wif_network_prefix(network);
+        let suffix = Self::wif_compression_prefix(compression);
+        let data = [prefix.as_slice(), &secret_bytes_padded, suffix.as_slice()].concat();
+
+        encode_base58_checksum(&data)
+    }
+
+    fn wif_network_prefix(network: Network) -> Vec<u8> {
+        match network {
+            Network::Mainnet => vec![0x80],
+            Network::Testnet => vec![0xEF],
+        }
+    }
+
+    fn wif_compression_prefix(compression: Compression) -> Vec<u8> {
+        match compression {
+            Compression::Uncompressed => vec![],
+            Compression::Compressed => vec![0x01],
+        }
+    }
 }
 
 impl Display for PrivateKey {
@@ -111,9 +139,10 @@ mod private_key_test {
 
     use super::*;
     use crate::{
+        btc_ecdsa::{Compression, Network},
         hashing::hash256,
         integer_ex::IntegerEx,
-        point::{Compression, Network, Point},
+        point::Point,
     };
 
     #[test]
@@ -321,5 +350,29 @@ mod private_key_test {
         let addr = private_key.point.address(Compression::Compressed, Network::Mainnet);
 
         assert_eq!("1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1", addr);
+    }
+
+    #[test]
+    fn wif_1() {
+        let private_key = PrivateKey::new(Integer::from(5003));
+        let wif = private_key.wif(Compression::Compressed, Network::Testnet);
+
+        assert_eq!("cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK", wif);
+    }
+
+    #[test]
+    fn wif_2() {
+        let private_key = PrivateKey::new(Integer::from(2021).pow(5));
+        let addr = private_key.wif(Compression::Uncompressed, Network::Testnet);
+
+        assert_eq!("91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic", addr);
+    }
+
+    #[test]
+    fn wif_3() {
+        let private_key = PrivateKey::new(Integer::new_from_hex_str("54321deadbeef"));
+        let addr = private_key.wif(Compression::Compressed, Network::Mainnet);
+
+        assert_eq!("KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a", addr);
     }
 }

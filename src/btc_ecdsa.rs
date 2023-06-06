@@ -4,6 +4,17 @@ use rug::{ops::Pow, Integer};
 
 use crate::{field_element::FieldElement, integer_ex::IntegerEx, point::Point};
 
+#[derive(Debug, PartialEq)]
+pub enum Compression {
+    Compressed,
+    Uncompressed,
+}
+
+pub enum Network {
+    Mainnet = 0x00,
+    Testnet = 0x6F,
+}
+
 // X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> =
     Lazy::new(|| Integer::new_from_hex_str("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"));

@@ -10,7 +10,7 @@
 ///     sec2-v2.pdf
 ///
 use crate::{
-    btc_ecdsa::{B, G, N, P},
+    btc_ecdsa::{Compression, Network, B, G, N, P},
     encoding::encode_base58_checksum,
     field_element::FieldElement,
     hashing::hash160,
@@ -33,17 +33,6 @@ pub struct Point {
     y: Option<FieldElement>,
     a: FieldElement,
     b: FieldElement,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Compression {
-    Compressed,
-    Uncompressed,
-}
-
-pub enum Network {
-    Mainnet = 0x00,
-    Testnet = 0x6F,
 }
 
 impl Point {
@@ -209,10 +198,11 @@ impl Point {
 
     pub fn address(&self, compression: Compression, network: Network) -> String {
         let h160 = self.hash160(compression);
-        let mut p = vec![network as u8];
-        p.extend(h160);
+        let p = vec![network as u8];
 
-        encode_base58_checksum(&p)
+        let data = [p.as_slice(), h160.as_slice()].concat();
+
+        encode_base58_checksum(&data)
     }
 }
 

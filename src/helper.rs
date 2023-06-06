@@ -31,6 +31,17 @@ pub mod vector {
 
         v[l..v.len()].to_vec()
     }
+
+    pub fn padding_left(v: &Vec<u8>, length: usize, value: u8) -> Vec<u8> {
+        if v.len() > length {
+            panic!("length mismatch in padding_left");
+        }
+
+        let mut arr: Vec<u8> = vec![value; length];
+        arr[length - v.len()..length].copy_from_slice(&v[..]);
+
+        arr
+    }
 }
 
 #[cfg(test)]
@@ -72,6 +83,47 @@ mod helper_test {
     fn none_left_trim() {
         let v = vector::trim_left(&vec![], 0);
         let expected: Vec<u8> = Vec::new();
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn padding_needed_1() {
+        let v = vector::padding_left(&vec![1, 2, 3], 10, 0);
+        let expected: Vec<u8> = vec![0, 0, 0, 0, 0, 0, 0, 1, 2, 3];
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn padding_not_needed() {
+        let v = vector::padding_left(&vec![1, 2, 3], 3, 0);
+        let expected: Vec<u8> = vec![1, 2, 3];
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    #[should_panic(expected = "length mismatch in padding_left")]
+    fn padding_invalid_length() {
+        vector::padding_left(&vec![1, 2, 3], 2, 0);
+    }
+
+    #[test]
+    fn padding_needed_2() {
+        let v = vector::padding_left(&vec![], 3, 1);
+        let expected: Vec<u8> = vec![1, 1, 1];
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn padding_needed_3() {
+        let v = vector::padding_left(&vec![1], 3, 1);
+        let expected: Vec<u8> = vec![1, 1, 1];
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn padding_needed_4() {
+        let v = vector::padding_left(&vec![0], 3, 1);
+        let expected: Vec<u8> = vec![1, 1, 0];
         assert_eq!(v, expected)
     }
 }

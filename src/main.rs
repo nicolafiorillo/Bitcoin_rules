@@ -16,6 +16,7 @@ mod integer_ex;
 mod point;
 mod private_key;
 mod signature;
+mod varint;
 
 fn main() {
     println!("Bitcoin in Rust");

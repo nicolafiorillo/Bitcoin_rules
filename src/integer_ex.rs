@@ -1,13 +1,15 @@
 ///! Integer expansion.
 use rug::{integer::Order, Complete, Integer};
 
+use crate::helper::vector::padding_right;
+
 pub trait IntegerEx {
     fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;
     fn from_hex_str(s: &str) -> Self;
     fn from_dec_str(s: &str) -> Self;
     fn power_modulo(&self, exp: &Integer, modulo: &Integer) -> Self;
     fn invert_by_modulo(&self, modulo: &Integer) -> Self;
-    fn to_little_endian_bytes(&self) -> Vec<u8>;
+    fn to_little_endian_bytes(&self, length: usize) -> Vec<u8>;
 }
 
 impl IntegerEx for Integer {
@@ -38,8 +40,9 @@ impl IntegerEx for Integer {
         self.power_modulo(&(modulo.clone() - 2), modulo)
     }
 
-    fn to_little_endian_bytes(&self) -> Vec<u8> {
-        self.to_digits::<u8>(Order::Lsf)
+    fn to_little_endian_bytes(&self, length: usize) -> Vec<u8> {
+        let bytes = self.to_digits::<u8>(Order::Lsf);
+        padding_right(&bytes, length, 0)
     }
 }
 
@@ -56,15 +59,15 @@ mod integer_ex_test {
     use crate::integer_ex::{from_little_endian_bytes, IntegerEx};
 
     #[test]
-    fn from_little_endians() {
+    fn from_little_endian() {
         let bytes = from_little_endian_bytes(&[0x39, 0x30]);
         assert_eq!(bytes, 12345);
     }
 
     #[test]
-    fn to_little_endians() {
+    fn to_little_endian() {
         let n = Integer::from(12345);
-        let bytes = n.to_little_endian_bytes();
+        let bytes = n.to_little_endian_bytes(2);
         assert_eq!(bytes, [0x39, 0x30]);
     }
 }

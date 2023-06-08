@@ -9,6 +9,7 @@ pub trait IntegerEx {
     fn from_dec_str(s: &str) -> Self;
     fn power_modulo(&self, exp: &Integer, modulo: &Integer) -> Self;
     fn invert_by_modulo(&self, modulo: &Integer) -> Self;
+    fn from_little_endian_bytes(bytes: &[u8]) -> Self;
     fn to_little_endian_bytes(&self, length: usize) -> Vec<u8>;
 }
 
@@ -40,27 +41,27 @@ impl IntegerEx for Integer {
         self.power_modulo(&(modulo.clone() - 2), modulo)
     }
 
+    // big endian: most significant value first.
+    // little endian: least significant value first.
+    fn from_little_endian_bytes(bytes: &[u8]) -> Integer {
+        Integer::from_digits(bytes, Order::Lsf)
+    }
+
     fn to_little_endian_bytes(&self, length: usize) -> Vec<u8> {
         let bytes = self.to_digits::<u8>(Order::Lsf);
         padding_right(&bytes, length, 0)
     }
 }
 
-// big endian: most significant value first.
-// little endian: least significant value first.
-fn from_little_endian_bytes(bytes: &[u8]) -> Integer {
-    Integer::from_digits(bytes, Order::Lsf)
-}
-
 #[cfg(test)]
 mod integer_ex_test {
     use rug::Integer;
 
-    use crate::integer_ex::{from_little_endian_bytes, IntegerEx};
+    use crate::integer_ex::IntegerEx;
 
     #[test]
     fn from_little_endian() {
-        let bytes = from_little_endian_bytes(&[0x39, 0x30]);
+        let bytes: Integer = IntegerEx::from_little_endian_bytes(&[0x39, 0x30]);
         assert_eq!(bytes, 12345);
     }
 

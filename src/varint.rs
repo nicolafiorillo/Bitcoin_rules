@@ -1,44 +1,33 @@
-use once_cell::sync::Lazy;
-
-use rug::Integer;
-
-use crate::integer_ex::IntegerEx;
-
-pub static FE_LIMIT: Lazy<Integer> = Lazy::new(|| Integer::from_hex_str("100000000"));
-pub static FF_LIMIT: Lazy<Integer> = Lazy::new(|| Integer::from_hex_str("10000000000000000"));
+pub static FE_LIMIT: u64 = 0x100000000;
 
 #[derive(Debug, PartialEq)]
 pub struct VarInt {
-    pub value: Integer,
+    pub value: u64,
     pub length: usize,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum VarIntError {
     InvalidLength,
-    IntegerTooLarge,
     InvalidFrom,
 }
 
 impl VarInt {
-    pub fn new(value: Integer, length: usize) -> Self {
+    pub fn new(value: u64, length: usize) -> Self {
         Self { value, length }
     }
 }
 
-pub fn varint_encode(v: Integer) -> Result<Vec<u8>, VarIntError> {
+pub fn varint_encode(v: u64) -> Vec<u8> {
     if v < 0xFD {
-        return Ok(vec![v.to_u8().unwrap()]);
+        return vec![v as u8];
     } else if v < 0x10000 {
-        return Ok([[0xFD].as_slice(), v.to_little_endian_bytes(2).as_slice()].concat());
-    } else if v < (*FE_LIMIT) {
-        return Ok([[0xFE].as_slice(), v.to_little_endian_bytes(4).as_slice()].concat());
-    } else if v < (*FF_LIMIT) {
-        return Ok([[0xFF].as_slice(), v.to_little_endian_bytes(8).as_slice()].concat());
+        return [[0xFD].as_slice(), (v as u16).to_le_bytes().as_slice()].concat();
+    } else if v < FE_LIMIT {
+        return [[0xFE].as_slice(), (v as u32).to_le_bytes().as_slice()].concat();
     }
 
-    log::error!("varint_encode: Integer too large: {}", v);
-    Err(VarIntError::IntegerTooLarge)
+    return [[0xFF].as_slice(), v.to_le_bytes().as_slice()].concat();
 }
 
 pub fn varint_decode(v: &[u8], from: usize) -> Result<VarInt, VarIntError> {
@@ -52,149 +41,143 @@ pub fn varint_decode(v: &[u8], from: usize) -> Result<VarInt, VarIntError> {
         return Err(VarIntError::InvalidFrom);
     }
 
-    let (range, length) = match v[from] {
-        0xFD => ((from + 1)..(from + 3), 3), // 2 bytes + 1 byte marker
-        0xFE => ((from + 1)..(from + 5), 5), // 4 bytes + 1 byte marker
-        0xFF => ((from + 1)..(from + 9), 9), // 8 bytes + 1 byte marker
-        _ => (from..(from + 1), 1),
+    let (v, length) = match v[from] {
+        0xFD => {
+            let mut b: [u8; 2] = [0; 2];
+            b.copy_from_slice(&v[(from + 1)..(from + 3)]);
+            (u16::from_le_bytes(b) as u64, 3)
+        } // 2 bytes + 1 byte marker
+        0xFE => {
+            let mut b: [u8; 4] = [0; 4];
+            b.copy_from_slice(&v[(from + 1)..(from + 5)]);
+            (u32::from_le_bytes(b) as u64, 5)
+        } // 4 bytes + 1 byte marker
+        0xFF => {
+            let mut b: [u8; 8] = [0; 8];
+            b.copy_from_slice(&v[(from + 1)..(from + 9)]);
+            (u64::from_le_bytes(b), 9)
+        } // 8 bytes + 1 byte marker
+        value => (value as u64, 1),
     };
-
-    let v = Integer::from_little_endian_bytes(&v[range.clone()]);
 
     Ok(VarInt::new(v, length))
 }
 
 #[cfg(test)]
 mod tests {
-    use rug::Integer;
-
-    use crate::{
-        integer_ex::IntegerEx,
-        varint::{varint_decode, varint_encode, VarIntError},
-    };
+    use crate::varint::{varint_decode, varint_encode, VarIntError};
 
     #[test]
     fn varint_encode_0x00() {
-        assert_eq!(varint_encode(Integer::from(0x00)).unwrap(), [0x00]);
+        assert_eq!(varint_encode(0x00), [0x00]);
     }
 
     #[test]
     fn varint_encode_0x01() {
-        assert_eq!(varint_encode(Integer::from(0x01)).unwrap(), [0x01]);
+        assert_eq!(varint_encode(0x01), [0x01]);
     }
 
     #[test]
     fn varint_encode_0xfc() {
-        assert_eq!(varint_encode(Integer::from(0xFC)).unwrap(), [0xFC]);
+        assert_eq!(varint_encode(0xFC), [0xFC]);
     }
 
     #[test]
     fn varint_encode_0xfd() {
-        assert_eq!(varint_encode(Integer::from(0xFD)).unwrap(), [0xFD, 0xFD, 0x00]);
+        assert_eq!(varint_encode(0xFD), [0xFD, 0xFD, 0x00]);
     }
 
     #[test]
     fn varint_encode_0xffff() {
-        assert_eq!(varint_encode(Integer::from(0xFFFF)).unwrap(), [0xFD, 0xFF, 0xFF]);
+        assert_eq!(varint_encode(0xFFFF), [0xFD, 0xFF, 0xFF]);
     }
 
     #[test]
     fn varint_encode_0x10000() {
-        assert_eq!(
-            varint_encode(Integer::from(0x10000)).unwrap(),
-            [0xFE, 0x00, 0x00, 0x01, 0x00]
-        );
+        assert_eq!(varint_encode(0x10000), [0xFE, 0x00, 0x00, 0x01, 0x00]);
     }
 
     #[test]
     fn varint_encode_0xffffffffffffffff() {
         assert_eq!(
-            varint_encode(Integer::from_hex_str("FFFFFFFFFFFFFFFF")).unwrap(),
+            varint_encode(0xFFFFFFFFFFFFFFFF),
             [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-        );
-    }
-
-    #[test]
-    fn varint_encode_0x10000000000000000() {
-        assert_eq!(
-            varint_encode(Integer::from_hex_str("10000000000000000")),
-            Err(VarIntError::IntegerTooLarge)
         );
     }
 
     #[test]
     fn varint_decode_0x00() {
         let v = varint_decode(&vec![0x00], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0x00));
+        assert_eq!(v.value, 0x00);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x00_with_offset() {
         let v = varint_decode(&vec![0x00, 0x00], 1).unwrap();
-        assert_eq!(v.value, Integer::from(0x00));
+        assert_eq!(v.value, 0x00);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x01() {
         let v = varint_decode(&vec![0x01], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0x01));
+        assert_eq!(v.value, 0x01);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x01_with_offset() {
         let v = varint_decode(&vec![0x00, 0x01], 1).unwrap();
-        assert_eq!(v.value, Integer::from(0x01));
+        assert_eq!(v.value, 0x01);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0xfc() {
         let v = varint_decode(&vec![0xFC], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0xFC));
+        assert_eq!(v.value, 0xFC);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0xfd() {
         let v = varint_decode(&vec![0xFD, 0xFD, 0x00], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0xFD));
+        assert_eq!(v.value, 0xFD);
         assert_eq!(v.length, 3);
     }
 
     #[test]
     fn varint_decode_0xfd_with_offset() {
         let v = varint_decode(&vec![0x01, 0xFD, 0xFD, 0x00], 1).unwrap();
-        assert_eq!(v.value, Integer::from(0xFD));
+        assert_eq!(v.value, 0xFD);
         assert_eq!(v.length, 3);
     }
     #[test]
     fn varint_decode_0xffff() {
         let v = varint_decode(&vec![0xFD, 0xFF, 0xFF], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0xFFFF));
+        assert_eq!(v.value, 0xFFFF);
         assert_eq!(v.length, 3);
     }
 
     #[test]
     fn varint_decode_0x10000() {
         let v = varint_decode(&vec![0xFE, 0x00, 0x00, 0x01, 0x00], 0).unwrap();
-        assert_eq!(v.value, Integer::from(0x10000));
+        assert_eq!(v.value, 0x10000);
         assert_eq!(v.length, 5);
     }
 
     #[test]
     fn varint_decode_0x10000_with_offset() {
         let v = varint_decode(&vec![0x00, 0x00, 0x00, 0xFE, 0x00, 0x00, 0x01, 0x00], 3).unwrap();
-        assert_eq!(v.value, Integer::from(0x10000));
+        assert_eq!(v.value, 0x10000);
         assert_eq!(v.length, 5);
     }
 
     #[test]
     fn varint_decode_0xffffffffffffffff() {
         let v = varint_decode(&vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], 0).unwrap();
-        assert_eq!(v.value, Integer::from_hex_str("FFFFFFFFFFFFFFFF"));
+        assert_eq!(v.value, 0xFFFFFFFFFFFFFFFF);
         assert_eq!(v.length, 9);
     }
 
@@ -205,7 +188,7 @@ mod tests {
             3,
         )
         .unwrap();
-        assert_eq!(v.value, Integer::from_hex_str("FFFFFFFFFFFFFFFF"));
+        assert_eq!(v.value, 0xFFFFFFFFFFFFFFFF);
         assert_eq!(v.length, 9);
     }
 

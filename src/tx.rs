@@ -266,4 +266,13 @@ mod tx_test {
         let tx = Tx::from_serialized(&transaction, Network::Mainnet);
         assert_eq!(tx.unwrap().version, 1);
     }
+
+    #[test]
+    fn deserialize_tx_ins() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+
+        assert_eq!(tx.inputs.len(), 4);
+    }
 }

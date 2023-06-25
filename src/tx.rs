@@ -91,6 +91,11 @@ impl Tx {
         format!("{:x}", self.hash())
     }
 
+    fn hash(&self) -> Integer {
+        let serialized = hash256(&self.serialize());
+        Integer::from_digits(&serialized, Order::Msf)
+    }
+
     fn u32_le_bytes(bytes: &[u8], from: usize) -> Result<u32, TxError> {
         if bytes.len() < (from + 4) {
             return Err(TxError::Invalid4BytesLength);
@@ -239,11 +244,6 @@ impl Tx {
             [network_serialized].as_slice(),
         ]
         .concat()
-    }
-
-    fn hash(&self) -> Integer {
-        let serialized = hash256(&self.serialize());
-        Integer::from_digits(&serialized, Order::Msf)
     }
 }
 

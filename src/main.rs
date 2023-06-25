@@ -15,11 +15,13 @@ mod helper;
 mod integer_ex;
 mod point;
 mod private_key;
+mod script_pub_key;
+mod script_sig;
 mod signature;
+mod tx;
 mod varint;
 
 fn main() {
-    println!("Bitcoin in Rust");
-
     env_logger::init();
+    println!("Bitcoin in Rust");
 }

@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter, Result};
+
 ///! Bitcoin protocol magic numbers.
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
@@ -10,9 +12,22 @@ pub enum Compression {
     Uncompressed,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Network {
     Mainnet = 0x00,
     Testnet = 0x6F,
+    // Signet = 0x7B,
+    // Regtest = 0xC4,
+}
+
+impl Display for Network {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let n = match self {
+            Network::Mainnet => "Mainnet",
+            Network::Testnet => "Testnet",
+        };
+        writeln!(f, "{:?}", n)
+    }
 }
 
 // X coordinate of Generator Point as per bitcoin protocol.

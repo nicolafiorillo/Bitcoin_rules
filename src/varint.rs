@@ -3,7 +3,7 @@ pub static FE_LIMIT: u64 = 0x100000000;
 #[derive(Debug, PartialEq)]
 pub struct VarInt {
     pub value: u64,
-    pub length: usize,
+    pub length: usize, // length when serialized
 }
 
 #[derive(Debug, PartialEq)]

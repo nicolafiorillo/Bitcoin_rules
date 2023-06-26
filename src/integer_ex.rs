@@ -1,4 +1,5 @@
-///! Integer expansion.
+//! Integer expansion.
+
 use rug::{integer::Order, Complete, Integer};
 
 use crate::helper::vector::padding_right;

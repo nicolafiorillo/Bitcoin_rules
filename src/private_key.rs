@@ -1,4 +1,5 @@
-///! Private key management
+//! Private key management
+
 use std::fmt::{Display, Formatter, Result};
 
 use hmac::{Hmac, Mac};

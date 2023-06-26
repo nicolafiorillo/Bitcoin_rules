@@ -1,4 +1,5 @@
-///! Finite field element management
+//! Finite field element management
+
 use rug::{ops::RemRounding, Integer};
 use std::{
     fmt::{Display, Formatter, Result},

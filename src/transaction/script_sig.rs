@@ -5,8 +5,6 @@ pub struct ScriptSig {
 
 impl ScriptSig {
     pub fn new(content: Vec<u8>) -> Self {
-        ScriptSig {
-            content: content.clone(),
-        }
+        ScriptSig { content: content }
     }
 }

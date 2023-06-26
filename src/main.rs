@@ -15,10 +15,8 @@ mod helper;
 mod integer_ex;
 mod point;
 mod private_key;
-mod script_pub_key;
-mod script_sig;
 mod signature;
-mod tx;
+pub mod transaction;
 mod varint;
 
 fn main() {

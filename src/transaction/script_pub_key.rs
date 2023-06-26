@@ -5,8 +5,6 @@ pub struct ScriptPubKey {
 
 impl ScriptPubKey {
     pub fn new(content: Vec<u8>) -> Self {
-        ScriptPubKey {
-            content: content.clone(),
-        }
+        ScriptPubKey { content: content }
     }
 }

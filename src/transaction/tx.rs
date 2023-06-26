@@ -5,24 +5,10 @@ use rug::{integer::Order, Integer};
 use crate::{
     btc_ecdsa::Network,
     hashing::hash256,
-    script_pub_key::ScriptPubKey,
-    script_sig::ScriptSig,
-    varint::{self, varint_decode, VarInt},
+    varint::{varint_decode, VarInt},
 };
 
-#[derive(Debug)]
-pub struct TxIn {
-    previous_transaction_id: Integer,
-    previous_transaction_index: u32,
-    script_sig: ScriptSig,
-    sequence: u32,
-}
-
-#[derive(Debug)]
-pub struct TxOut {
-    amount: u64,
-    script_pub_key: ScriptPubKey,
-}
+use super::{script_pub_key::ScriptPubKey, script_sig::ScriptSig, tx_error::TxError, tx_in::TxIn, tx_out::TxOut};
 
 #[derive(Debug)]
 pub struct Tx {
@@ -44,46 +30,6 @@ impl Display for Tx {
             self.network
         )
     }
-}
-
-impl TxIn {
-    pub fn new(
-        previous_transaction_id: Integer,
-        previous_transaction_index: u32,
-        script_sig: ScriptSig,
-        sequence: u32,
-    ) -> TxIn {
-        TxIn {
-            previous_transaction_id,
-            previous_transaction_index,
-            script_sig,
-            sequence,
-        }
-    }
-
-    fn serialize(&self) -> Vec<u8> {
-        vec![]
-    }
-}
-
-impl TxOut {
-    pub fn new(amount: u64, script_pub_key: ScriptPubKey) -> TxOut {
-        TxOut { amount, script_pub_key }
-    }
-
-    fn serialize(&self) -> Vec<u8> {
-        vec![]
-    }
-}
-
-#[derive(Debug)]
-pub enum TxError {
-    InvalidTransactionLength,
-    Invalid4BytesLength,
-    Invalid32BytesLength,
-    Invalid8BytesLength,
-    PartiallyReadTransaction,
-    VarIntError,
 }
 
 impl Tx {
@@ -131,7 +77,7 @@ impl Tx {
         }
 
         let slice = &bytes[from..(from + 32)];
-        Ok(Integer::from_digits(&slice, Order::Lsf))
+        Ok(Integer::from_digits(slice, Order::Lsf))
     }
 
     // TODO: implement with stream
@@ -142,7 +88,7 @@ impl Tx {
         let mut cursor: usize = 0;
 
         // Version
-        let version = Self::u32_le_bytes(&serialized, cursor)?;
+        let version = Self::u32_le_bytes(serialized, cursor)?;
         cursor += 4;
 
         // Inputs
@@ -155,7 +101,7 @@ impl Tx {
             let tx_in_previous_transaction_id = Self::integer_le_32_bytes(serialized, cursor)?;
             cursor += 32;
 
-            let tx_in_previous_transaction_index = Self::u32_le_bytes(&serialized, cursor)?;
+            let tx_in_previous_transaction_index = Self::u32_le_bytes(serialized, cursor)?;
             cursor += 4;
 
             let tx_in_scriptsig_length = Self::varint_decode(serialized, cursor)?;
@@ -167,7 +113,7 @@ impl Tx {
 
             cursor += tx_in_scriptsig_length.value as usize;
 
-            let tx_in_sequence = Self::u32_le_bytes(&serialized, cursor)?;
+            let tx_in_sequence = Self::u32_le_bytes(serialized, cursor)?;
             cursor += 4;
 
             let tx_in = TxIn::new(
@@ -188,7 +134,7 @@ impl Tx {
         let mut outputs: Vec<TxOut> = vec![];
         let mut output_index = 0;
         while output_index < tx_out_count.value {
-            let amount = Self::u64_le_bytes(&serialized, cursor)?;
+            let amount = Self::u64_le_bytes(serialized, cursor)?;
             cursor += 8;
 
             let tx_out_scriptpubkey_length = Self::varint_decode(serialized, cursor)?;
@@ -207,7 +153,7 @@ impl Tx {
         }
 
         // Locktime
-        let locktime = Self::u32_le_bytes(&serialized, cursor)?;
+        let locktime = Self::u32_le_bytes(serialized, cursor)?;
         cursor += 4;
 
         if cursor != serialized.len() {
@@ -249,7 +195,7 @@ impl Tx {
 
 #[cfg(test)]
 mod tx_test {
-    use crate::{btc_ecdsa::Network, helper::vector::string_to_bytes, tx::Tx};
+    use crate::{btc_ecdsa::Network, helper::vector::string_to_bytes, transaction::tx::Tx};
 
     pub const SERIALIZED_TRANSACTION: &str = "010000000456919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e010000006a47304402204585bcdef85e6b1c6af5c2669d4830ff86e42dd205c0e089bc2a821657e951c002201024a10366077f87d6bce1f7100ad8cfa8a064b39d4e8fe4ea13a7b71aa8180f012102f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7feffffffeb8f51f4038dc17e6313cf831d4f02281c2a468bde0fafd37f1bf882729e7fd3000000006a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937feffffff567bf40595119d1bb8a3037c356efd56170b64cbcc160fb028fa10704b45d775000000006a47304402204c7c7818424c7f7911da6cddc59655a70af1cb5eaf17c69dadbfc74ffa0b662f02207599e08bc8023693ad4e9527dc42c34210f7a7d1d1ddfc8492b654a11e7620a0012102158b46fbdff65d0172b7989aec8850aa0dae49abfb84c81ae6e5b251a58ace5cfeffffffd63a5e6c16e620f86f375925b21cabaf736c779f88fd04dcad51d26690f7f345010000006a47304402200633ea0d3314bea0d95b3cd8dadb2ef79ea8331ffe1e61f762c0f6daea0fabde022029f23b3e9c30f080446150b23852028751635dcee2be669c2a1686a4b5edf304012103ffd6f4a67e94aba353a00882e563ff2722eb4cff0ad6006e86ee20dfe7520d55feffffff0251430f00000000001976a914ab0c0b2e98b1ab6dbf67d4750b0a56244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac46430600";
 
@@ -274,5 +220,23 @@ mod tx_test {
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.inputs.len(), 4);
+    }
+
+    #[test]
+    fn deserialize_tx_outs() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+
+        assert_eq!(tx.outputs.len(), 2);
+    }
+
+    #[test]
+    fn deserialize_locktime() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+
+        assert_eq!(tx.locktime, 410438);
     }
 }

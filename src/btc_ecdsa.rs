@@ -1,6 +1,7 @@
+//! Bitcoin protocol magic numbers.
+
 use std::fmt::{Display, Formatter, Result};
 
-///! Bitcoin protocol magic numbers.
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
 

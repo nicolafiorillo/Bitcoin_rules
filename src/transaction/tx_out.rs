@@ -1,4 +1,4 @@
-use super::script_pub_key::ScriptPubKey;
+use crate::transaction::script_pub_key::ScriptPubKey;
 
 #[derive(Debug)]
 pub struct TxOut {
@@ -12,6 +12,17 @@ impl TxOut {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        vec![]
+        todo!(); // TODO: adding tests
+
+        let amount_serialized = self.amount.to_le_bytes();
+        let script_pub_key_serialized = self.script_pub_key.serialize();
+        [amount_serialized.as_slice(), script_pub_key_serialized.as_slice()].concat()
     }
+}
+
+#[cfg(test)]
+mod tx_out {
+
+    // #[test]
+    // fn test_tx_out_serialize() {}
 }

@@ -2,13 +2,16 @@ use std::fmt::{Display, Formatter};
 
 use rug::{integer::Order, Integer};
 
-use crate::{
-    btc_ecdsa::Network,
-    hashing::hash256,
-    varint::{varint_decode, VarInt},
-};
+use crate::{btc_ecdsa::Network, hashing::hash256};
 
-use super::{script_pub_key::ScriptPubKey, script_sig::ScriptSig, tx_error::TxError, tx_in::TxIn, tx_out::TxOut};
+use crate::transaction::{
+    lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32, u64_le_bytes, varint_decode},
+    script_pub_key::ScriptPubKey,
+    script_sig::ScriptSig,
+    tx_error::TxError,
+    tx_in::TxIn,
+    tx_out::TxOut,
+};
 
 #[derive(Debug)]
 pub struct Tx {
@@ -42,44 +45,6 @@ impl Tx {
         Integer::from_digits(&serialized, Order::Msf)
     }
 
-    fn u32_le_bytes(bytes: &[u8], from: usize) -> Result<u32, TxError> {
-        if bytes.len() < (from + 4) {
-            return Err(TxError::Invalid4BytesLength);
-        }
-
-        let mut v: [u8; 4] = [0; 4];
-        v.copy_from_slice(&bytes[from..(from + 4)]);
-        Ok(u32::from_le_bytes(v))
-    }
-
-    fn u64_le_bytes(bytes: &[u8], from: usize) -> Result<u64, TxError> {
-        if bytes.len() < (from + 8) {
-            return Err(TxError::Invalid8BytesLength);
-        }
-
-        let mut v: [u8; 8] = [0; 8];
-        v.copy_from_slice(&bytes[from..(from + 8)]);
-        Ok(u64::from_le_bytes(v))
-    }
-
-    fn varint_decode(bytes: &[u8], from: usize) -> Result<VarInt, TxError> {
-        let vi = varint_decode(bytes, from);
-        if let Err(_e) = vi {
-            return Err(TxError::VarIntError);
-        }
-
-        Ok(vi.unwrap())
-    }
-
-    fn integer_le_32_bytes(bytes: &[u8], from: usize) -> Result<Integer, TxError> {
-        if bytes.len() < (from + 32) {
-            return Err(TxError::Invalid32BytesLength);
-        }
-
-        let slice = &bytes[from..(from + 32)];
-        Ok(Integer::from_digits(slice, Order::Lsf))
-    }
-
     // TODO: implement with stream
     pub fn from_serialized(serialized: &[u8], network: Network) -> Result<Self, TxError> {
         if serialized.len() < 5 {
@@ -88,23 +53,24 @@ impl Tx {
         let mut cursor: usize = 0;
 
         // Version
-        let version = Self::u32_le_bytes(serialized, cursor)?;
+        let version = le_bytes_to_u32(serialized, cursor)?;
         cursor += 4;
 
         // Inputs
-        let tx_in_count = Self::varint_decode(serialized, cursor)?;
+        let tx_in_count = varint_decode(serialized, cursor)?;
         cursor += tx_in_count.length;
 
         let mut inputs: Vec<TxIn> = vec![];
         let mut input_index = 0;
         while input_index < tx_in_count.value {
-            let tx_in_previous_transaction_id = Self::integer_le_32_bytes(serialized, cursor)?;
+            // TODO: move to TxIn impl
+            let tx_in_previous_transaction_id = le_32_bytes_to_integer(serialized, cursor)?;
             cursor += 32;
 
-            let tx_in_previous_transaction_index = Self::u32_le_bytes(serialized, cursor)?;
+            let tx_in_previous_transaction_index = le_bytes_to_u32(serialized, cursor)?;
             cursor += 4;
 
-            let tx_in_scriptsig_length = Self::varint_decode(serialized, cursor)?;
+            let tx_in_scriptsig_length = varint_decode(serialized, cursor)?;
             cursor += tx_in_scriptsig_length.length;
 
             let tx_in_scriptsig_content_serialized =
@@ -113,7 +79,7 @@ impl Tx {
 
             cursor += tx_in_scriptsig_length.value as usize;
 
-            let tx_in_sequence = Self::u32_le_bytes(serialized, cursor)?;
+            let tx_in_sequence = le_bytes_to_u32(serialized, cursor)?;
             cursor += 4;
 
             let tx_in = TxIn::new(
@@ -128,16 +94,17 @@ impl Tx {
         }
 
         // Outputs
-        let tx_out_count = Self::varint_decode(serialized, cursor)?;
+        let tx_out_count = varint_decode(serialized, cursor)?;
         cursor += tx_out_count.length;
 
         let mut outputs: Vec<TxOut> = vec![];
         let mut output_index = 0;
         while output_index < tx_out_count.value {
-            let amount = Self::u64_le_bytes(serialized, cursor)?;
+            // TODO: move to TxOut impl
+            let amount = u64_le_bytes(serialized, cursor)?;
             cursor += 8;
 
-            let tx_out_scriptpubkey_length = Self::varint_decode(serialized, cursor)?;
+            let tx_out_scriptpubkey_length = varint_decode(serialized, cursor)?;
             cursor += tx_out_scriptpubkey_length.length;
 
             let tx_out_scriptpubkey_content_serialized =
@@ -153,7 +120,7 @@ impl Tx {
         }
 
         // Locktime
-        let locktime = Self::u32_le_bytes(serialized, cursor)?;
+        let locktime = le_bytes_to_u32(serialized, cursor)?;
         cursor += 4;
 
         if cursor != serialized.len() {
@@ -240,6 +207,7 @@ mod tx_test {
 
         assert_eq!(tx.outputs.len(), 2);
     }
+
     #[test]
     fn deserialize_locktime() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);

@@ -17,7 +17,6 @@ mod point;
 mod private_key;
 mod signature;
 pub mod transaction;
-mod varint;
 
 fn main() {
     env_logger::init();

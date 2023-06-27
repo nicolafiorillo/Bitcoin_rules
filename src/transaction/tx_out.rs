@@ -2,7 +2,7 @@ use super::script_pub_key::ScriptPubKey;
 
 #[derive(Debug)]
 pub struct TxOut {
-    amount: u64,
+    pub amount: u64,
     script_pub_key: ScriptPubKey,
 }
 

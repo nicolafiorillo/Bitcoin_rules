@@ -228,9 +228,18 @@ mod tx_test {
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
-        assert_eq!(tx.outputs.len(), 2);
+        assert_eq!(tx.outputs[0].amount, 1000273);
+        assert_eq!(tx.outputs[1].amount, 40000000);
     }
 
+    #[test]
+    fn deserialize_tx_outs_amount1() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+
+        assert_eq!(tx.outputs.len(), 2);
+    }
     #[test]
     fn deserialize_locktime() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);

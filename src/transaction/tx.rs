@@ -59,13 +59,12 @@ impl Tx {
         cursor += tx_in_count.length;
 
         let mut inputs: Vec<TxIn> = vec![];
-        let mut input_index = 0;
-        while input_index < tx_in_count.value {
+
+        for _ in 0..tx_in_count.value {
             let (tx_in, c) = TxIn::from_serialized(serialized, cursor)?;
             cursor = c;
 
             inputs.push(tx_in);
-            input_index += 1;
         }
 
         // Outputs
@@ -73,13 +72,12 @@ impl Tx {
         cursor += tx_out_count.length;
 
         let mut outputs: Vec<TxOut> = vec![];
-        let mut output_index = 0;
-        while output_index < tx_out_count.value {
+
+        for _ in 0..tx_out_count.value {
             let (tx_out, c) = TxOut::from_serialized(serialized, cursor)?;
             cursor = c;
 
             outputs.push(tx_out);
-            output_index += 1;
         }
 
         // Locktime

@@ -3,6 +3,9 @@ use rug::Integer;
 use crate::transaction::lib::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 use crate::transaction::script_sig::ScriptSig;
 
+use super::lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32, varint_decode};
+use super::tx_error::TxError;
+
 #[derive(Debug)]
 pub struct TxIn {
     previous_transaction_id: Integer,
@@ -24,6 +27,34 @@ impl TxIn {
             script_sig,
             sequence,
         }
+    }
+
+    pub fn from_serialized(serialized: &[u8], mut cursor: usize) -> Result<(Self, usize), TxError> {
+        let tx_in_previous_transaction_id = le_32_bytes_to_integer(serialized, cursor)?;
+        cursor += 32;
+
+        let tx_in_previous_transaction_index = le_bytes_to_u32(serialized, cursor)?;
+        cursor += 4;
+
+        let tx_in_scriptsig_length = varint_decode(serialized, cursor)?;
+        cursor += tx_in_scriptsig_length.length;
+
+        let tx_in_scriptsig_content_serialized = &serialized[cursor..cursor + tx_in_scriptsig_length.value as usize];
+        let script_sig = ScriptSig::new(tx_in_scriptsig_content_serialized.to_vec());
+
+        cursor += tx_in_scriptsig_length.value as usize;
+
+        let tx_in_sequence = le_bytes_to_u32(serialized, cursor)?;
+        cursor += 4;
+
+        let tx_in: TxIn = TxIn::new(
+            tx_in_previous_transaction_id,
+            tx_in_previous_transaction_index,
+            script_sig,
+            tx_in_sequence,
+        );
+
+        Ok((tx_in, cursor))
     }
 
     pub fn serialize(&self) -> Vec<u8> {

@@ -5,7 +5,7 @@ pub struct ScriptSig {
 
 impl ScriptSig {
     pub fn new(content: Vec<u8>) -> Self {
-        ScriptSig { content: content }
+        ScriptSig { content }
     }
 
     pub fn serialize(&self) -> Vec<u8> {

@@ -5,9 +5,7 @@ use rug::{integer::Order, Integer};
 use crate::{btc_ecdsa::Network, hashing::hash256};
 
 use crate::transaction::{
-    lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32, u64_le_bytes, varint_decode},
-    script_pub_key::ScriptPubKey,
-    script_sig::ScriptSig,
+    lib::tx_lib::{le_bytes_to_u32, varint_decode},
     tx_error::TxError,
     tx_in::TxIn,
     tx_out::TxOut,
@@ -63,31 +61,8 @@ impl Tx {
         let mut inputs: Vec<TxIn> = vec![];
         let mut input_index = 0;
         while input_index < tx_in_count.value {
-            // TODO: move to TxIn impl
-            let tx_in_previous_transaction_id = le_32_bytes_to_integer(serialized, cursor)?;
-            cursor += 32;
-
-            let tx_in_previous_transaction_index = le_bytes_to_u32(serialized, cursor)?;
-            cursor += 4;
-
-            let tx_in_scriptsig_length = varint_decode(serialized, cursor)?;
-            cursor += tx_in_scriptsig_length.length;
-
-            let tx_in_scriptsig_content_serialized =
-                &serialized[cursor..cursor + tx_in_scriptsig_length.value as usize];
-            let script_sig = ScriptSig::new(tx_in_scriptsig_content_serialized.to_vec());
-
-            cursor += tx_in_scriptsig_length.value as usize;
-
-            let tx_in_sequence = le_bytes_to_u32(serialized, cursor)?;
-            cursor += 4;
-
-            let tx_in = TxIn::new(
-                tx_in_previous_transaction_id,
-                tx_in_previous_transaction_index,
-                script_sig,
-                tx_in_sequence,
-            );
+            let (tx_in, c) = TxIn::from_serialized(serialized, cursor)?;
+            cursor = c;
 
             inputs.push(tx_in);
             input_index += 1;
@@ -100,20 +75,8 @@ impl Tx {
         let mut outputs: Vec<TxOut> = vec![];
         let mut output_index = 0;
         while output_index < tx_out_count.value {
-            // TODO: move to TxOut impl
-            let amount = u64_le_bytes(serialized, cursor)?;
-            cursor += 8;
-
-            let tx_out_scriptpubkey_length = varint_decode(serialized, cursor)?;
-            cursor += tx_out_scriptpubkey_length.length;
-
-            let tx_out_scriptpubkey_content_serialized =
-                &serialized[cursor..cursor + tx_out_scriptpubkey_length.value as usize];
-            let script_pub_key = ScriptPubKey::new(tx_out_scriptpubkey_content_serialized.to_vec());
-
-            cursor += tx_out_scriptpubkey_length.value as usize;
-
-            let tx_out = TxOut::new(amount, script_pub_key);
+            let (tx_out, c) = TxOut::from_serialized(serialized, cursor)?;
+            cursor = c;
 
             outputs.push(tx_out);
             output_index += 1;
@@ -123,6 +86,7 @@ impl Tx {
         let locktime = le_bytes_to_u32(serialized, cursor)?;
         cursor += 4;
 
+        // final verification
         if cursor != serialized.len() {
             log::error!(
                 "Transaction partially read. Cursor: {:?}, Serialized length: {:?}",

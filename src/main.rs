@@ -20,5 +20,5 @@ pub mod transaction;
 
 fn main() {
     env_logger::init();
-    println!("Bitcoin in Rust");
+    println!("BTCR, a Bitcoin node written in Rust");
 }

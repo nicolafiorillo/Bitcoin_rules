@@ -1,9 +1,6 @@
 use crate::transaction::script_pub_key::ScriptPubKey;
 
-use super::{
-    lib::tx_lib::{u64_le_bytes, varint_decode},
-    tx_error::TxError,
-};
+use super::{lib::tx_lib::u64_le_bytes, tx_error::TxError};
 
 #[derive(Debug)]
 pub struct TxOut {
@@ -16,27 +13,21 @@ impl TxOut {
         TxOut { amount, script_pub_key }
     }
 
-    pub fn from_serialized(serialized: &[u8], mut cursor: usize) -> Result<(Self, usize), TxError> {
-        let amount = u64_le_bytes(serialized, cursor)?;
-        cursor += 8;
+    pub fn from_serialized(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {
+        let mut cur = cursor;
 
-        let tx_out_scriptpubkey_length = varint_decode(serialized, cursor)?;
-        cursor += tx_out_scriptpubkey_length.length;
+        let amount = u64_le_bytes(serialized, cur)?;
+        cur += 8;
 
-        let tx_out_scriptpubkey_content_serialized =
-            &serialized[cursor..cursor + tx_out_scriptpubkey_length.value as usize];
-        let script_pub_key = ScriptPubKey::new(tx_out_scriptpubkey_content_serialized.to_vec());
-
-        cursor += tx_out_scriptpubkey_length.value as usize;
+        let (script_pub_key, c) = ScriptPubKey::from_serialized(serialized, cur)?;
+        cur = c;
 
         let tx_out = TxOut::new(amount, script_pub_key);
 
-        Ok((tx_out, cursor))
+        Ok((tx_out, cur))
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        todo!(); // TODO: adding tests
-
         let amount_serialized = self.amount.to_le_bytes();
         let script_pub_key_serialized = self.script_pub_key.serialize();
         [amount_serialized.as_slice(), script_pub_key_serialized.as_slice()].concat()
@@ -45,7 +36,22 @@ impl TxOut {
 
 #[cfg(test)]
 mod tx_out {
+    use crate::{helper::vector::string_to_bytes, transaction::script_pub_key::ScriptPubKey};
 
-    // #[test]
-    // fn test_tx_out_serialize() {}
+    use super::TxOut;
+
+    #[test]
+    fn test_tx_out_serialize() {
+        let script_pub_key_content = string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac");
+
+        let script_pub_key = ScriptPubKey::new(script_pub_key_content);
+        let tx_out = TxOut::new(40000000, script_pub_key);
+
+        let tx_out_serialized = tx_out.serialize();
+
+        let expected_tx_out_serialized =
+            string_to_bytes("005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac");
+
+        assert_eq!(tx_out_serialized, expected_tx_out_serialized);
+    }
 }

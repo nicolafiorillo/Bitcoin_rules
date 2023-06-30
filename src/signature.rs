@@ -108,7 +108,12 @@ mod signature_test {
     use rug::{integer::Order, Integer};
 
     use super::*;
-    use crate::{btc_ecdsa::*, field_element::FieldElement, integer_ex::IntegerEx, point::Point};
+    use crate::{
+        bitcoin::ecdsa_btc::{G, N, P},
+        ecdsa::field_element::FieldElement,
+        integer_ex::IntegerEx,
+        point::Point,
+    };
 
     #[test]
     fn a_signature() {

@@ -15,7 +15,7 @@ pub struct FieldElement {
     // reference prime number
     prime: Integer,
     // value is included in bitcoin field (P)
-    is_in_btc_field: bool,
+    is_in_btc_field: bool, // TODO: I do not like it here
 }
 
 impl FieldElement {
@@ -34,7 +34,7 @@ impl FieldElement {
 
     /// New `FieldElement` with given `num` and bitcoin P as prime.
     pub fn new_in_secp256k1(num: Integer) -> FieldElement {
-        use crate::btc_ecdsa::P;
+        use crate::bitcoin::ecdsa_btc::P;
 
         FieldElement {
             num,

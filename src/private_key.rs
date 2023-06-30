@@ -7,7 +7,11 @@ use rug::{integer::Order, Integer};
 use sha2::Sha256;
 
 use crate::{
-    btc_ecdsa::{Compression, Network, G, N},
+    bitcoin::{
+        compression::Compression,
+        ecdsa_btc::{G, N},
+        network::Network,
+    },
     encoding::encode_base58_checksum,
     helper::vector::{self, padding_left},
     integer_ex::IntegerEx,
@@ -139,12 +143,7 @@ mod private_key_test {
     use rug::{integer::Order, ops::Pow, Integer};
 
     use super::*;
-    use crate::{
-        btc_ecdsa::{Compression, Network},
-        hashing::hash256,
-        integer_ex::IntegerEx,
-        point::Point,
-    };
+    use crate::{hashing::hash256, integer_ex::IntegerEx, point::Point};
 
     #[test]
     fn verify_a_signature() {

@@ -1,35 +1,10 @@
 //! Bitcoin protocol magic numbers.
 
-use std::fmt::{Display, Formatter, Result};
-
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
 
-use crate::{field_element::FieldElement, integer_ex::IntegerEx, point::Point};
-
-#[derive(Debug, PartialEq)]
-pub enum Compression {
-    Compressed,
-    Uncompressed,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Network {
-    Mainnet = 0x00,
-    Testnet = 0x6F,
-    // Signet = 0x7B,
-    // Regtest = 0xC4,
-}
-
-impl Display for Network {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let n = match self {
-            Network::Mainnet => "Mainnet",
-            Network::Testnet => "Testnet",
-        };
-        writeln!(f, "{:?}", n)
-    }
-}
+use crate::ecdsa::field_element::FieldElement;
+use crate::{integer_ex::IntegerEx, point::Point};
 
 // X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> =
@@ -62,7 +37,7 @@ pub static G: Lazy<Point> = Lazy::new(|| {
 #[cfg(test)]
 mod s256_test {
     use super::*;
-    use crate::field_element::*;
+    use crate::ecdsa::field_element::*;
     use crate::integer_ex::IntegerEx;
     use crate::point::Point;
 

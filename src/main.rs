@@ -7,9 +7,10 @@
 //     clippy::missing_panics_doc
 // )]
 
-mod btc_ecdsa;
+pub mod bitcoin;
+pub mod chain;
+pub mod ecdsa;
 mod encoding;
-mod field_element;
 mod hashing;
 mod helper;
 mod integer_ex;

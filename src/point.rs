@@ -10,9 +10,13 @@
 ///     sec2-v2.pdf
 ///
 use crate::{
-    btc_ecdsa::{Compression, Network, B, G, N, P},
+    bitcoin::{
+        compression::Compression,
+        ecdsa_btc::{B, G, N, P},
+        network::Network,
+    },
+    ecdsa::field_element::FieldElement,
     encoding::encode_base58_checksum,
-    field_element::FieldElement,
     hashing::hash160,
     helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,

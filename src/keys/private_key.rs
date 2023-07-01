@@ -2,9 +2,7 @@
 
 use std::fmt::{Display, Formatter, Result};
 
-use hmac::{Hmac, Mac};
 use rug::{integer::Order, Integer};
-use sha2::Sha256;
 
 use crate::{
     bitcoin::{
@@ -12,11 +10,11 @@ use crate::{
         ecdsa_btc::{G, N},
         network::Network,
     },
+    ecdsa::point::Point,
     encoding::base58::encode_with_checksum,
     helper::vector::{self, padding_left},
     integer_ex::IntegerEx,
-    point::Point,
-    signature::Signature,
+    keys::signature::Signature,
 };
 
 /// Private key structure.
@@ -59,6 +57,9 @@ impl PrivateKey {
     }
 
     fn hmac_for_data(data: &[u8], mut k: [u8; 32]) -> [u8; 32] {
+        use hmac::{Hmac, Mac};
+        use sha2::Sha256;
+
         let mut hmac_sha256 = Hmac::<Sha256>::new_from_slice(&k).expect("HMAC initialization failed");
         hmac_sha256.update(data);
         k.copy_from_slice(hmac_sha256.finalize().into_bytes().as_slice());
@@ -148,10 +149,10 @@ mod private_key_test {
 
     use crate::{
         bitcoin::{compression::Compression, network::Network},
-        hashing::hash256,
+        ecdsa::point::Point,
+        hashing::hash256::hash256,
         integer_ex::IntegerEx,
-        point::Point,
-        private_key::PrivateKey,
+        keys::private_key::PrivateKey,
     };
 
     #[test]

@@ -14,9 +14,7 @@ mod encoding;
 mod hashing;
 mod helper;
 mod integer_ex;
-mod point;
-mod private_key;
-mod signature;
+pub mod keys;
 pub mod transaction;
 
 fn main() {

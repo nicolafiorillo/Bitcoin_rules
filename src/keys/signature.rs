@@ -110,9 +110,8 @@ mod signature_test {
     use super::*;
     use crate::{
         bitcoin::ecdsa_btc::{G, N, P},
-        ecdsa::field_element::FieldElement,
+        ecdsa::{field_element::FieldElement, point::Point},
         integer_ex::IntegerEx,
-        point::Point,
     };
 
     #[test]

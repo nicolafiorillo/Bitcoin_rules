@@ -17,10 +17,10 @@ use crate::{
     },
     ecdsa::field_element::FieldElement,
     encoding::base58::encode_with_checksum,
-    hashing::hash160,
+    hashing::hash160::hash160,
     helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,
-    signature::Signature,
+    keys::signature::Signature,
 };
 use rug::{integer::Order, Integer};
 

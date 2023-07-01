@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use rug::{integer::Order, Integer};
 
 use crate::bitcoin::network::Network;
-use crate::hashing::hash256;
+use crate::hashing::hash256::hash256;
 
 use crate::transaction::{
     lib::tx_lib::{le_bytes_to_u32, varint_decode},

@@ -5,7 +5,7 @@ use rug::{ops::Pow, Integer};
 
 use crate::ecdsa::field_element::FieldElement;
 use crate::ecdsa::point::Point;
-use crate::lib::integer_ex::IntegerEx;
+use crate::low::integer_ex::IntegerEx;
 
 // X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> =
@@ -39,7 +39,7 @@ pub static G: Lazy<Point> = Lazy::new(|| {
 mod s256_test {
     use super::*;
     use crate::ecdsa::field_element::*;
-    use crate::lib::integer_ex::IntegerEx;
+    use crate::low::integer_ex::IntegerEx;
 
     #[test]
     fn on_correct_secp256k1_numbers() {

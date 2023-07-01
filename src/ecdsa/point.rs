@@ -12,15 +12,13 @@
 use crate::{
     bitcoin::{
         compression::Compression,
-        ecdsa_btc::{B, G, N, P},
+        ecdsa_btc::{B, N, P},
         network::Network,
     },
     ecdsa::field_element::FieldElement,
     encoding::base58::encode_with_checksum,
     hashing::hash160::hash160,
-    keys::signature::Signature,
-    lib::integer_ex::IntegerEx,
-    lib::vector::{string_to_bytes, vect_to_array_32},
+    low::vector::{string_to_bytes, vect_to_array_32},
 };
 use rug::{integer::Order, Integer};
 
@@ -87,23 +85,6 @@ impl Point {
     /// Get `y` value.
     pub fn y_as_num(&self) -> Integer {
         self.y.clone().unwrap().num()
-    }
-
-    /// Verify `z` versus a `Signature`.
-    /// `z`: the hashed message
-    /// `sig`: the public signature
-    pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
-        let s_inv = sig.s.invert_by_modulo(&N);
-
-        let mu = z * &s_inv;
-        let (_q, u) = Integer::from(mu).div_rem_euc((*N).clone());
-
-        let mv = &sig.r * &s_inv;
-        let (_q, v) = Integer::from(mv).div_rem_euc((*N).clone());
-
-        let total = (&(*G).clone() * u) + &(self * v);
-
-        total.x_as_num() == sig.r
     }
 
     /// https://www.secg.org/
@@ -346,7 +327,11 @@ impl Mul<Integer> for &Point {
 #[cfg(test)]
 mod point_test {
     use super::*;
-    use crate::lib::integer_ex::IntegerEx;
+    use crate::{
+        bitcoin::ecdsa_btc::G,
+        keys::{signature::Signature, verification::verify},
+        low::integer_ex::IntegerEx,
+    };
 
     #[test]
     fn a_point_in_curve_1() {
@@ -649,7 +634,7 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(point.verify(&z, &sig));
+        assert!(verify(&point, &z, &sig));
     }
 
     #[test]
@@ -690,6 +675,6 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(point.verify(&z, &sig));
+        assert!(verify(&point, &z, &sig));
     }
 }

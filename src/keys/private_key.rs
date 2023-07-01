@@ -13,9 +13,11 @@ use crate::{
     ecdsa::point::Point,
     encoding::base58::encode_with_checksum,
     keys::signature::Signature,
-    lib::integer_ex::IntegerEx,
-    lib::vector::{padding_left, vect_to_array_32},
+    low::integer_ex::IntegerEx,
+    low::vector::{padding_left, vect_to_array_32},
 };
+
+use super::verification::verify;
 
 /// Private key structure.
 pub struct PrivateKey {
@@ -33,7 +35,7 @@ impl PrivateKey {
     }
 
     pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
-        self.point.verify(z, sig)
+        verify(&self.point, z, sig)
     }
 
     /// Sign a message.
@@ -152,7 +154,7 @@ mod private_key_test {
         ecdsa::point::Point,
         hashing::hash256::hash256,
         keys::private_key::PrivateKey,
-        lib::integer_ex::IntegerEx,
+        low::integer_ex::IntegerEx,
     };
 
     #[test]

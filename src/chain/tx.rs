@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
 
-use crate::{bitcoin::network::Network, lib::vector::string_to_bytes};
+use crate::{bitcoin::network::Network, low::vector::string_to_bytes};
 
 #[derive(Debug)]
 pub enum ChainError {

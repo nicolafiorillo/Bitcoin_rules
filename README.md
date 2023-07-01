@@ -100,8 +100,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [ ] Mining pool block reward distribution
 - [ ] Block validation
   - [ ] Block reward
-  - [ ] Difficulty adjustment 
-- [ ] SPV
+  - [ ] Difficulty adjustment
 - [ ] Lightning network
 - [ ] Payment channels
 - [ ] Schnorr signatures

@@ -13,7 +13,7 @@ mod ecdsa;
 mod encoding;
 mod hashing;
 mod keys;
-mod lib;
+mod low;
 mod transaction;
 
 fn main() {

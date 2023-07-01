@@ -75,8 +75,8 @@ mod tx_in_test {
     use rug::Integer;
 
     use crate::{
-        lib::integer_ex::IntegerEx,
-        lib::vector::string_to_bytes,
+        low::integer_ex::IntegerEx,
+        low::vector::string_to_bytes,
         transaction::{script_sig::ScriptSig, tx_in::TxIn},
     };
 

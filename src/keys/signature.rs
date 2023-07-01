@@ -3,7 +3,7 @@ use std::str;
 
 use rug::{integer::Order, Integer};
 
-use crate::lib::vector::{string_to_bytes, trim_left};
+use crate::low::vector::{string_to_bytes, trim_left};
 
 pub struct Signature {
     pub r: Integer,
@@ -111,7 +111,7 @@ mod signature_test {
     use crate::{
         bitcoin::ecdsa_btc::{G, N, P},
         ecdsa::{field_element::FieldElement, point::Point},
-        lib::integer_ex::IntegerEx,
+        low::integer_ex::IntegerEx,
     };
 
     #[test]

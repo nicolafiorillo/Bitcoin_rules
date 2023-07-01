@@ -8,17 +8,22 @@ _Do not use this for production stuff. Stability and expecially security are not
 
 Here we list some useful documentations and references for Bitcoin developers gathered during the development of `BTCR`.
 
-- [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [@jamesob](https://twitter.com/jamesob).
-- [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 - [Elliptic Curve Cryptography](docs/ecc/)
+- [Bitcoin Core source code](https://github.com/bitcoin)
+- [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
+- [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [@jamesob](https://twitter.com/jamesob).
+
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
+
+- [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 
 ## To do
 
 - [ ] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
 - [ ] Show compilation status of the project and unit test results in README.md.
 - [ ] Wrap in container.
+- [ ] Substitute `rug` with custom implementation of big integers.
 <!-- - [ ] Add Github Action to run `cargo doc` and publish the documentation to Github Pages.
 - [ ] Add Github Action to run `cargo audit` on every commit.
 - [ ] Add Github Action to run `cargo bench` on every commit. -->
@@ -38,6 +43,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [X] Elliptic Curve Cryptography
 - [X] Just enough cryptography and hash functions
 - [X] Just enough serialization
+- [X] Logging
 - [ ] Transaction structures and serialization (_*work in progress now*_)
 - [ ] Bitcoin scripting language
 - [ ] Transaction validation
@@ -53,6 +59,17 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [ ] Merkle tree
 - [ ] Bloom filters
 - [ ] Segrated witness (Segwit)
+- [ ] Seed phrase ([BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki))
+- [ ] Configuration
+- [ ] User interfaces
+  - [ ] REPL
+    - [ ] Define commands
+    - [ ] Command parsing and execution
+    - [ ] Command help
+    - [ ] Command history
+    - [ ] Command completion
+  - [ ] API
+  - [ ] Messages (via queues)
 - [ ] Wallet
   - [ ] Key management
   - [ ] Address generation

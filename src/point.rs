@@ -16,7 +16,7 @@ use crate::{
         network::Network,
     },
     ecdsa::field_element::FieldElement,
-    encoding::encode_base58_checksum,
+    encoding::base58::encode_with_checksum,
     hashing::hash160,
     helper::vector::{self, string_to_bytes},
     integer_ex::IntegerEx,
@@ -92,10 +92,10 @@ impl Point {
     /// Verify `z` versus a `Signature`.
     /// `z`: the hashed message
     /// `sig`: the public signature
-    pub fn verify(&self, z: Integer, sig: Signature) -> bool {
+    pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
         let s_inv = sig.s.invert_by_modulo(&N);
 
-        let mu = &z * &s_inv;
+        let mu = z * &s_inv;
         let (_q, u) = Integer::from(mu).div_rem_euc((*N).clone());
 
         let mv = &sig.r * &s_inv;
@@ -206,7 +206,7 @@ impl Point {
 
         let data = [p.as_slice(), h160.as_slice()].concat();
 
-        encode_base58_checksum(&data)
+        encode_with_checksum(&data)
     }
 }
 
@@ -649,7 +649,7 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(point.verify(z, sig));
+        assert!(point.verify(&z, &sig));
     }
 
     #[test]
@@ -690,6 +690,6 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(point.verify(z, sig));
+        assert!(point.verify(&z, &sig));
     }
 }

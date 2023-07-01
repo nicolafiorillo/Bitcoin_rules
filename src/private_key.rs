@@ -12,7 +12,7 @@ use crate::{
         ecdsa_btc::{G, N},
         network::Network,
     },
-    encoding::encode_base58_checksum,
+    encoding::base58::encode_with_checksum,
     helper::vector::{self, padding_left},
     integer_ex::IntegerEx,
     point::Point,
@@ -24,7 +24,7 @@ pub struct PrivateKey {
     /// secret number
     secret: Integer,
     /// public key
-    pub point: Point,
+    point: Point,
 }
 
 impl PrivateKey {
@@ -32,6 +32,10 @@ impl PrivateKey {
     pub fn new(secret: Integer) -> PrivateKey {
         let point = &(*G).clone() * secret.clone();
         PrivateKey { secret, point }
+    }
+
+    pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
+        self.point.verify(z, sig)
     }
 
     /// Sign a message.
@@ -114,7 +118,7 @@ impl PrivateKey {
         let suffix = Self::wif_compression_prefix(compression);
         let data = [prefix.as_slice(), &secret_bytes_padded, suffix.as_slice()].concat();
 
-        encode_base58_checksum(&data)
+        encode_with_checksum(&data)
     }
 
     fn wif_network_prefix(network: Network) -> Vec<u8> {
@@ -142,8 +146,13 @@ impl Display for PrivateKey {
 mod private_key_test {
     use rug::{integer::Order, ops::Pow, Integer};
 
-    use super::*;
-    use crate::{hashing::hash256, integer_ex::IntegerEx, point::Point};
+    use crate::{
+        bitcoin::{compression::Compression, network::Network},
+        hashing::hash256,
+        integer_ex::IntegerEx,
+        point::Point,
+        private_key::PrivateKey,
+    };
 
     #[test]
     fn verify_a_signature() {
@@ -158,7 +167,7 @@ mod private_key_test {
         let private_key = PrivateKey::new(e_integer);
         let sign = private_key.sign(z_integer.clone());
 
-        assert!(private_key.point.verify(z_integer, sign));
+        assert!(private_key.verify(&z_integer, &sign));
     }
 
     pub fn to_hex_string(bytes: &[u8]) -> String {

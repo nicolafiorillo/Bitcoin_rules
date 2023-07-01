@@ -36,7 +36,7 @@ impl TxOut {
 
 #[cfg(test)]
 mod tx_out {
-    use crate::{helper::vector::string_to_bytes, transaction::script_pub_key::ScriptPubKey};
+    use crate::{lib::vector::string_to_bytes, transaction::script_pub_key::ScriptPubKey};
 
     use super::TxOut;
 

@@ -18,9 +18,9 @@ use crate::{
     ecdsa::field_element::FieldElement,
     encoding::base58::encode_with_checksum,
     hashing::hash160::hash160,
-    helper::vector::{self, string_to_bytes},
-    integer_ex::IntegerEx,
     keys::signature::Signature,
+    lib::integer_ex::IntegerEx,
+    lib::vector::{string_to_bytes, vect_to_array_32},
 };
 use rug::{integer::Order, Integer};
 
@@ -118,8 +118,8 @@ impl Point {
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
         let y_vec: Vec<u8> = self.y_as_num().to_digits::<u8>(Order::Msf);
 
-        let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
-        let y: [u8; 32] = vector::vect_to_array_32(&y_vec);
+        let x: [u8; 32] = vect_to_array_32(&x_vec);
+        let y: [u8; 32] = vect_to_array_32(&y_vec);
 
         let mut res: [u8; 65] = [0; 65];
         res[0] = 4;
@@ -133,7 +133,7 @@ impl Point {
         let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
 
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
-        let x: [u8; 32] = vector::vect_to_array_32(&x_vec);
+        let x: [u8; 32] = vect_to_array_32(&x_vec);
 
         let mut res: [u8; 33] = [0; 33];
         res[0] = prefix;
@@ -346,7 +346,7 @@ impl Mul<Integer> for &Point {
 #[cfg(test)]
 mod point_test {
     use super::*;
-    use crate::integer_ex::IntegerEx;
+    use crate::lib::integer_ex::IntegerEx;
 
     #[test]
     fn a_point_in_curve_1() {

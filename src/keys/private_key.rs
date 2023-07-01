@@ -12,9 +12,9 @@ use crate::{
     },
     ecdsa::point::Point,
     encoding::base58::encode_with_checksum,
-    helper::vector::{self, padding_left},
-    integer_ex::IntegerEx,
     keys::signature::Signature,
+    lib::integer_ex::IntegerEx,
+    lib::vector::{padding_left, vect_to_array_32},
 };
 
 /// Private key structure.
@@ -79,10 +79,10 @@ impl PrivateKey {
         let one: [u8; 1] = [1u8];
 
         let z_vect: Vec<u8> = z.to_digits::<u8>(Order::Msf);
-        let z_bytes: [u8; 32] = vector::vect_to_array_32(&z_vect);
+        let z_bytes: [u8; 32] = vect_to_array_32(&z_vect);
 
         let secret_vect: Vec<u8> = secret.to_digits::<u8>(Order::Msf);
-        let secret_bytes: [u8; 32] = vector::vect_to_array_32(&secret_vect);
+        let secret_bytes: [u8; 32] = vect_to_array_32(&secret_vect);
 
         let mut k: [u8; 32] = [0u8; 32];
         let mut v: [u8; 32] = [1u8; 32];
@@ -151,8 +151,8 @@ mod private_key_test {
         bitcoin::{compression::Compression, network::Network},
         ecdsa::point::Point,
         hashing::hash256::hash256,
-        integer_ex::IntegerEx,
         keys::private_key::PrivateKey,
+        lib::integer_ex::IntegerEx,
     };
 
     #[test]

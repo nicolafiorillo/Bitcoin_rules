@@ -7,15 +7,14 @@
 //     clippy::missing_panics_doc
 // )]
 
-pub mod bitcoin;
-pub mod chain;
-pub mod ecdsa;
+mod bitcoin;
+mod chain;
+mod ecdsa;
 mod encoding;
 mod hashing;
-mod helper;
-mod integer_ex;
-pub mod keys;
-pub mod transaction;
+mod keys;
+mod lib;
+mod transaction;
 
 fn main() {
     env_logger::init();

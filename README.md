@@ -2,7 +2,10 @@
 
 Opinionated bitcoin node written in Rust mainly for (my own) educational purposes (both Bitcoin and Rust).
 
+This is my contribute to the Bitcoin spread and adoption.
+
 _Do not use this for production stuff. Stability and expecially security are not guaranteed._
+_Moreover, my Rust is still not idiomatic enough._
 
 ## Documentations and references
 

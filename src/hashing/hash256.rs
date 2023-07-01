@@ -18,7 +18,7 @@ mod hashing_test {
     use rug::{integer::Order, Integer};
 
     use super::hash256;
-    use crate::integer_ex::IntegerEx;
+    use crate::lib::integer_ex::IntegerEx;
 
     #[test]
     fn verify_a_hash256() {

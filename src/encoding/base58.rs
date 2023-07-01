@@ -67,7 +67,7 @@ pub fn encode_with_checksum(b: &[u8]) -> String {
 mod base58_test {
     use rug::{integer::Order, Integer};
 
-    use crate::integer_ex::IntegerEx;
+    use crate::lib::integer_ex::IntegerEx;
 
     use super::{decode, encode, encode_with_checksum};
 

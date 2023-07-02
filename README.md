@@ -44,11 +44,30 @@ Here we list some useful documentations and references for Bitcoin developers ga
 ## Roadmap
 
 - [X] Elliptic Curve Cryptography
-- [X] Just enough cryptography and hash functions
+  - [X] Finite fields implementation
+  - [X] Elliptic curves implementation
+  - [X] Elliptic curves over finite fields
+  - [X] Bitcoin elliptic curve
+- [X] Just enough public key cryptography and hash functions
+  - [X] Hash256 functions
+  - [X] Create signatures
+    - [X] Deterministic k generation
+  - [X] Signing and verification
 - [X] Just enough serialization
+  - [X] Standard for Efficient Cryptography (SEC) for public key
+    - [X] Compressed and uncompressed
+  - [X] Distinguished Encoding Rules (DER) for signatures serialization 
+  - [X] Base58 encoding
+  - [X] Wallet Import Format (WIF) format for private key serialization
+  - [X] Variable-length integers (VarInt)
+  - [X] Hash160 functions
 - [X] Logging
-- [ ] Transaction structures and serialization (_*work in progress now*_)
-- [ ] Bitcoin scripting language
+- [X] Transaction structures and serialization
+  - [X] Transaction input
+  - [X] Transaction output
+  - [X] Transaction serialization and deserialization
+  - [X] Transaction fees
+- [ ] Bitcoin scripting language (_*in progress now*_)
 - [ ] Transaction validation
   - [ ] Pay-to-script-hash (P2SH)
 - [ ] Block structures and serialization

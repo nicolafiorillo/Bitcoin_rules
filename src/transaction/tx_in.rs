@@ -6,12 +6,14 @@ use crate::transaction::lib::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 use crate::transaction::script_sig::ScriptSig;
 
 use super::lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
+use super::script_pub_key::ScriptPubKey;
 use super::tx_error::TxError;
 
 #[derive(Debug)]
 pub struct TxIn {
     previous_transaction_id: Integer,
     previous_transaction_index: u32,
+    previous_transaction_script_pubkey: Option<ScriptPubKey>,
     script_sig: ScriptSig,
     sequence: u32,
     network: Network,
@@ -33,6 +35,7 @@ impl TxIn {
             sequence,
             network,
             amount: None,
+            previous_transaction_script_pubkey: None,
         }
     }
 
@@ -43,7 +46,7 @@ impl TxIn {
         }
     }
 
-    pub fn calculate_amount(&mut self) {
+    pub fn retreive_amount(&mut self) {
         log::debug!(
             "Searching for (previous) transaction_id {:x} (index {:?}) on network {:?}",
             &self.previous_transaction_id,
@@ -60,6 +63,28 @@ impl TxIn {
         let amount = previous_transaction.outputs[self.previous_transaction_index as usize].amount;
 
         self.amount = Some(amount);
+    }
+
+    // TODO: missing tests
+    pub fn retreive_script_pubkey(&mut self) {
+        log::debug!(
+            "Searching for (previous) transaction_id {:x} (index {:?}) on network {:?}",
+            &self.previous_transaction_id,
+            self.previous_transaction_index,
+            self.network
+        );
+
+        let tx = get_transaction(&self.previous_transaction_id, self.network);
+        if tx.is_err() {
+            panic!("(previous) transaction not found");
+        }
+
+        let previous_transaction = tx.unwrap();
+        let script_pubkey = previous_transaction.outputs[self.previous_transaction_index as usize]
+            .script_pub_key
+            .clone();
+
+        self.previous_transaction_script_pubkey = Some(script_pubkey);
     }
 
     pub fn from_serialized(serialized: &[u8], cursor: usize, network: Network) -> Result<(Self, usize), TxError> {

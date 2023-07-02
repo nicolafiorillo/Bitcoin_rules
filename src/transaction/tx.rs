@@ -60,7 +60,7 @@ impl Tx {
 
     pub fn retrive_input_amount(&mut self) {
         for i in 0..self.inputs.len() {
-            self.inputs[i].calculate_amount();
+            self.inputs[i].retreive_amount();
         }
     }
 

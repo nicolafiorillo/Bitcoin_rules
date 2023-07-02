@@ -5,7 +5,7 @@ use super::{lib::tx_lib::u64_le_bytes, tx_error::TxError};
 #[derive(Debug)]
 pub struct TxOut {
     pub amount: u64,
-    script_pub_key: ScriptPubKey,
+    pub script_pub_key: ScriptPubKey,
 }
 
 impl TxOut {

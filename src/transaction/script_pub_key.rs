@@ -2,7 +2,7 @@ use crate::transaction::varint::varint_encode;
 
 use super::{lib::tx_lib::varint_decode, tx_error::TxError};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScriptPubKey {
     pub content: Vec<u8>,
 }

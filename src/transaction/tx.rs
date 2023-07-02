@@ -12,11 +12,13 @@ use crate::transaction::{
     tx_out::TxOut,
 };
 
+use super::varint::varint_encode;
+
 #[derive(Debug)]
 pub struct Tx {
     pub version: u32,
-    inputs: Vec<TxIn>,
-    outputs: Vec<TxOut>,
+    pub inputs: Vec<TxIn>,
+    pub outputs: Vec<TxOut>,
     locktime: u32,
     network: Network,
 }
@@ -41,7 +43,25 @@ impl Tx {
 
     fn hash(&self) -> Integer {
         let serialized = hash256(&self.serialize());
-        Integer::from_digits(&serialized, Order::Msf)
+        Integer::from_digits(&serialized, Order::Lsf)
+    }
+
+    pub fn input_amount(&self) -> u64 {
+        self.inputs.iter().fold(0u64, |acc, i: &TxIn| acc + i.amount())
+    }
+
+    pub fn output_amount(&self) -> u64 {
+        self.outputs.iter().fold(0u64, |acc, i: &TxOut| acc + i.amount)
+    }
+
+    pub fn fee(&self) -> u64 {
+        self.input_amount() - self.output_amount()
+    }
+
+    pub fn retrive_input_amount(&mut self) {
+        for i in 0..self.inputs.len() {
+            self.inputs[i].calculate_amount();
+        }
     }
 
     // TODO: implement with stream
@@ -62,7 +82,7 @@ impl Tx {
         let mut inputs: Vec<TxIn> = vec![];
 
         for _ in 0..tx_in_count.value {
-            let (tx_in, c) = TxIn::from_serialized(serialized, cursor)?;
+            let (tx_in, c) = TxIn::from_serialized(serialized, cursor, network)?;
             cursor = c;
 
             inputs.push(tx_in);
@@ -107,17 +127,19 @@ impl Tx {
 
     fn serialize(&self) -> Vec<u8> {
         let version_serialized = self.version.to_le_bytes();
+        let inputs_length = varint_encode(self.inputs.len() as u64);
         let inputs_serialized: Vec<u8> = self.inputs.iter().flat_map(|i| i.serialize()).collect();
+        let outputs_length = varint_encode(self.outputs.len() as u64);
         let outputs_serialized: Vec<u8> = self.outputs.iter().flat_map(|i| i.serialize()).collect();
         let locktime_serialized = self.locktime.to_le_bytes();
-        let network_serialized = self.network as u8;
 
         [
             version_serialized.as_slice(),
+            inputs_length.as_slice(),
             inputs_serialized.as_slice(),
+            outputs_length.as_slice(),
             outputs_serialized.as_slice(),
             locktime_serialized.as_slice(),
-            [network_serialized].as_slice(),
         ]
         .concat()
     }
@@ -133,6 +155,17 @@ mod tx_test {
     fn invalid_transaction_length() {
         let transaction: Vec<u8> = vec![0; 4];
         assert!(Tx::from_serialized(&transaction, Network::Mainnet).is_err());
+    }
+
+    #[test]
+    fn deserialize_id() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet);
+        assert_eq!(
+            tx.unwrap().id(),
+            "ee51510d7bbabe28052038d1deb10c03ec74f06a79e21913c6fcf48d56217c87"
+        );
     }
 
     #[test]
@@ -178,5 +211,27 @@ mod tx_test {
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.locktime, 410438);
+    }
+
+    #[test]
+    fn deserialize_and_serialize() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx_serialized = tx.serialize();
+
+        assert_eq!(transaction, tx_serialized);
+    }
+
+    #[test]
+    fn deserialize_and_get_fee() {
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+
+        let tx = Tx::from_serialized(&transaction, Network::Mainnet);
+        let mut transaction = tx.unwrap();
+
+        transaction.retrive_input_amount();
+
+        assert_eq!(transaction.fee(), 140500);
     }
 }

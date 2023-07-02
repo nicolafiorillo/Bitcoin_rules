@@ -1,5 +1,7 @@
 use rug::Integer;
 
+use crate::bitcoin::network::Network;
+use crate::chain::tx::get_transaction;
 use crate::transaction::lib::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 use crate::transaction::script_sig::ScriptSig;
 
@@ -12,6 +14,8 @@ pub struct TxIn {
     previous_transaction_index: u32,
     script_sig: ScriptSig,
     sequence: u32,
+    network: Network,
+    amount: Option<u64>,
 }
 
 impl TxIn {
@@ -20,16 +24,45 @@ impl TxIn {
         previous_transaction_index: u32,
         script_sig: ScriptSig,
         sequence: u32,
+        network: Network,
     ) -> TxIn {
         TxIn {
             previous_transaction_id,
             previous_transaction_index,
             script_sig,
             sequence,
+            network,
+            amount: None,
         }
     }
 
-    pub fn from_serialized(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {
+    pub fn amount(&self) -> u64 {
+        match self.amount {
+            Some(amount) => amount,
+            None => panic!("amount not calculated: first call calculate_amount()"),
+        }
+    }
+
+    pub fn calculate_amount(&mut self) {
+        log::debug!(
+            "Searching for (previous) transaction_id {:x} (index {:?}) on network {:?}",
+            &self.previous_transaction_id,
+            self.previous_transaction_index,
+            self.network
+        );
+
+        let tx = get_transaction(&self.previous_transaction_id, self.network);
+        if tx.is_err() {
+            panic!("(previous) transaction not found");
+        }
+
+        let previous_transaction = tx.unwrap();
+        let amount = previous_transaction.outputs[self.previous_transaction_index as usize].amount;
+
+        self.amount = Some(amount);
+    }
+
+    pub fn from_serialized(serialized: &[u8], cursor: usize, network: Network) -> Result<(Self, usize), TxError> {
         let mut cur = cursor;
 
         let tx_in_previous_transaction_id = le_32_bytes_to_integer(serialized, cur)?;
@@ -49,6 +82,7 @@ impl TxIn {
             tx_in_previous_transaction_index,
             script_sig,
             tx_in_sequence,
+            network,
         );
 
         Ok((tx_in, cur))
@@ -75,6 +109,7 @@ mod tx_in_test {
     use rug::Integer;
 
     use crate::{
+        bitcoin::network::Network,
         low::integer_ex::IntegerEx,
         low::vector::string_to_bytes,
         transaction::{script_sig::ScriptSig, tx_in::TxIn},
@@ -94,6 +129,7 @@ mod tx_in_test {
             previous_transaction_index,
             script_sig,
             sequence,
+            Network::Mainnet,
         );
 
         let tx_in_serialized = tx_in.serialize();

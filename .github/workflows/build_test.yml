@@ -1,4 +1,4 @@
-name: Rust
+name: Build and Tests
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - run: rustup component add clippy
+    - run: rustup component add rustfmt
     - name: Build
       run: cargo build --verbose
     - name: Run tests

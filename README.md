@@ -1,6 +1,6 @@
 # `BTCR`, a Bitcoin node written in Rust
 
-[![Build/Test](https://github.com/nicolafiorillo/btcr/workflows/ci/badge.svg)](https://github.com/nicolafiorillo/btcr/actions)
+[![Build/Test](https://github.com/nicolafiorillo/btcr/workflows/CI/badge.svg)](https://github.com/nicolafiorillo/btcr/actions)
 
 Opinionated bitcoin node written in Rust mainly for (my own) educational purposes (both Bitcoin and Rust).
 

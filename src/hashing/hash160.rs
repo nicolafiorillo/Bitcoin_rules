@@ -1,3 +1,5 @@
+// ripemd160(sha256()))
+
 use ripemd::Digest;
 use ripemd::Ripemd160;
 

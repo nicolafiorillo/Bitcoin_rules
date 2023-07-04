@@ -96,6 +96,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [ ] Messages (via queues)
 - [ ] Wallet
   - [ ] Key management
+  - [ ] Generate paper wallet (png QRCode)
   - [ ] Address generation
   - [ ] Transaction creation
   - [ ] Transaction signing

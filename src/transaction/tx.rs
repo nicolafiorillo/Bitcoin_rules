@@ -14,6 +14,10 @@ use crate::transaction::{
 
 use super::varint::varint_encode;
 
+// nLockTime
+//      Block height or timestamp after which transaction can be added to the chain.
+//      If >= 500000000 (Unix timestamp) -> timestamp; else -> block height.
+//      Must be ignored when sequence numbers for all inputs are 0xFFFFFFFF.
 #[derive(Debug)]
 pub struct Tx {
     pub version: u32,

@@ -6,6 +6,7 @@ use rug::{integer::Order, Integer};
 
 use crate::{
     bitcoin::{
+        address_prefix::AddressPrefix,
         compression::Compression,
         ecdsa_btc::{G, N},
         network::Network,
@@ -21,34 +22,39 @@ use super::verification::verify;
 
 /// Private key structure.
 pub struct PrivateKey {
-    /// secret number
-    secret: Integer,
+    // TODO: this is a bug, using Integer we can also pass also numbers bigger than 2^256;
+    //       manage private_key with 32 bytes number, e.g. with like u256
+    /// real private key (k)
+    private_key: Integer,
     /// public key
-    point: Point,
+    public_key: Point,
 }
 
 impl PrivateKey {
     /// New `PrivateKey` by secret.
-    pub fn new(secret: Integer) -> PrivateKey {
-        let point = &(*G).clone() * secret.clone();
-        PrivateKey { secret, point }
+    pub fn new(private_key: Integer) -> PrivateKey {
+        let public_key = &(*G).clone() * private_key.clone();
+        PrivateKey {
+            private_key,
+            public_key,
+        }
     }
 
     pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
-        verify(&self.point, z, sig)
+        verify(&self.public_key, z, sig)
     }
 
     /// Sign a message.
     /// `z` is the hash of the message.
     /// Return the `Signature` for the signed message.
     pub fn sign(&self, z: Integer) -> Signature {
-        let k = Self::deterministic_k(&self.secret, &z);
+        let k = Self::deterministic_k(&self.private_key, &z);
 
         let r = (&(*G).clone() * k.clone()).x_as_num();
 
         let k_inv = k.invert_by_modulo(&N);
 
-        let sl = (z + &r * &self.secret) * k_inv;
+        let sl = (z + &r * &self.private_key) * k_inv;
         let (_q, mut s) = sl.div_rem_euc((*N).clone());
 
         if s > ((*N).clone() / 2) {
@@ -112,7 +118,7 @@ impl PrivateKey {
     }
 
     pub fn wif(&self, compression: Compression, network: Network) -> String {
-        let secret_bytes = self.secret.to_digits::<u8>(Order::Msf);
+        let secret_bytes = self.private_key.to_digits::<u8>(Order::Msf);
         let secret_bytes_padded = padding_left(&secret_bytes, 32, 0);
 
         println!("secret_bytes_padded: {:?}", secret_bytes_padded);
@@ -126,8 +132,8 @@ impl PrivateKey {
 
     fn wif_network_prefix(network: Network) -> Vec<u8> {
         match network {
-            Network::Mainnet => vec![0x80],
-            Network::Testnet => vec![0xEF],
+            Network::Mainnet => vec![AddressPrefix::PrivateKeyMainnet as u8],
+            Network::Testnet => vec![AddressPrefix::PrivateKeyTestnet as u8],
         }
     }
 
@@ -141,7 +147,7 @@ impl PrivateKey {
 
 impl Display for PrivateKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Private key({}", self.point)
+        write!(f, "Private key({}", self.public_key)
     }
 }
 
@@ -181,28 +187,28 @@ mod private_key_test {
     #[test]
     fn serialize_a_public_key_1() {
         let private_key = PrivateKey::new(Integer::from(5000));
-        let sec = private_key.point.serialize(Compression::Uncompressed);
+        let sec = private_key.public_key.serialize(Compression::Uncompressed);
         assert_eq!(to_hex_string(&sec), "04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10");
     }
 
     #[test]
     fn serialize_a_public_key_2() {
         let private_key = PrivateKey::new(Integer::from(2018).pow(5));
-        let sec = private_key.point.serialize(Compression::Uncompressed);
+        let sec = private_key.public_key.serialize(Compression::Uncompressed);
         assert_eq!(to_hex_string(&sec), "04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06");
     }
 
     #[test]
     fn serialize_a_public_key_3() {
         let private_key = PrivateKey::new(Integer::from_hex_str("DEADBEEF12345"));
-        let sec = private_key.point.serialize(Compression::Uncompressed);
+        let sec = private_key.public_key.serialize(Compression::Uncompressed);
         assert_eq!(to_hex_string(&sec), "04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121");
     }
 
     #[test]
     fn serialize_a_compressed_public_key_1() {
         let private_key = PrivateKey::new(Integer::from(5001));
-        let sec = private_key.point.serialize(Compression::Compressed);
+        let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
             to_hex_string(&sec),
             "0357A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1"
@@ -212,7 +218,7 @@ mod private_key_test {
     #[test]
     fn serialize_a_compressed_public_key_2() {
         let private_key = PrivateKey::new(Integer::from(2019).pow(5));
-        let sec = private_key.point.serialize(Compression::Compressed);
+        let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
             to_hex_string(&sec),
             "02933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701"
@@ -222,7 +228,7 @@ mod private_key_test {
     #[test]
     fn serialize_a_compressed_public_key_3() {
         let private_key = PrivateKey::new(Integer::from_hex_str("DEADBEEF54321"));
-        let sec = private_key.point.serialize(Compression::Compressed);
+        let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
             to_hex_string(&sec),
             "0296BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690"
@@ -343,7 +349,9 @@ mod private_key_test {
     #[test]
     fn address_1() {
         let private_key = PrivateKey::new(Integer::from(5002));
-        let addr = private_key.point.address(Compression::Uncompressed, Network::Testnet);
+        let addr = private_key
+            .public_key
+            .address(Compression::Uncompressed, Network::Testnet);
 
         assert_eq!("mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA", addr);
     }
@@ -351,7 +359,9 @@ mod private_key_test {
     #[test]
     fn address_2() {
         let private_key = PrivateKey::new(Integer::from(2020).pow(5));
-        let addr = private_key.point.address(Compression::Compressed, Network::Testnet);
+        let addr = private_key
+            .public_key
+            .address(Compression::Compressed, Network::Testnet);
 
         assert_eq!("mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH", addr);
     }
@@ -359,7 +369,9 @@ mod private_key_test {
     #[test]
     fn address_3() {
         let private_key = PrivateKey::new(Integer::from_hex_str("12345deadbeef"));
-        let addr = private_key.point.address(Compression::Compressed, Network::Mainnet);
+        let addr = private_key
+            .public_key
+            .address(Compression::Compressed, Network::Mainnet);
 
         assert_eq!("1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1", addr);
     }

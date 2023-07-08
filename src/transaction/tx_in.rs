@@ -16,7 +16,7 @@ pub struct TxIn {
     previous_transaction_script_pubkey: Option<ScriptPubKey>,
     script_sig: ScriptSig,
     sequence: u32,
-    network: Network,
+    network: Network, // TODO: to be removed when we can retreive transaction from real network
     amount: Option<u64>,
 }
 

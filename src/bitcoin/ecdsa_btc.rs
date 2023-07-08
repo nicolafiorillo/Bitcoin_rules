@@ -1,5 +1,25 @@
-//! Bitcoin protocol magic numbers.
-
+//! Bitcoin ECDSA constants from 'secp256k1': https://en.bitcoin.it/wiki/Secp256k1
+//!
+/// Generic elliptic curve is expressed as in
+///     `y^2 = x^3 + ax + b`
+///
+/// Elliptic curve used in Bitcoin's public-key cryptography is 'secp256k1' (a = 0, b = 7).
+///     `y^2 = x^3 + 7` in (Fp)
+/// which means
+///    `y^2 mod p = (x^3 + 7) mod p`
+/// where Fp is a prime field and p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
+///
+/// G is the generator point (Gx, Gy) where
+///   Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+///   Gy = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+///
+/// N is the order of G
+///  N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+///
+/// See
+///     https://en.bitcoin.it/wiki/Secp256k1
+///     sec2-v2.pdf
+///
 use once_cell::sync::Lazy;
 use rug::{ops::Pow, Integer};
 
@@ -9,17 +29,27 @@ use crate::low::integer_ex::IntegerEx;
 
 // X coordinate of Generator Point as per bitcoin protocol.
 pub static GX: Lazy<Integer> =
-    Lazy::new(|| Integer::from_hex_str("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"));
+    Lazy::new(|| Integer::from_hex_str("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"));
 
 // Y coordinate of Generator Point as per bitcoin protocol.
 pub static GY: Lazy<Integer> =
-    Lazy::new(|| Integer::from_hex_str("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"));
+    Lazy::new(|| Integer::from_hex_str("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"));
 
 // Prime number P as per bitcoin protocol.
-pub static P: Lazy<Integer> = Lazy::new(|| Integer::from(2).pow(256) - Integer::from(2).pow(32) - 977);
+// p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+pub static P: Lazy<Integer> = Lazy::new(|| {
+    Integer::from(2).pow(256)
+        - Integer::from(2).pow(32)
+        - Integer::from(2).pow(9)
+        - Integer::from(2).pow(8)
+        - Integer::from(2).pow(7)
+        - Integer::from(2).pow(6)
+        - Integer::from(2).pow(4)
+        - 1
+});
 
 pub static N: Lazy<Integer> =
-    Lazy::new(|| Integer::from_hex_str("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"));
+    Lazy::new(|| Integer::from_hex_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"));
 
 pub static A: Lazy<Integer> = Lazy::new(|| Integer::from(0));
 pub static B: Lazy<Integer> = Lazy::new(|| Integer::from(7));

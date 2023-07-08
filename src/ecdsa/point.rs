@@ -1,14 +1,4 @@
 /// 'Point' is a point on an elliptic curve.
-/// Curve is expressed as in
-///     `y^2 = x^3 + ax + b`
-///
-/// Elliptic curve used in Bitcoin's public-key cryptography is 'Secp256k1' (a = 0, b = 7).
-///     `y^2 = x^3 + 7`
-///
-/// See
-///     https://en.bitcoin.it/wiki/Secp256k1
-///     sec2-v2.pdf
-///
 use crate::{
     bitcoin::{
         compression::Compression,
@@ -16,7 +6,7 @@ use crate::{
         network::Network,
     },
     ecdsa::field_element::FieldElement,
-    encoding::base58::encode_with_checksum,
+    encoding::*,
     hashing::hash160::hash160,
     low::vector::{string_to_bytes, vect_to_array_32},
 };
@@ -35,6 +25,13 @@ pub struct Point {
     y: Option<FieldElement>,
     a: FieldElement,
     b: FieldElement,
+}
+
+#[repr(u8)]
+enum PointCoordinateParity {
+    Uncompressed = 0x04,
+    Odd = 0x03,
+    Even = 0x02,
 }
 
 impl Point {
@@ -110,8 +107,16 @@ impl Point {
         res
     }
 
+    // Compressed SEC format.
+    // Here we only need to serialize `x` value and the information if `y` is odd or even.
+    // `y` can be calculated from `x` but it can be `y` or `p-y`. `p` is odd, so we can know if `y` is odd or even.
+    // (in elliptic curves algebra, given x we can have 0, 1, or 2 y).
     fn serialize_compressed(&self) -> [u8; 33] {
-        let prefix = if self.y_as_num().is_odd() { 3 } else { 2 };
+        let prefix: u8 = if self.y_as_num().is_odd() {
+            PointCoordinateParity::Odd
+        } else {
+            PointCoordinateParity::Even
+        } as u8;
 
         let x_vec: Vec<u8> = self.x_as_num().to_digits::<u8>(Order::Msf);
         let x: [u8; 32] = vect_to_array_32(&x_vec);
@@ -140,11 +145,12 @@ impl Point {
         let x_digits = &bytes[1..33];
         let x = FieldElement::new_in_secp256k1(Integer::from_digits(x_digits, Order::Msf));
 
+        // Apply y^2 = x^3 + 7 (in Fp) to retrieve y
         let right_side = x.pow_by_i32(3) + FieldElement::new_in_secp256k1((*B).clone());
 
         let left_side = right_side.sqrt();
 
-        let y_is_even = bytes[0] == 2;
+        let y_is_even = bytes[0] == PointCoordinateParity::Even as u8;
         let left_side_is_even = left_side.num().is_even();
 
         let y = if y_is_even == left_side_is_even {
@@ -165,11 +171,11 @@ impl Point {
             panic!("invalid binary length");
         }
 
-        if bytes[0] == 4 {
+        if bytes[0] == PointCoordinateParity::Uncompressed as u8 {
             return Self::deserialize_uncompressed(&bytes);
         }
 
-        if bytes[0] == 2 || bytes[0] == 3 {
+        if bytes[0] == PointCoordinateParity::Even as u8 || bytes[0] == PointCoordinateParity::Odd as u8 {
             return Self::deserialize_compressed(&bytes);
         }
 
@@ -181,13 +187,19 @@ impl Point {
         hash160(&serialized)
     }
 
+    /// Mainnet addresses start with "1" or "3".
+    /// Testnet addresses usually start with "m" or "2".
+    /// More at https://en.bitcoin.it/wiki/List_of_address_prefixes
+    ///
+    /// Algorithm:
+    ///     [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
     pub fn address(&self, compression: Compression, network: Network) -> String {
         let h160 = self.hash160(compression);
         let p = vec![network as u8];
 
         let data = [p.as_slice(), h160.as_slice()].concat();
 
-        encode_with_checksum(&data)
+        base58::encode_with_checksum(&data)
     }
 }
 

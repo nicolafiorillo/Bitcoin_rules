@@ -15,18 +15,21 @@ Here we list some useful documentations and references for Bitcoin developers ga
 
 - [Elliptic Curve Cryptography](docs/ecc/)
 - [Bitcoin Core source code](https://github.com/bitcoin)
+- [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
 - [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
 - [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [@jamesob](https://twitter.com/jamesob).
 
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
+- [Libbitcoin library](https://github.com/libbitcoin/libbitcoin-system/wiki)
 
 - [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 
 ## To do
 
-- [ ] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
-- [ ] Show compilation status of the project and unit test results in README.md.
+- [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
+- [X] Show compilation status of the project and unit test results in README.md.
+- [ ] Generate documentation with rustdoc.
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.
 <!-- - [ ] Add Github Action to run `cargo doc` and publish the documentation to Github Pages.
@@ -50,7 +53,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [X] Elliptic curves implementation
   - [X] Elliptic curves over finite fields
   - [X] Bitcoin elliptic curve
-- [X] Just enough public key cryptography and hash functions
+- [X] Just enough private/public key cryptography and hash functions
   - [X] Hash256 functions
   - [X] Create signatures
     - [X] Deterministic k generation
@@ -97,10 +100,14 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Wallet
   - [ ] Key management
   - [ ] Generate paper wallet (png QRCode)
-  - [ ] Address generation
-  - [ ] Transaction creation
-  - [ ] Transaction signing
-  - [ ] Transaction broadcasting
+- [ ] Hierarchical Deterministic (HD) key derivation
+  - [ ] Private key derivation functions (KDF)
+  - [ ] Private key derivation from password
+- [ ] Private Key generation
+  - [ ] Random private key generation
+  - [ ] Private key generation from seed
+- [ ] Passphrase-protected private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
+
 
 ### other (scattered) topics beyond the roadmap
 

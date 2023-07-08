@@ -7,7 +7,7 @@ use rug::Integer;
 
 use crate::{
     bitcoin::network::Network,
-    low::{integer_ex::IntegerEx, vector::string_to_bytes},
+    std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     transaction::tx::Tx,
 };
 

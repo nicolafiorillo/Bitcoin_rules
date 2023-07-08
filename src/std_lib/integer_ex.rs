@@ -2,7 +2,7 @@
 
 use rug::{integer::Order, Complete, Integer};
 
-use crate::low::vector::padding_right;
+use crate::std_lib::vector::padding_right;
 
 pub trait IntegerEx {
     fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;
@@ -58,7 +58,7 @@ impl IntegerEx for Integer {
 mod integer_ex_test {
     use rug::Integer;
 
-    use crate::low::integer_ex::IntegerEx;
+    use crate::std_lib::integer_ex::IntegerEx;
 
     #[test]
     fn from_little_endian() {

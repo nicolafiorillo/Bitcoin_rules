@@ -14,8 +14,8 @@ use crate::{
     ecdsa::point::Point,
     encoding::*,
     keys::signature::Signature,
-    low::integer_ex::IntegerEx,
-    low::vector::{padding_left, vect_to_array_32},
+    std_lib::integer_ex::IntegerEx,
+    std_lib::vector::{padding_left, vect_to_array_32},
 };
 
 use super::verification::verify;
@@ -175,7 +175,7 @@ mod private_key_test {
         ecdsa::point::Point,
         hashing::hash256::hash256,
         keys::key::Key,
-        low::integer_ex::IntegerEx,
+        std_lib::integer_ex::IntegerEx,
     };
 
     #[test]

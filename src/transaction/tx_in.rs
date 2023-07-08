@@ -135,8 +135,8 @@ mod tx_in_test {
 
     use crate::{
         bitcoin::network::Network,
-        low::integer_ex::IntegerEx,
-        low::vector::string_to_bytes,
+        std_lib::integer_ex::IntegerEx,
+        std_lib::vector::string_to_bytes,
         transaction::{script_sig::ScriptSig, tx_in::TxIn},
     };
 

@@ -6,7 +6,7 @@ use crate::{
     },
     ecdsa::field_element::FieldElement,
     hashing::hash160::hash160,
-    low::vector::{string_to_bytes, vect_to_array_32},
+    std_lib::vector::{string_to_bytes, vect_to_array_32},
 };
 use rug::{integer::Order, Integer};
 
@@ -325,7 +325,7 @@ mod point_test {
     use crate::{
         bitcoin::ecdsa_btc::G,
         keys::{signature::Signature, verification::verify},
-        low::integer_ex::IntegerEx,
+        std_lib::integer_ex::IntegerEx,
     };
 
     #[test]

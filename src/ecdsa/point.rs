@@ -3,10 +3,8 @@ use crate::{
     bitcoin::{
         compression::Compression,
         ecdsa_btc::{B, N, P},
-        network::Network,
     },
     ecdsa::field_element::FieldElement,
-    encoding::*,
     hashing::hash160::hash160,
     low::vector::{string_to_bytes, vect_to_array_32},
 };
@@ -182,24 +180,9 @@ impl Point {
         panic!("unknown binary type in deserialization");
     }
 
-    fn hash160(&self, compression: Compression) -> Vec<u8> {
+    pub fn hash160(&self, compression: Compression) -> Vec<u8> {
         let serialized = self.serialize(compression);
         hash160(&serialized)
-    }
-
-    /// Mainnet addresses start with "1" or "3".
-    /// Testnet addresses usually start with "m" or "2".
-    /// More at https://en.bitcoin.it/wiki/List_of_address_prefixes
-    ///
-    /// Algorithm:
-    ///     [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
-    pub fn address(&self, compression: Compression, network: Network) -> String {
-        let h160 = self.hash160(compression);
-        let p = vec![network as u8];
-
-        let data = [p.as_slice(), h160.as_slice()].concat();
-
-        base58::encode_with_checksum(&data)
     }
 }
 

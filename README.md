@@ -30,6 +30,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 
 - [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
 - [X] Show compilation status of the project and unit test results in README.md.
+- [X] Signing commits.
 - [ ] Generate documentation with rustdoc.
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.

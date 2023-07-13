@@ -24,6 +24,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [Libbitcoin library](https://github.com/libbitcoin/libbitcoin-system/wiki)
 
 - [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
+- [Number Theory in Python](https://github.com/Robert-Campbell-256/Number-Theory-Python)
 
 ## To do
 
@@ -73,6 +74,9 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [X] Transaction serialization and deserialization
   - [X] Transaction fees
 - [ ] Bitcoin scripting language (_*in progress now*_)
+  - [ ] Pay-to-Public-Key (P2PK) (_*in progress now*_)
+  - [ ] Pay-to-Public-Key-Hash (P2PKH)
+  - [ ] Pay-to-Script-Hash (P2SH)
 - [ ] Transaction validation
   - [ ] Pay-to-script-hash (P2SH)
 - [ ] Block structures and serialization
@@ -85,7 +89,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [ ] SPV
   - [ ] Merkle tree
 - [ ] Bloom filters
-- [ ] Segrated witness (Segwit)
+- [ ] Segregated witness (Segwit)
 - [ ] Seed phrase ([BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki))
 - [ ] Configuration
 - [ ] User interfaces
@@ -108,9 +112,15 @@ Here we list some useful documentations and references for Bitcoin developers ga
   - [ ] Private key generation from seed
 - [ ] Passphrase-protected private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
 
-
 ### other (scattered) topics beyond the roadmap
-
+- [ ] Bitcoin scripting language
+  - [ ] Pay-to-Multisig (P2MS)
+  - [ ] Pay-to-Witness-Public-Key-Hash (P2WPKH)
+  - [ ] Pay-to-Witness-Script-Hash (P2WSH)
+  - [ ] Pay-to-Taproot (P2TR)
+  - [ ] Pay-to-Tapscript (P2TS)
+  - [ ] Pay-to-Tapscript-Hash (P2TSH)
+  - [ ] Pay-to-Taproot-Script-Hash (P2TRSH)
 - [ ] Block chain
   - [ ] Block chain data structure
   - [ ] Block chain validation
@@ -134,9 +144,6 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Payment channels
 - [ ] Schnorr signatures
 - [ ] Taproot
-<!-- - [ ] MAST -->
-<!-- - [ ] Confidential transactions -->
-<!-- - [ ] Mimblewimble -->
 - [ ] Sidechains
 <!-- - [ ] Drivechain -->
 

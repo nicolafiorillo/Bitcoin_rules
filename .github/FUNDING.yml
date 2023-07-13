@@ -1,2 +1,2 @@
 github: [btcr]
-custom: ["https://paypal.me/nicolafiorillo"]
+custom: ["https://priorato.btcpayserver.it/api/v1/invoices?storeId=6ZWNeeMiCdJcAPGVtBG31NMGK3dHjg1xweuMMyGKUsVA&price=1000&currency=SATS", "https://paypal.me/nicolafiorillo"]

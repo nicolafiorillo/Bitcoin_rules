@@ -7,6 +7,7 @@ Opinionated bitcoin node written in Rust mainly for (my own) educational purpose
 This is my contribute to the Bitcoin spread and adoption.
 
 _Do not use this for production stuff. Stability and expecially security are not guaranteed._
+
 _Moreover, my Rust is still not idiomatic enough._
 
 ## Documentations and references
@@ -34,6 +35,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Generate documentation with rustdoc.
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.
+- [ ] Verify array bounds, especially in deserialization.
 <!-- - [ ] Add Github Action to run `cargo doc` and publish the documentation to Github Pages.
 - [ ] Add Github Action to run `cargo audit` on every commit.
 - [ ] Add Github Action to run `cargo bench` on every commit. -->
@@ -106,13 +108,15 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Wallet
   - [ ] Key management
   - [ ] Generate paper wallet (png QRCode)
-- [ ] Hierarchical Deterministic (HD) key derivation
+- [ ] Hierarchical Deterministic (HD) key derivation ([BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki))
+  - [ ] Extended public key
   - [ ] Private key derivation functions (KDF)
   - [ ] Private key derivation from password
 - [ ] Private Key generation
   - [ ] Random private key generation
   - [ ] Private key generation from seed
 - [ ] Passphrase-protected private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
+  - [ ] Encrypted private key
 
 ### other (scattered) topics beyond the roadmap
 - [ ] Bitcoin scripting language

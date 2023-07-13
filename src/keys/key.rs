@@ -44,8 +44,8 @@ impl Key {
         verify(&self.public_key, z, sig)
     }
 
-    /// Mainnet addresses start with `1` or `3`.
-    /// Testnet addresses usually start with `m` or `2`.
+    /// Mainnet addresses start with `1` or `3` (P2SH).
+    /// Testnet addresses usually start with `m`, `n`, or `2`.
     /// More at https://en.bitcoin.it/wiki/List_of_address_prefixes
     ///
     /// Algorithm:

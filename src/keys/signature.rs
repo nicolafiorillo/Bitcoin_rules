@@ -86,10 +86,10 @@ impl Signature {
     }
 
     fn der_deserialize(der: &[u8], start: usize) -> (Integer, usize) {
-        let lenght = der[start] as usize;
+        let length = der[start] as usize;
 
         let content_start = start + 1;
-        let content_end = content_start + lenght;
+        let content_end = content_start + length;
 
         let bytes = der[content_start..content_end].to_vec();
 
@@ -154,7 +154,7 @@ mod signature_test {
     }
 
     #[test]
-    fn deserialize_a_der_signature_invalid_lenght_less_than_70() {
+    fn deserialize_a_der_signature_invalid_length_less_than_70() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c";
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
@@ -163,7 +163,7 @@ mod signature_test {
     }
 
     #[test]
-    fn deserialize_a_der_signature_invalid_lenght_more_than_72() {
+    fn deserialize_a_der_signature_invalid_lengtt_more_than_72() {
         let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000";
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),

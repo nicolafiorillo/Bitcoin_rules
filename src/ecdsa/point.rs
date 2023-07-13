@@ -164,8 +164,8 @@ impl Point {
     pub fn deserialize(serialized: &str) -> Point {
         let bytes = string_to_bytes(serialized);
 
-        let bytes_lenght = bytes.len();
-        if bytes_lenght != 65 && bytes_lenght != 33 {
+        let bytes_length = bytes.len();
+        if bytes_length != 65 && bytes_length != 33 {
             panic!("invalid binary length");
         }
 

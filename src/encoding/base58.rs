@@ -9,6 +9,12 @@ static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
 
 const BASE58_ALPHABET_LENGTH: u8 = 58;
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum DecodeError {
+    InvalidLength,
+    InvalidChecksum,
+}
+
 pub fn encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)
     let zeroes: usize = count_first(binary, 0);
@@ -63,13 +69,35 @@ pub fn encode_with_checksum(b: &[u8]) -> String {
     encode(&bin)
 }
 
+pub fn decode_with_checksum(s: &str) -> Result<Vec<u8>, DecodeError> {
+    use crate::hashing::hash256::hash256;
+
+    let d = decode(s).to_digits(Order::Msf);
+
+    if d.len() < 4 {
+        return Err(DecodeError::InvalidLength);
+    }
+
+    let (data, checksum) = d.split_at(d.len() - 4);
+
+    let mut hash = hash256(data);
+    let drained = hash.drain(0..4);
+    let data_checksum = drained.as_slice();
+
+    if checksum != data_checksum {
+        return Err(DecodeError::InvalidChecksum);
+    }
+
+    Ok(data.to_vec())
+}
+
 #[cfg(test)]
 mod base58_test {
     use rug::{integer::Order, Integer};
 
     use crate::std_lib::integer_ex::IntegerEx;
 
-    use super::{decode, encode, encode_with_checksum};
+    use super::{decode, decode_with_checksum, encode, encode_with_checksum, DecodeError};
 
     #[test]
     fn encode_1() {
@@ -120,13 +148,13 @@ mod base58_test {
 
     #[test]
     fn encode_checksum_1() {
-        let res = encode_with_checksum(&"11".to_string().as_bytes().to_vec());
+        let res = encode_with_checksum(&"11".to_string().as_bytes());
         assert_eq!("RVnPfpC2", res)
     }
 
     #[test]
     fn encode_checksum_2() {
-        let res = encode_with_checksum(&"".to_string().as_bytes().to_vec());
+        let res = encode_with_checksum(&"".to_string().as_bytes());
         assert_eq!("3QJmnh", res)
     }
     #[test]
@@ -138,5 +166,41 @@ mod base58_test {
                 .to_vec(),
         );
         assert_eq!("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBf", res)
+    }
+
+    #[test]
+    fn decode_checksum_1() {
+        let res = decode_with_checksum("RVnPfpC2");
+        assert_eq!("11".to_string().as_bytes().to_vec(), res.ok().unwrap())
+    }
+
+    #[test]
+    fn decode_checksum_2() {
+        let res = decode_with_checksum("3QJmnh");
+        assert_eq!("".to_string().as_bytes().to_vec(), res.ok().unwrap())
+    }
+
+    #[test]
+    fn decode_checksum_3() {
+        let res = decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBf");
+        assert_eq!(
+            "4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd"
+                .to_string()
+                .as_bytes()
+                .to_vec(),
+            res.ok().unwrap()
+        )
+    }
+
+    #[test]
+    fn decode_checksum_invalid_checksum() {
+        let res = decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBe");
+        assert_eq!(DecodeError::InvalidChecksum, res.err().unwrap())
+    }
+
+    #[test]
+    fn decode_checksum_invalid_length() {
+        let res = decode_with_checksum("a");
+        assert_eq!(DecodeError::InvalidLength, res.err().unwrap())
     }
 }

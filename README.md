@@ -65,6 +65,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
     - [X] Compressed and uncompressed
   - [X] Distinguished Encoding Rules (DER) for signatures serialization 
   - [X] Base58 encoding
+  - [X] Base58 decoding
   - [X] Wallet Import Format (WIF) format for private key serialization
   - [X] Variable-length integers (VarInt)
   - [X] Hash160 functions

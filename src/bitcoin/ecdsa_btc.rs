@@ -51,16 +51,16 @@ pub static P: Lazy<Integer> = Lazy::new(|| {
 pub static N: Lazy<Integer> =
     Lazy::new(|| Integer::from_hex_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"));
 
-pub static A: Lazy<Integer> = Lazy::new(|| Integer::from(0));
-pub static B: Lazy<Integer> = Lazy::new(|| Integer::from(7));
+pub static ZERO: Lazy<Integer> = Lazy::new(|| Integer::from(0));
+pub static SEVEN: Lazy<Integer> = Lazy::new(|| Integer::from(7));
 
 // Generator Point as per bitcoin protocol.
 pub static G: Lazy<Point> = Lazy::new(|| {
     let x = FieldElement::new((*GX).clone(), (*P).clone());
     let y = FieldElement::new((*GY).clone(), (*P).clone());
 
-    let zero = FieldElement::new((*A).clone(), (*P).clone());
-    let seven = FieldElement::new((*B).clone(), (*P).clone());
+    let zero = FieldElement::new((*ZERO).clone(), (*P).clone());
+    let seven = FieldElement::new((*SEVEN).clone(), (*P).clone());
 
     Point::new(Some(x), Some(y), zero, seven)
 });
@@ -75,7 +75,7 @@ mod s256_test {
     fn on_correct_secp256k1_numbers() {
         let left = (*GY).clone().power_modulo(&Integer::from(2), &(*P).clone());
 
-        let r: Integer = (*GX).clone().pow(3) + 7;
+        let r: Integer = (*GX).clone().pow(3) + (*SEVEN).clone();
         let (_q, right) = r.div_rem_euc((*P).clone());
 
         assert_eq!(left, right);
@@ -86,8 +86,8 @@ mod s256_test {
         let x = FieldElement::new((*GX).clone(), (*P).clone());
         let y = FieldElement::new((*GY).clone(), (*P).clone());
 
-        let zero = FieldElement::new(Integer::from(0), (*P).clone());
-        let seven = FieldElement::new(Integer::from(7), (*P).clone());
+        let zero = FieldElement::new((*ZERO).clone(), (*P).clone());
+        let seven = FieldElement::new((*SEVEN).clone(), (*P).clone());
 
         let g = &Point::new(Some(x), Some(y), zero, seven) * (*N).clone();
 

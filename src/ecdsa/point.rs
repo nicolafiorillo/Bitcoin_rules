@@ -2,7 +2,7 @@
 use crate::{
     bitcoin::{
         compression::Compression,
-        ecdsa_btc::{B, N, P},
+        ecdsa_btc::{N, P, SEVEN, ZERO},
     },
     ecdsa::field_element::FieldElement,
     hashing::hash160::hash160,
@@ -46,8 +46,8 @@ impl Point {
 
     /// New `Point` by `x` and `y` in btc field.
     pub fn new_in_secp256k1(x: Option<FieldElement>, y: Option<FieldElement>) -> Point {
-        let a = FieldElement::new_in_secp256k1(Integer::from(0));
-        let b = FieldElement::new_in_secp256k1(Integer::from(7));
+        let a = FieldElement::new_in_secp256k1((*ZERO).clone());
+        let b = FieldElement::new_in_secp256k1((*SEVEN).clone());
 
         Point { x, y, a, b }
     }
@@ -144,7 +144,7 @@ impl Point {
         let x = FieldElement::new_in_secp256k1(Integer::from_digits(x_digits, Order::Msf));
 
         // Apply y^2 = x^3 + 7 (in Fp) to retrieve y
-        let right_side = x.pow_by_i32(3) + FieldElement::new_in_secp256k1((*B).clone());
+        let right_side = x.pow_by_i32(3) + FieldElement::new_in_secp256k1((*SEVEN).clone());
 
         let left_side = right_side.sqrt();
 

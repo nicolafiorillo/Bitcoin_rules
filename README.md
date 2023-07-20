@@ -17,6 +17,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [Elliptic Curve Cryptography](docs/ecc/)
 - [Bitcoin Core source code](https://github.com/bitcoin)
 - [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
+- [Bitcoin secp256k1](https://github.com/bitcoin-core/secp256k1)
 - [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
 - [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [@jamesob](https://twitter.com/jamesob).
 
@@ -32,13 +33,10 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
 - [X] Show compilation status of the project and unit test results in README.md.
 - [X] Signing commits.
-- [ ] Generate documentation with rustdoc.
+- [X] Preparing a book for notes.
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.
 - [ ] Verify array bounds, especially in deserialization.
-<!-- - [ ] Add Github Action to run `cargo doc` and publish the documentation to Github Pages.
-- [ ] Add Github Action to run `cargo audit` on every commit.
-- [ ] Add Github Action to run `cargo bench` on every commit. -->
 
 ## bitcoins used for testing
 

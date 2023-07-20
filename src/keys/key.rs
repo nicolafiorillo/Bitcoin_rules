@@ -50,6 +50,7 @@ impl Key {
     ///
     /// Algorithm:
     ///     [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
+    // ANCHOR: fn_address
     pub fn address(&self, compression: Compression, network: Network) -> String {
         let h160 = self.public_key.hash160(compression);
         let p = vec![network as u8];
@@ -58,6 +59,7 @@ impl Key {
 
         base58::encode_with_checksum(&data)
     }
+    // ANCHOR_END: fn_address
 
     /// Sign a message.
     /// `z` is the hash of the message.

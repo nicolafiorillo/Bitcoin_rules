@@ -44,13 +44,9 @@ impl Key {
         verify(&self.public_key, z, sig)
     }
 
-    /// Mainnet addresses start with `1` or `3` (P2SH).
-    /// Testnet addresses usually start with `m`, `n`, or `2`.
-    /// More at https://en.bitcoin.it/wiki/List_of_address_prefixes
-    ///
-    /// Algorithm:
-    ///     [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
     // ANCHOR: fn_address
+    /// Algorithm:
+    ///    [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
     pub fn address(&self, compression: Compression, network: Network) -> String {
         let h160 = self.public_key.hash160(compression);
         let p = vec![network as u8];

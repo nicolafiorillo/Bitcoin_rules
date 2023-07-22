@@ -10,9 +10,9 @@ _Do not use this for production stuff. Stability and expecially security are not
 
 _Moreover, my Rust is still not idiomatic enough._
 
-## Documentations and references
+## Documentations, references, and articles
 
-Here we list some useful documentations and references for Bitcoin developers gathered during the development of `BTCR`.
+Here we list some useful documentations, references, and articles for Bitcoin developers gathered during the development of `BTCR`.
 
 - [Elliptic Curve Cryptography](docs/ecc/)
 - [Bitcoin Core source code](https://github.com/bitcoin)
@@ -24,9 +24,15 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
 - [Libbitcoin library](https://github.com/libbitcoin/libbitcoin-system/wiki)
+- [Bitcoin Dev Kit](https://github.com/bitcoindevkit)
 
 - [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 - [Number Theory in Python](https://github.com/Robert-Campbell-256/Number-Theory-Python)
+
+### Articles
+
+- [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
+- [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
 
 ## To do
 
@@ -37,8 +43,9 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.
 - [ ] Verify array bounds, especially in deserialization.
+- [ ] Minimize `clone()` usage.
 
-## bitcoins used for testing
+## sats used for testing
 
 | | |
 |----------|----------|
@@ -48,7 +55,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 |Transaction|[`ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d`](https://live.blockcypher.com/btc-testnet/tx/ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d/)|
 |Block|[0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1](https://live.blockcypher.com/btc-testnet/block/0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1/)|
 
-## Roadmap
+## Development Roadmap
 
 - [X] Elliptic Curve Cryptography
   - [X] Finite fields implementation
@@ -93,6 +100,7 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Bloom filters
 - [ ] Segregated witness (Segwit)
 - [ ] Seed phrase ([BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki))
+- [ ] bech32 address format ([BIP173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki))
 - [ ] Configuration
 - [ ] User interfaces
   - [ ] REPL
@@ -106,14 +114,16 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Wallet
   - [ ] Key management
   - [ ] Generate paper wallet (png QRCode)
-- [ ] Hierarchical Deterministic (HD) key derivation ([BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki))
+- [ ] Hierarchical Deterministic (HD) key derivation
+  - [ ] [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
+  - [ ] [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
   - [ ] Extended public key
   - [ ] Private key derivation functions (KDF)
   - [ ] Private key derivation from password
 - [ ] Private Key generation
   - [ ] Random private key generation
   - [ ] Private key generation from seed
-- [ ] Passphrase-protected private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
+- [ ] Passphrase-protected/encrypted private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
   - [ ] Encrypted private key
 
 ### other (scattered) topics beyond the roadmap
@@ -149,7 +159,6 @@ Here we list some useful documentations and references for Bitcoin developers ga
 - [ ] Schnorr signatures
 - [ ] Taproot
 - [ ] Sidechains
-<!-- - [ ] Drivechain -->
 
 ## Feedback
 

@@ -27,33 +27,32 @@ impl Signature {
         Signature { r, s }
     }
 
-    pub fn new_from_der(der: &str) -> Result<Self, DerError> {
-        let der_vect = string_to_bytes(der);
-        println!("der_vect: {:?}", der_vect);
+    pub fn new_from_der(der: Vec<u8>) -> Result<Self, DerError> {
+        let der_length = der.len();
 
-        if der_vect.len() < 70 || der_vect.len() > 72 {
+        if !(70..=72).contains(&der_length) {
             return Err(DerError::InvalidSignatureLength);
         }
 
-        if der_vect[0] != DER_MARKER {
+        if der[0] != DER_MARKER {
             return Err(DerError::InvalidInitialMarker);
         }
 
-        if der_vect[1] != (der_vect.len() - 2) as u8 {
+        if der[1] != (der_length - 2) as u8 {
             return Err(DerError::SignatureLengthsDoNotMatch);
         }
 
-        if der_vect[2] != DER_RS_MARKER {
+        if der[2] != DER_RS_MARKER {
             return Err(DerError::InvalidRMarker);
         }
 
-        let (r, next) = Self::der_deserialize(&der_vect, 3);
+        let (r, next) = Self::der_deserialize(&der, 3);
 
-        if der_vect[next] != DER_RS_MARKER {
+        if der[next] != DER_RS_MARKER {
             return Err(DerError::InvalidSMarker);
         }
 
-        let (s, _next) = Self::der_deserialize(&der_vect, next + 1);
+        let (s, _next) = Self::der_deserialize(&der, next + 1);
 
         Ok(Signature { r, s })
     }
@@ -75,7 +74,7 @@ impl Signature {
         let mut v: Vec<u8> = value.to_digits::<u8>(Order::Msf);
         v = trim_left(&v, 0);
 
-        if (v[0] & 0x80) > 0 {
+        if (v[0] & 0x80) == 0x80 {
             v.insert(0, 0);
         }
 
@@ -85,7 +84,7 @@ impl Signature {
         res
     }
 
-    fn der_deserialize(der: &[u8], start: usize) -> (Integer, usize) {
+    pub fn der_deserialize(der: &[u8], start: usize) -> (Integer, usize) {
         let length = der[start] as usize;
 
         let content_start = start + 1;
@@ -155,7 +154,8 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_length_less_than_70() {
-        let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c";
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c");
+
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
             DerError::InvalidSignatureLength
@@ -164,7 +164,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_lengtt_more_than_72() {
-        let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000";
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000");
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
             DerError::InvalidSignatureLength
@@ -173,7 +173,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_initial_marker() {
-        let der = "3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
+        let der = string_to_bytes("3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
             DerError::InvalidInitialMarker
@@ -182,23 +182,35 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_r_marker() {
-        let der = "3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
+        let der = string_to_bytes("3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidRMarker);
     }
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_marker() {
-        let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidSMarker);
     }
 
     #[test]
-    fn deserialize_a_der_signature() {
-        let der = "3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
+    fn deserialize_a_der_signature_1() {
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
         let expected_s = Integer::from_hex_str("8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+
+        assert_eq!(expected_r, sig.r);
+        assert_eq!(expected_s, sig.s);
+    }
+
+    #[test]
+    fn deserialize_a_der_signature_2() {
+        let der = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
+        let sig = Signature::new_from_der(der).unwrap();
+
+        let expected_r = Integer::from_hex_str("00eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
+        let expected_s = Integer::from_hex_str("00c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
 
         assert_eq!(expected_r, sig.r);
         assert_eq!(expected_s, sig.s);

@@ -25,6 +25,6 @@ impl Display for AddressPrefix {
             AddressPrefix::PublicKeyP2pkhTestnet => "PublicKeyP2pkhTestnet",
             AddressPrefix::PrivateKeyTestnet => "PrivateKeyTestnet",
         };
-        writeln!(f, "{:?}", n)
+        writeln!(f, "{:}", n)
     }
 }

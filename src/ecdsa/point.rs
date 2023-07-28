@@ -6,7 +6,7 @@ use crate::{
     },
     ecdsa::field_element::FieldElement,
     hashing::hash160::hash160,
-    std_lib::vector::{string_to_bytes, vect_to_array_32},
+    std_lib::vector::vect_to_array_32,
 };
 use rug::{integer::Order, Integer};
 
@@ -161,20 +161,18 @@ impl Point {
         Point::new_in_secp256k1(Some(x), Some(y))
     }
 
-    pub fn deserialize(serialized: &str) -> Point {
-        let bytes = string_to_bytes(serialized);
-
-        let bytes_length = bytes.len();
+    pub fn deserialize(serialized: Vec<u8>) -> Point {
+        let bytes_length = serialized.len();
         if bytes_length != 65 && bytes_length != 33 {
             panic!("invalid binary length");
         }
 
-        if bytes[0] == PointCoordinateParity::Uncompressed as u8 {
-            return Self::deserialize_uncompressed(&bytes);
+        if serialized[0] == PointCoordinateParity::Uncompressed as u8 {
+            return Self::deserialize_uncompressed(&serialized);
         }
 
-        if bytes[0] == PointCoordinateParity::Even as u8 || bytes[0] == PointCoordinateParity::Odd as u8 {
-            return Self::deserialize_compressed(&bytes);
+        if serialized[0] == PointCoordinateParity::Even as u8 || serialized[0] == PointCoordinateParity::Odd as u8 {
+            return Self::deserialize_compressed(&serialized);
         }
 
         panic!("unknown binary type in deserialization");
@@ -280,7 +278,7 @@ impl Mul<u32> for &Point {
         let mut result = Point::new_infinite(&self.a, &self.b);
 
         while coef > 0 {
-            if coef & 1 > 0 {
+            if (coef & 1) == 1 {
                 result = result + &sel;
             }
             sel = sel.clone() + &sel;

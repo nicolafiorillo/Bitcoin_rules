@@ -19,6 +19,11 @@ pub fn string_to_bytes(s: &str) -> Vec<u8> {
     res
 }
 
+pub fn vect_to_hex_string(bytes: &[u8]) -> String {
+    let strs: Vec<String> = bytes.iter().map(|b| format!("{:02X}", b)).collect();
+    strs.join("")
+}
+
 /// trim left leading byte
 pub fn trim_left(v: &Vec<u8>, value: u8) -> Vec<u8> {
     let mut l: usize = 0;
@@ -29,6 +34,18 @@ pub fn trim_left(v: &Vec<u8>, value: u8) -> Vec<u8> {
     }
 
     v[l..v.len()].to_vec()
+}
+
+/// trim right leading byte
+pub fn trim_right(v: &Vec<u8>, value: u8) -> Vec<u8> {
+    let mut l: usize = 0;
+    let len = v.len();
+
+    while l != len && v[len - l - 1] == value {
+        l += 1;
+    }
+
+    v[..len - l].to_vec()
 }
 
 pub fn padding_left(v: &Vec<u8>, length: usize, value: u8) -> Vec<u8> {
@@ -91,6 +108,44 @@ mod helper_test {
     #[test]
     fn none_left_trim() {
         let v = trim_left(&vec![], 0);
+        let expected: Vec<u8> = Vec::new();
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn no_right_trim() {
+        let v = trim_right(&vec![1, 2, 3, 4, 5], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn one_right_trim() {
+        let v = trim_right(&vec![1, 2, 3, 4, 5, 0], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn more_right_trim() {
+        let v = trim_right(&vec![1, 2, 3, 4, 5, 0, 0, 0], 0);
+        assert_eq!(v, vec![1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn some_left_right_trim() {
+        let v = trim_right(&vec![0, 0, 1, 2, 3, 4, 5, 0, 0, 0], 0);
+        assert_eq!(v, vec![0, 0, 1, 2, 3, 4, 5])
+    }
+
+    #[test]
+    fn all_right_trim() {
+        let v = trim_right(&vec![0, 0, 0, 0, 0, 0, 0], 0);
+        let expected: Vec<u8> = Vec::new();
+        assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn none_right_trim() {
+        let v = trim_right(&vec![], 0);
         let expected: Vec<u8> = Vec::new();
         assert_eq!(v, expected)
     }

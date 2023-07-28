@@ -20,6 +20,9 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 - [Bitcoin secp256k1](https://github.com/bitcoin-core/secp256k1)
 - [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
 - [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [@jamesob](https://twitter.com/jamesob).
+- [Bitcoin Developer Guides](https://developer.bitcoin.org/devguide/index.html)
+- [Bitcoin Tutorials](https://www.herongyang.com/Bitcoin/)
+- [CS120: Bitcoin for Developers I](https://learn.saylor.org/course/view.php?id=500)
 
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)

@@ -13,16 +13,17 @@ file_contents = response.text
 opcode_pattern = r"\s*OP_(\w+)\s+=\s+0x([0-9a-fA-F]+),"
 opcodes = re.findall(opcode_pattern, file_contents)
 
-# Generate the Rust enum
-rust_enum = "#[derive(Debug, Clone, Copy)]\n"
-rust_enum += "pub enum OpCode {\n"
+rust_enum = ""
 for opcode, hex_value in opcodes:
-    rust_enum += f"    OP_{opcode} = 0x{hex_value},\n"
-rust_enum += "}"
+    rust_enum += f"pub const OP_{opcode}: OpCode = 0x{hex_value.upper()};\n"
 
-# Write the Rust enum to a file
-filename = "../src/script/opcode.rs"
+rust_enum += ""
+
+for opcode, hex_value in opcodes:
+    rust_enum += f"op_to_fn[OP_{opcode}] = not_implemented;\n"
+
+filename = "../src/scripting/opcode.txt"
 with open(filename, "w") as file:
     file.write(rust_enum)
 
-print(f"Rust enum written to {filename}")
+print(f"Op codes written to {filename}")

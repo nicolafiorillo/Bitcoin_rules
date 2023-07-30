@@ -7,7 +7,7 @@ use super::operation::Operation;
 #[derive(Debug)]
 pub struct Context {
     operations: Vec<Operation>,
-    z: Integer,
+    pub z: Integer,
     operations_length: usize,
     operations_position: usize,
 
@@ -17,6 +17,7 @@ pub struct Context {
 
 #[derive(Debug)]
 pub enum ContextError {
+    InvalidOpCode,
     NotAnElement,
     NotEnoughElementsInStack,
 }
@@ -50,11 +51,11 @@ impl Context {
         &self.operations[current]
     }
 
-    pub fn push_on_stack(&mut self, operation: Operation) {
+    pub fn push_element(&mut self, operation: Operation) {
         self.stack.push_front(operation)
     }
 
-    pub fn pop_element_from_stack(&mut self) -> Result<Operation, ContextError> {
+    pub fn pop_element(&mut self) -> Result<Operation, ContextError> {
         match self.stack.pop_front().unwrap() {
             Operation::Element(element) => Ok(Operation::Element(element)),
             op => {
@@ -68,11 +69,7 @@ impl Context {
         self.stack.len() == 1 && self.stack[0] == Operation::Element(vec![1])
     }
 
-    pub fn stack_has_at_least_two_elements(&self) -> bool {
-        self.stack.len() >= 2
-    }
-
-    pub fn z(&self) -> Integer {
-        self.z.clone()
+    pub fn has_elements(&self, num: usize) -> bool {
+        self.stack.len() >= num
     }
 }

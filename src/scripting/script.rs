@@ -38,11 +38,11 @@ impl Script {
             match operation {
                 Operation::Element(bytes) => {
                     let e = Operation::Element(bytes.to_vec());
-                    context.push_on_stack(e);
+                    context.push_element(e);
                 }
                 Operation::Command(op_code) => {
                     if op_code > &OPS_LENGTH {
-                        panic!("Invalid opcode");
+                        return Err(ContextError::InvalidOpCode);
                     }
 
                     (*OP_TO_FN)[*op_code](&mut context)?;

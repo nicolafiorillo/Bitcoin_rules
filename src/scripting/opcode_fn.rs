@@ -17,12 +17,12 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
 }
 
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.stack_has_at_least_two_elements() {
+    if !context.has_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let pub_key = context.pop_element_from_stack()?;
-    let sig = context.pop_element_from_stack()?;
+    let pub_key = context.pop_element()?;
+    let sig = context.pop_element()?;
 
     if let Operation::Element(public_key) = pub_key {
         if let Operation::Element(mut der) = sig {
@@ -32,10 +32,10 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             let point = Point::deserialize(public_key);
             let signature = Signature::new_from_der(der).unwrap();
 
-            let res = verify(&point, &context.z(), &signature);
+            let res = verify(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);
-            context.push_on_stack(Operation::Element(element_value));
+            context.push_element(Operation::Element(element_value));
         }
     }
 

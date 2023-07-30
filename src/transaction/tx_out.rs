@@ -1,6 +1,6 @@
 use crate::transaction::script_pub_key::ScriptPubKey;
 
-use super::{lib::tx_lib::u64_le_bytes, tx_error::TxError};
+use super::{tx_error::TxError, tx_lib::tx_lib::u64_le_bytes};
 
 #[derive(Debug)]
 pub struct TxOut {

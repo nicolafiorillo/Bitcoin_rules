@@ -2,16 +2,16 @@ use rug::Integer;
 
 use crate::bitcoin::network::Network;
 use crate::chain::tx::get_transaction;
-use crate::transaction::lib::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 use crate::transaction::script_sig::ScriptSig;
+use crate::transaction::tx_lib::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 
-use super::lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
 use super::script_pub_key::ScriptPubKey;
 use super::tx_error::TxError;
+use super::tx_lib::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
 
 #[derive(Debug)]
 pub struct TxIn {
-    previous_transaction_id: Integer,
+    previous_transaction_id: Integer, // will be u256
     previous_transaction_index: u32,
     previous_transaction_script_pubkey: Option<ScriptPubKey>,
     script_sig: ScriptSig,

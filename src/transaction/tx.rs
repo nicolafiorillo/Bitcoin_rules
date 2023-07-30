@@ -6,9 +6,9 @@ use crate::bitcoin::network::Network;
 use crate::hashing::hash256::hash256;
 
 use crate::transaction::{
-    lib::tx_lib::{le_bytes_to_u32, varint_decode},
     tx_error::TxError,
     tx_in::TxIn,
+    tx_lib::tx_lib::{le_bytes_to_u32, varint_decode},
     tx_out::TxOut,
 };
 

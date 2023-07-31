@@ -10,6 +10,7 @@ pub enum Operation {
 
 pub static ELEMENT_ZERO: [u8; 1] = [0x00];
 pub static ELEMENT_ONE: [u8; 1] = [0x01];
+pub static ELEMENT_ONE_NEGATE: [u8; 1] = [0x81];
 
 pub fn element_encode(num: i64) -> Vec<u8> {
     if num == 0 {

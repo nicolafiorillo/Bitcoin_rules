@@ -5,7 +5,7 @@ use crate::{
 
 use super::{
     context::{Context, ContextError},
-    operation::{Operation, ELEMENT_ONE, ELEMENT_ZERO},
+    operation::{element_encode, Operation, ELEMENT_ONE, ELEMENT_ONE_NEGATE, ELEMENT_ZERO},
 };
 
 fn element_value_by_result(res: bool) -> Vec<u8> {
@@ -18,6 +18,18 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
 
 pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
     context.push_element(Operation::Element(ELEMENT_ZERO.to_vec()));
+
+    Ok(true)
+}
+
+pub fn op_1(context: &mut Context) -> Result<bool, ContextError> {
+    context.push_element(Operation::Element(element_encode(1)));
+
+    Ok(true)
+}
+
+pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
+    context.push_element(Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
 
     Ok(true)
 }

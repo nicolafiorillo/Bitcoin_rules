@@ -197,7 +197,10 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        scripting::{opcode::*, operation::ELEMENT_ZERO},
+        scripting::{
+            opcode::*,
+            operation::{element_encode, ELEMENT_ONE_NEGATE, ELEMENT_ZERO},
+        },
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
     use rug::Integer;
@@ -251,13 +254,31 @@ mod script_test {
 
     #[test]
     fn evaluate_0() {
-        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
-
         let script = Script::from_script_items(vec![Operation::Command(OP_0)]);
-        let mut context = script.evaluate(z).unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_1() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_1)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(1)));
+    }
+
+    #[test]
+    fn evaluate_negate() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_1NEGATE)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
     }
 }

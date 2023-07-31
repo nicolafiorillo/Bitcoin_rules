@@ -16,6 +16,12 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
     }
 }
 
+pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
+    context.push_element(Operation::Element(ELEMENT_ZERO.to_vec()));
+
+    Ok(true)
+}
+
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
@@ -30,7 +36,13 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             der.pop();
 
             let point = Point::deserialize(public_key);
-            let signature = Signature::new_from_der(der).unwrap();
+            let signature = match Signature::new_from_der(der) {
+                Ok(signature) => signature,
+                Err(_) => {
+                    log::debug!("Invalid DER signature during OP_CHECKSIG");
+                    return Err(ContextError::DerError);
+                }
+            };
 
             let res = verify(&point, &context.z, &signature);
 
@@ -43,7 +55,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
-    panic!("not implemented");
+    unimplemented!("not implemented")
 }
 
 #[cfg(test)]
@@ -52,7 +64,7 @@ mod opcode_fn_test {
 
     use crate::{
         scripting::{opcode::*, operation::Operation},
-        std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
+        std_lib::vector::string_to_bytes,
     };
 
     use super::*;
@@ -60,11 +72,10 @@ mod opcode_fn_test {
     #[test]
     #[should_panic(expected = "not implemented")]
     fn not_implemented_test() {
-        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
         let ops = vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)];
 
-        let mut context = Context::new(ops, z);
+        let mut context = Context::new(ops, Integer::from(0));
 
         let _ = not_implemented(&mut context);
     }

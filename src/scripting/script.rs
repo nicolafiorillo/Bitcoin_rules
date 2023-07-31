@@ -44,7 +44,7 @@ impl Script {
         Ok([length.as_slice(), raw.as_slice()].concat())
     }
 
-    pub fn evaluate(&self, z: Integer) -> Result<bool, ContextError> {
+    pub fn evaluate(&self, z: Integer) -> Result<Context, ContextError> {
         let Self(operations) = self;
 
         let mut context = Context::new(operations.clone(), z);
@@ -66,7 +66,7 @@ impl Script {
             }
         }
 
-        Ok(context.is_valid())
+        Ok(context)
     }
 
     pub fn combine(left: Self, right: Self) -> Self {
@@ -197,27 +197,12 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        scripting::opcode::*,
+        scripting::{opcode::*, operation::ELEMENT_ZERO},
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
     use rug::Integer;
 
     use super::*;
-
-    #[test]
-    fn evaluate_checksig() {
-        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
-        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601");
-
-        let pubkey_script =
-            Script::from_script_items(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
-
-        let signature_script = Script::from_script_items(vec![Operation::Element(signature)]);
-        let script = Script::combine(signature_script, pubkey_script);
-
-        assert!(script.evaluate(z).unwrap());
-    }
 
     #[test]
     fn serialize() {
@@ -247,5 +232,32 @@ mod script_test {
         assert_eq!(operations[0], Operation::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601")));
         assert_eq!(operations[1], Operation::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34")));
         assert_eq!(operations[2], Operation::Command(OP_CHECKSIG));
+    }
+
+    #[test]
+    fn evaluate_checksig() {
+        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
+        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
+        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601");
+
+        let pubkey_script =
+            Script::from_script_items(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
+
+        let signature_script = Script::from_script_items(vec![Operation::Element(signature)]);
+        let script = Script::combine(signature_script, pubkey_script);
+
+        assert!(script.evaluate(z).unwrap().is_valid());
+    }
+
+    #[test]
+    fn evaluate_0() {
+        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
+
+        let script = Script::from_script_items(vec![Operation::Command(OP_0)]);
+        let mut context = script.evaluate(z).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
     }
 }

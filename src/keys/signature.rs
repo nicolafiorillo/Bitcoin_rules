@@ -1,9 +1,8 @@
 use std::fmt::{Display, Formatter};
-use std::str;
 
 use rug::{integer::Order, Integer};
 
-use crate::std_lib::vector::{string_to_bytes, trim_left};
+use crate::std_lib::vector::trim_left;
 
 pub struct Signature {
     pub r: Integer,
@@ -110,7 +109,7 @@ mod signature_test {
     use crate::{
         bitcoin::ecdsa_btc::{G, N, P},
         ecdsa::{field_element::FieldElement, point::Point},
-        std_lib::integer_ex::IntegerEx,
+        std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
 
     #[test]

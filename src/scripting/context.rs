@@ -20,6 +20,7 @@ pub enum ContextError {
     InvalidOpCode,
     NotAnElement,
     NotEnoughElementsInStack,
+    DerError,
 }
 
 impl Context {

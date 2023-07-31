@@ -130,7 +130,7 @@ pub const OPS_LENGTH: usize = 256;
 
 pub static OP_TO_FN: Lazy<[OperationExec; OPS_LENGTH]> = Lazy::new(|| {
     let mut op_to_fn: [OperationExec; OPS_LENGTH] = [not_implemented; OPS_LENGTH];
-    op_to_fn[OP_0] = not_implemented;
+    op_to_fn[OP_0] = op_0;
     op_to_fn[OP_PUSHDATA1] = not_implemented;
     op_to_fn[OP_PUSHDATA2] = not_implemented;
     op_to_fn[OP_PUSHDATA4] = not_implemented;

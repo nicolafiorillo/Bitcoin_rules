@@ -44,6 +44,10 @@ impl Key {
         verify(&self.public_key, z, sig)
     }
 
+    pub fn from_wif(wif: &str) -> Key {
+        unimplemented!()
+    }
+
     // ANCHOR: fn_address
     /// Algorithm:
     ///    [network, ((point.x, point.y) |> serialize() |> hash160())] |> base58check()
@@ -53,7 +57,7 @@ impl Key {
 
         let data = [p.as_slice(), h160.as_slice()].concat();
 
-        base58::encode_with_checksum(&data)
+        base58::base58_encode_with_checksum(&data)
     }
     // ANCHOR_END: fn_address
 
@@ -130,7 +134,7 @@ impl Key {
         }
     }
 
-    pub fn wif(&self, compression: Compression, network: Network) -> String {
+    pub fn to_wif(&self, compression: Compression, network: Network) -> String {
         let secret_bytes = self.private_key.to_digits::<u8>(Order::Msf);
         let secret_bytes_padded = padding_left(&secret_bytes, 32, 0);
 
@@ -138,7 +142,7 @@ impl Key {
         let suffix = Self::wif_compression_prefix(compression);
         let data = [prefix.as_slice(), &secret_bytes_padded, suffix.as_slice()].concat();
 
-        base58::encode_with_checksum(&data)
+        base58::base58_encode_with_checksum(&data)
     }
 
     fn wif_network_prefix(network: Network) -> Vec<u8> {
@@ -388,7 +392,7 @@ mod private_key_test {
     #[test]
     fn wif_1() {
         let private_key = Key::new(Integer::from(5003));
-        let wif = private_key.wif(Compression::Compressed, Network::Testnet);
+        let wif = private_key.to_wif(Compression::Compressed, Network::Testnet);
 
         assert_eq!("cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK", wif);
     }
@@ -396,7 +400,7 @@ mod private_key_test {
     #[test]
     fn wif_2() {
         let private_key = Key::new(Integer::from(2021).pow(5));
-        let addr = private_key.wif(Compression::Uncompressed, Network::Testnet);
+        let addr = private_key.to_wif(Compression::Uncompressed, Network::Testnet);
 
         assert_eq!("91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic", addr);
     }
@@ -404,7 +408,7 @@ mod private_key_test {
     #[test]
     fn wif_3() {
         let private_key = Key::new(Integer::from_hex_str("54321deadbeef"));
-        let addr = private_key.wif(Compression::Compressed, Network::Mainnet);
+        let addr = private_key.to_wif(Compression::Compressed, Network::Mainnet);
 
         assert_eq!("KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a", addr);
     }

@@ -80,6 +80,8 @@ Here we list some useful documentations, references, and articles for Bitcoin de
   - [X] Base58 encoding
   - [X] Base58 decoding
   - [X] Wallet Import Format (WIF) format for private key serialization
+    - [ ] from wif
+    - [X] to wif
   - [X] Variable-length integers (VarInt)
   - [X] Hash160 functions
 - [X] Logging
@@ -88,8 +90,9 @@ Here we list some useful documentations, references, and articles for Bitcoin de
   - [X] Transaction output
   - [X] Transaction serialization and deserialization
   - [X] Transaction fees
-- [ ] Bitcoin scripting language (_*in progress now*_)
-  - [ ] Pay-to-Public-Key (P2PK) (_*in progress now*_)
+- [X] Bitcoin scripting language (_*in progress now*_)
+  - [X] Pay-to-Public-Key (P2PK)
+  - [ ] Implement all opcodes (_*in progress now*_)
   - [ ] Pay-to-Public-Key-Hash (P2PKH)
   - [ ] Pay-to-Script-Hash (P2SH)
 - [ ] Transaction validation

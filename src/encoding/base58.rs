@@ -10,12 +10,12 @@ static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
 const BASE58_ALPHABET_LENGTH: u8 = 58;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum DecodeError {
+pub enum Base58DecodeError {
     InvalidLength,
     InvalidChecksum,
 }
 
-pub fn encode(binary: &[u8]) -> String {
+pub fn base58_encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)
     let zeroes: usize = count_first(binary, 0);
     let mut result = "".to_string();
@@ -32,7 +32,7 @@ pub fn encode(binary: &[u8]) -> String {
     format!("{}{}", "1".repeat(zeroes), result)
 }
 
-pub fn decode(s: &str) -> Integer {
+pub fn base58_decode(s: &str) -> Integer {
     // We will need it for pay-to-pubkey-hash (p2pkh)
     // manage leading 1 to zeros
 
@@ -59,23 +59,23 @@ fn count_first(binary: &[u8], val: u8) -> usize {
     counter
 }
 
-pub fn encode_with_checksum(b: &[u8]) -> String {
+pub fn base58_encode_with_checksum(b: &[u8]) -> String {
     use crate::hashing::hash256::hash256;
 
     let checksum: Vec<u8> = hash256(b).drain(0..4).collect();
     let mut bin: Vec<u8> = b.to_vec();
     bin.extend(checksum);
 
-    encode(&bin)
+    base58_encode(&bin)
 }
 
-pub fn decode_with_checksum(s: &str) -> Result<Vec<u8>, DecodeError> {
+pub fn base58_decode_with_checksum(s: &str) -> Result<Vec<u8>, Base58DecodeError> {
     use crate::hashing::hash256::hash256;
 
-    let d = decode(s).to_digits(Order::Msf);
+    let d = base58_decode(s).to_digits(Order::Msf);
 
     if d.len() < 4 {
-        return Err(DecodeError::InvalidLength);
+        return Err(Base58DecodeError::InvalidLength);
     }
 
     let (data, checksum) = d.split_at(d.len() - 4);
@@ -85,7 +85,7 @@ pub fn decode_with_checksum(s: &str) -> Result<Vec<u8>, DecodeError> {
     let data_checksum = drained.as_slice();
 
     if checksum != data_checksum {
-        return Err(DecodeError::InvalidChecksum);
+        return Err(Base58DecodeError::InvalidChecksum);
     }
 
     Ok(data.to_vec())
@@ -97,14 +97,16 @@ mod base58_test {
 
     use crate::std_lib::integer_ex::IntegerEx;
 
-    use super::{decode, decode_with_checksum, encode, encode_with_checksum, DecodeError};
+    use super::{
+        base58_decode, base58_decode_with_checksum, base58_encode, base58_encode_with_checksum, Base58DecodeError,
+    };
 
     #[test]
     fn encode_1() {
         let val = Integer::from_hex_str("7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d");
         let v = val.to_digits::<u8>(Order::Msf);
 
-        assert_eq!("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6", encode(&v))
+        assert_eq!("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6", base58_encode(&v))
     }
 
     #[test]
@@ -112,7 +114,7 @@ mod base58_test {
         let val = Integer::from_hex_str("eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
         let v = val.to_digits::<u8>(Order::Msf);
 
-        assert_eq!("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd", encode(&v))
+        assert_eq!("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd", base58_encode(&v))
     }
 
     #[test]
@@ -120,12 +122,12 @@ mod base58_test {
         let val = Integer::from_hex_str("c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
         let v = val.to_digits::<u8>(Order::Msf);
 
-        assert_eq!("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7", encode(&v))
+        assert_eq!("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7", base58_encode(&v))
     }
 
     #[test]
     fn decode_1() {
-        let res = decode("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6");
+        let res = base58_decode("9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6");
         let expected = Integer::from_hex_str("7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d");
 
         assert_eq!(expected, res)
@@ -133,14 +135,14 @@ mod base58_test {
 
     #[test]
     fn decode_2() {
-        let res = decode("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd");
+        let res = base58_decode("4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd");
         let expected = Integer::from_hex_str("eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
 
         assert_eq!(expected, res)
     }
     #[test]
     fn decode_3() {
-        let res = decode("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7");
+        let res = base58_decode("EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7");
         let expected = Integer::from_hex_str("c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
 
         assert_eq!(expected, res)
@@ -148,18 +150,18 @@ mod base58_test {
 
     #[test]
     fn encode_checksum_1() {
-        let res = encode_with_checksum(&"11".to_string().as_bytes());
+        let res = base58_encode_with_checksum(&"11".to_string().as_bytes());
         assert_eq!("RVnPfpC2", res)
     }
 
     #[test]
     fn encode_checksum_2() {
-        let res = encode_with_checksum(&"".to_string().as_bytes());
+        let res = base58_encode_with_checksum(&"".to_string().as_bytes());
         assert_eq!("3QJmnh", res)
     }
     #[test]
     fn encode_checksum_3() {
-        let res = encode_with_checksum(
+        let res = base58_encode_with_checksum(
             &"4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd"
                 .to_string()
                 .as_bytes()
@@ -170,19 +172,19 @@ mod base58_test {
 
     #[test]
     fn decode_checksum_1() {
-        let res = decode_with_checksum("RVnPfpC2");
+        let res = base58_decode_with_checksum("RVnPfpC2");
         assert_eq!("11".to_string().as_bytes().to_vec(), res.ok().unwrap())
     }
 
     #[test]
     fn decode_checksum_2() {
-        let res = decode_with_checksum("3QJmnh");
+        let res = base58_decode_with_checksum("3QJmnh");
         assert_eq!("".to_string().as_bytes().to_vec(), res.ok().unwrap())
     }
 
     #[test]
     fn decode_checksum_3() {
-        let res = decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBf");
+        let res = base58_decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBf");
         assert_eq!(
             "4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd"
                 .to_string()
@@ -194,13 +196,13 @@ mod base58_test {
 
     #[test]
     fn decode_checksum_invalid_checksum() {
-        let res = decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBe");
-        assert_eq!(DecodeError::InvalidChecksum, res.err().unwrap())
+        let res = base58_decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBe");
+        assert_eq!(Base58DecodeError::InvalidChecksum, res.err().unwrap())
     }
 
     #[test]
     fn decode_checksum_invalid_length() {
-        let res = decode_with_checksum("a");
-        assert_eq!(DecodeError::InvalidLength, res.err().unwrap())
+        let res = base58_decode_with_checksum("a");
+        assert_eq!(Base58DecodeError::InvalidLength, res.err().unwrap())
     }
 }

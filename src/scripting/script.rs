@@ -2,8 +2,8 @@ use rug::Integer;
 use std::fmt::{Display, Formatter};
 
 use crate::{
+    encoding::varint::{varint_decode, varint_encode, VarInt},
     std_lib::vector::vect_to_hex_string,
-    transaction::varint::{varint_decode, varint_encode, VarInt},
 };
 
 use super::{

@@ -1,4 +1,4 @@
-use crate::transaction::varint::varint_encode;
+use crate::encoding::varint::varint_encode;
 
 use super::{tx_error::TxError, tx_lib::varint_decode};
 

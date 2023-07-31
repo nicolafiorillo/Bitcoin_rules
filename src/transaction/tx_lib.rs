@@ -1,6 +1,7 @@
 use rug::{integer::Order, Integer};
 
-use crate::transaction::{tx_error::TxError, varint::VarInt};
+use crate::encoding::varint::VarInt;
+use crate::transaction::tx_error::TxError;
 
 pub fn le_bytes_to_u32(bytes: &[u8], from: usize) -> Result<u32, TxError> {
     if bytes.len() < (from + 4) {
@@ -27,7 +28,7 @@ pub fn u64_le_bytes(bytes: &[u8], from: usize) -> Result<u64, TxError> {
 }
 
 pub fn varint_decode(bytes: &[u8], from: usize) -> Result<VarInt, TxError> {
-    let vi = crate::transaction::varint::varint_decode(bytes, from);
+    let vi = crate::encoding::varint::varint_decode(bytes, from);
     if let Err(_e) = vi {
         return Err(TxError::VarIntError);
     }

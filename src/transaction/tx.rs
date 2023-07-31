@@ -12,7 +12,7 @@ use crate::transaction::{
     tx_out::TxOut,
 };
 
-use super::varint::varint_encode;
+use crate::encoding::varint::varint_encode;
 
 // nLockTime
 //      Block height or timestamp after which transaction can be added to the chain.

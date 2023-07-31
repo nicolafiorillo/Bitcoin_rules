@@ -1,5 +1,6 @@
 pub static FE_LIMIT: u64 = 0x100000000;
 
+// TODO: use enum with size
 #[derive(Debug, PartialEq)]
 pub struct VarInt {
     pub value: u64,

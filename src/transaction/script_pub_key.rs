@@ -1,6 +1,6 @@
 use crate::transaction::varint::varint_encode;
 
-use super::{tx_error::TxError, tx_lib::tx_lib::varint_decode};
+use super::{tx_error::TxError, tx_lib::varint_decode};
 
 #[derive(Debug, Clone)]
 pub struct ScriptPubKey {

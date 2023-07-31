@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use once_cell::sync::Lazy;
 
 use super::{
@@ -7,6 +9,8 @@ use super::{
 
 type OperationExec = fn(&mut Context) -> Result<bool, ContextError>;
 pub type OpCode = usize;
+
+pub const OP_ELEMENTS_RANGE: Range<OpCode> = OP_0..OP_PUSHDATA1;
 
 pub const OP_0: OpCode = 0x00;
 pub const OP_PUSHDATA1: OpCode = 0x4C;

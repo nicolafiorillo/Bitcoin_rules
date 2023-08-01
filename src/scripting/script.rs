@@ -273,6 +273,142 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_2() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_2)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(2)));
+    }
+    #[test]
+    fn evaluate_3() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_3)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(3)));
+    }
+    #[test]
+    fn evaluate_4() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_4)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(4)));
+    }
+    #[test]
+    fn evaluate_5() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_5)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(5)));
+    }
+    #[test]
+    fn evaluate_6() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_6)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(6)));
+    }
+    #[test]
+    fn evaluate_7() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_7)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(7)));
+    }
+    #[test]
+    fn evaluate_8() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_8)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(8)));
+    }
+    #[test]
+    fn evaluate_9() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_9)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(9)));
+    }
+    #[test]
+    fn evaluate_10() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_10)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(10)));
+    }
+    #[test]
+    fn evaluate_11() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_11)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(11)));
+    }
+    #[test]
+    fn evaluate_12() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_12)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(12)));
+    }
+    #[test]
+    fn evaluate_13() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_13)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(13)));
+    }
+    #[test]
+    fn evaluate_14() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_14)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(14)));
+    }
+    #[test]
+    fn evaluate_15() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_15)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(15)));
+    }
+    #[test]
+    fn evaluate_16() {
+        let script = Script::from_script_items(vec![Operation::Command(OP_16)]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(element_encode(16)));
+    }
+
+    #[test]
     fn evaluate_negate() {
         let script = Script::from_script_items(vec![Operation::Command(OP_1NEGATE)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();

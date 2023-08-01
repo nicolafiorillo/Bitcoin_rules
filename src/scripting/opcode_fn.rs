@@ -8,6 +8,32 @@ use super::{
     operation::{element_encode, Operation, ELEMENT_ONE, ELEMENT_ONE_NEGATE, ELEMENT_ZERO},
 };
 
+macro_rules! op_n {
+    ($n:tt, $f:ident) => {
+        pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
+            context.push_element(Operation::Element(element_encode($n)));
+
+            Ok(true)
+        }
+    };
+}
+
+op_n!(2, op_2);
+op_n!(3, op_3);
+op_n!(4, op_4);
+op_n!(5, op_5);
+op_n!(6, op_6);
+op_n!(7, op_7);
+op_n!(8, op_8);
+op_n!(9, op_9);
+op_n!(10, op_10);
+op_n!(11, op_11);
+op_n!(12, op_12);
+op_n!(13, op_13);
+op_n!(14, op_14);
+op_n!(15, op_15);
+op_n!(16, op_16);
+
 fn element_value_by_result(res: bool) -> Vec<u8> {
     if res {
         ELEMENT_ONE.to_vec()

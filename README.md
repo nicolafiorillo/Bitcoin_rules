@@ -19,6 +19,7 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 - [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
 - [Bitcoin secp256k1](https://github.com/bitcoin-core/secp256k1)
 - [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
+- [Script](https://en.bitcoin.it/wiki/Script)
 - [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [James O'Beirne](https://twitter.com/jamesob)
 - [Bitcoin Developer Guides](https://developer.bitcoin.org/devguide/index.html)
 - [Bitcoin Tutorials](https://www.herongyang.com/Bitcoin/)
@@ -39,6 +40,9 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 
 - [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
 - [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
+
+### Tools
+- [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
 
 ## To do
 

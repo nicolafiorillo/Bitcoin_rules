@@ -42,7 +42,7 @@ mod tx_out {
 
     #[test]
     fn test_tx_out_serialize() {
-        let script_pub_key_content = string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac");
+        let script_pub_key_content = string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
 
         let script_pub_key = ScriptPubKey::new(script_pub_key_content);
         let tx_out = TxOut::new(40000000, script_pub_key);
@@ -50,7 +50,7 @@ mod tx_out {
         let tx_out_serialized = tx_out.serialize();
 
         let expected_tx_out_serialized =
-            string_to_bytes("005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac");
+            string_to_bytes("005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
 
         assert_eq!(tx_out_serialized, expected_tx_out_serialized);
     }

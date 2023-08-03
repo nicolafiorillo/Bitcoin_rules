@@ -17,7 +17,7 @@ pub enum ChainError {
 }
 
 fn get_id_to_transaction(id: &str, tx: &str, network: Network) -> (Integer, Tx) {
-    let s = string_to_bytes(tx);
+    let s = string_to_bytes(tx).unwrap();
     let tx = Tx::from_serialized(&s, network).unwrap();
     let id = IntegerEx::from_hex_str(id);
 

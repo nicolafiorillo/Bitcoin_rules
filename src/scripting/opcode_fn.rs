@@ -60,6 +60,10 @@ pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
+    Ok(true)
+}
+
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
@@ -110,7 +114,7 @@ mod opcode_fn_test {
     #[test]
     #[should_panic(expected = "not implemented")]
     fn not_implemented_test() {
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
+        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let ops = vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)];
 
         let mut context = Context::new(ops, Integer::from(0));

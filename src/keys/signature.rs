@@ -153,7 +153,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_length_less_than_70() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c");
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738c").unwrap();
 
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
@@ -163,7 +163,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_lengtt_more_than_72() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000");
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec0000").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
             DerError::InvalidSignatureLength
@@ -172,7 +172,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_initial_marker() {
-        let der = string_to_bytes("3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let der = string_to_bytes("3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap(),
             DerError::InvalidInitialMarker
@@ -181,19 +181,19 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_r_marker() {
-        let der = string_to_bytes("3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let der = string_to_bytes("3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidRMarker);
     }
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_marker() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidSMarker);
     }
 
     #[test]
     fn deserialize_a_der_signature_1() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec");
+        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
@@ -205,7 +205,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_2() {
-        let der = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6");
+        let der = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("00eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");

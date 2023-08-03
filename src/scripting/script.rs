@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::{
     encoding::varint::{varint_decode, varint_encode, VarInt},
-    std_lib::vector::vect_to_hex_string,
+    std_lib::vector::{string_to_bytes, vect_to_hex_string},
 };
 
 use super::{
@@ -21,6 +21,7 @@ pub enum ScriptError {
     InvalidScriptLength,
     ElementTooLong,
     PushData4IsDeprecated,
+    InvalidScriptRepresentation,
 }
 
 impl Script {
@@ -31,8 +32,49 @@ impl Script {
         }
     }
 
-    pub fn from_script_items(items: Vec<Operation>) -> Self {
+    pub fn from_operations(items: Vec<Operation>) -> Self {
         Script(items)
+    }
+
+    pub fn from_representation(repr: &str) -> Result<Self, ScriptError> {
+        let trimmed_repr = repr.trim();
+        let mut items: Vec<Operation> = vec![];
+
+        let tokens = trimmed_repr.split(' ').collect::<Vec<&str>>();
+
+        for item in tokens {
+            if let Some(op_code) = OP_TO_FN.iter().position(|op| op.name == item) {
+                items.push(Operation::Command(op_code));
+            } else {
+                match string_to_bytes(item) {
+                    Ok(bytes) => items.push(Operation::Element(bytes)),
+                    Err(_) => return Err(ScriptError::InvalidScriptRepresentation),
+                };
+            }
+        }
+
+        Ok(Script(items))
+    }
+
+    pub fn representation(&self) -> String {
+        let Self(items) = self;
+
+        let mut repr = String::new();
+        for item in items {
+            match item {
+                Operation::Element(bytes) => {
+                    let e = vect_to_hex_string(bytes);
+                    repr.push_str(&e);
+                    repr.push(' ');
+                }
+                Operation::Command(op_code) => {
+                    repr.push_str(&(*OP_TO_FN)[*op_code].name);
+                    repr.push(' ');
+                }
+            }
+        }
+
+        repr.trim_end().to_string()
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>, ScriptError> {
@@ -61,7 +103,7 @@ impl Script {
                         return Err(ContextError::InvalidOpCode);
                     }
 
-                    (*OP_TO_FN)[*op_code](&mut context)?;
+                    ((*OP_TO_FN)[*op_code].exec)(&mut context)?;
                 }
             }
         }
@@ -177,20 +219,7 @@ impl Script {
 
 impl Display for Script {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let Self(items) = self;
-        for item in items {
-            match item {
-                Operation::Element(bytes) => {
-                    let e = vect_to_hex_string(bytes);
-                    write!(f, "{:} ", e)?;
-                }
-                Operation::Command(op_code) => {
-                    write!(f, "0x{:X} ", op_code)?;
-                }
-            }
-        }
-
-        write!(f, "")
+        write!(f, "{:}", self.representation())
     }
 }
 
@@ -208,45 +237,68 @@ mod script_test {
     use super::*;
 
     #[test]
+    fn represent() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x00]),
+            Operation::Element(vec![0x01]),
+            Operation::Command(OP_CHECKSIG),
+        ]);
+
+        assert_eq!(format!("{}", script), "00 01 OP_CHECKSIG");
+    }
+
+    #[test]
+    fn from_representation() {
+        let expected = vec![
+            Operation::Element(vec![0x00]),
+            Operation::Element(vec![0x01]),
+            Operation::Command(OP_CHECKSIG),
+        ];
+
+        let script = Script::from_representation("00 01 OP_CHECKSIG").unwrap();
+        let Script(operations) = script;
+
+        assert_eq!(expected, operations);
+    }
+
+    #[test]
     fn serialize() {
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
-        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601");
+        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
+        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script =
-            Script::from_script_items(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
+        let pubkey_script = Script::from_operations(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_script_items(vec![Operation::Element(signature)]);
+        let signature_script = Script::from_operations(vec![Operation::Element(signature)]);
         let script = Script::combine(signature_script, pubkey_script);
 
         let serialized = script.serialize().unwrap();
-        let expected = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac");
+        let expected = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
         assert_eq!(serialized, expected);
     }
 
     #[test]
     fn deserialize() {
-        let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac");
+        let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
         let script = Script::deserialize(&data).unwrap();
 
         let Script(operations) = script;
 
         assert_eq!(operations.len(), 3);
-        assert_eq!(operations[0], Operation::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601")));
-        assert_eq!(operations[1], Operation::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34")));
+        assert_eq!(operations[0], Operation::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
+        assert_eq!(operations[1], Operation::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap()));
         assert_eq!(operations[2], Operation::Command(OP_CHECKSIG));
     }
 
     #[test]
     fn evaluate_checksig() {
         let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34");
-        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601");
+        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
+        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script =
-            Script::from_script_items(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
+        let pubkey_script = Script::from_operations(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_script_items(vec![Operation::Element(signature)]);
+        let signature_script = Script::from_operations(vec![Operation::Element(signature)]);
         let script = Script::combine(signature_script, pubkey_script);
 
         assert!(script.evaluate(z).unwrap().is_valid());
@@ -254,7 +306,7 @@ mod script_test {
 
     #[test]
     fn evaluate_0() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_0)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_0)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -264,7 +316,7 @@ mod script_test {
 
     #[test]
     fn evaluate_1() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_1)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_1)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -274,7 +326,7 @@ mod script_test {
 
     #[test]
     fn evaluate_2() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_2)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_2)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -283,7 +335,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_3() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_3)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_3)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -292,7 +344,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_4() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_4)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_4)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -301,7 +353,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_5() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_5)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_5)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -310,7 +362,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_6() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_6)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_6)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -319,7 +371,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_7() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_7)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_7)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -328,7 +380,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_8() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_8)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_8)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -337,7 +389,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_9() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_9)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_9)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -346,7 +398,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_10() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_10)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_10)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -355,7 +407,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_11() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_11)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_11)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -364,7 +416,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_12() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_12)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_12)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -373,7 +425,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_13() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_13)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_13)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -382,7 +434,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_14() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_14)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_14)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -391,7 +443,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_15() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_15)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_15)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -400,7 +452,7 @@ mod script_test {
     }
     #[test]
     fn evaluate_16() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_16)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_16)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
@@ -410,11 +462,21 @@ mod script_test {
 
     #[test]
     fn evaluate_negate() {
-        let script = Script::from_script_items(vec![Operation::Command(OP_1NEGATE)]);
+        let script = Script::from_operations(vec![Operation::Command(OP_1NEGATE)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
     }
+
+    #[test]
+    fn evaluate_nop() {
+        let script = Script::from_operations(vec![Operation::Command(OP_NOP)]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(0));
+    }
+
+    // 0 OP_IF 1 OP_IF OP_RETURN OP_ELSE OP_RETURN OP_ELSE OP_RETURN OP_ENDIF OP_ELSE 1 OP_IF 1 OP_ELSE OP_RETURN OP_ELSE 1 OP_ENDIF OP_ELSE OP_RETURN OP_ENDIF OP_ADD 2 OP_EQUAL
 }

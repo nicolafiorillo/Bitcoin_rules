@@ -163,7 +163,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_id() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet);
         assert_eq!(
@@ -174,7 +174,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_version() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet);
         assert_eq!(tx.unwrap().version, 1);
@@ -182,7 +182,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_tx_ins() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
@@ -191,7 +191,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_tx_outs() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
@@ -201,7 +201,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_tx_outs_amount1() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
@@ -210,7 +210,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_locktime() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
 
@@ -219,7 +219,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_and_serialize() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
         let tx_serialized = tx.serialize();
@@ -229,7 +229,7 @@ mod tx_test {
 
     #[test]
     fn deserialize_and_get_fee() {
-        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION);
+        let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
         let tx = Tx::from_serialized(&transaction, Network::Mainnet);
         let mut transaction = tx.unwrap();

@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use rug::Integer;
 
-use super::operation::Operation;
+use super::{condition_stack::ConditionStack, operation::Operation};
 
 #[derive(Debug)]
 pub struct Context {
@@ -13,14 +13,19 @@ pub struct Context {
 
     stack: VecDeque<Operation>,
     alternative_stack: VecDeque<Operation>,
+
+    condition_stack: ConditionStack,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ContextError {
     InvalidOpCode,
     NotAnElement,
     NotEnoughElementsInStack,
     DerError,
+    UnexpectedEndIf,
+    UnexpectedElse,
+    ExitByReturn,
 }
 
 impl Context {
@@ -30,6 +35,7 @@ impl Context {
 
         let stack = VecDeque::<Operation>::new();
         let alternative_stack = VecDeque::<Operation>::new();
+        let condition_stack = ConditionStack::new();
 
         Context {
             operations,
@@ -38,6 +44,7 @@ impl Context {
             operations_position,
             stack,
             alternative_stack,
+            condition_stack,
         }
     }
 
@@ -72,5 +79,25 @@ impl Context {
 
     pub fn has_elements(&self, num: usize) -> bool {
         self.stack.len() >= num
+    }
+
+    pub fn executing(&self) -> bool {
+        self.condition_stack.executing()
+    }
+
+    pub fn set_execute(&mut self, value: bool) {
+        self.condition_stack.set_execute(value)
+    }
+
+    pub fn unset_execute(&mut self) {
+        self.condition_stack.unset_execute()
+    }
+
+    pub fn toggle_execute(&mut self) {
+        self.condition_stack.toggle_execute()
+    }
+
+    pub fn in_condition(&self) -> bool {
+        self.condition_stack.in_condition()
     }
 }

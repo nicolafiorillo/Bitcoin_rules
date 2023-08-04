@@ -44,7 +44,7 @@ impl Key {
         verify(&self.public_key, z, sig)
     }
 
-    pub fn from_wif(wif: &str) -> Key {
+    pub fn from_wif(_wif: &str) -> Key {
         unimplemented!()
     }
 

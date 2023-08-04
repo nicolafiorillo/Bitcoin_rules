@@ -5,7 +5,7 @@ use crate::{
 
 use super::{
     context::{Context, ContextError},
-    operation::{element_encode, Operation, ELEMENT_ONE, ELEMENT_ONE_NEGATE, ELEMENT_ZERO},
+    operation::*,
 };
 
 macro_rules! op_n {
@@ -64,6 +64,89 @@ pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_return(_context: &mut Context) -> Result<bool, ContextError> {
+    Err(ContextError::ExitByReturn)
+}
+
+pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
+    let mut exec = false;
+
+    if context.executing() {
+        if !context.has_elements(1) {
+            return Err(ContextError::NotEnoughElementsInStack);
+        }
+
+        let operation = context.pop_element()?;
+        exec = operation.as_bool(); // OP_NOTIF is the same but with inverted exec
+    }
+
+    context.set_execute(exec);
+
+    Ok(true)
+}
+
+pub fn op_endif(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.in_condition() {
+        return Err(ContextError::UnexpectedEndIf);
+    }
+
+    context.unset_execute();
+    Ok(true)
+}
+
+pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.in_condition() {
+        return Err(ContextError::UnexpectedElse);
+    }
+
+    context.toggle_execute();
+    Ok(true)
+}
+
+pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_elements(2) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let a = context.pop_element()?;
+    let b = context.pop_element()?;
+
+    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
+        let left = element_decode(a);
+        let right = element_decode(b);
+
+        let sum = left + right; // TODO: check overflow
+        context.push_element(Operation::Element(element_encode(sum)));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_elements(2) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let a = context.pop_element()?;
+    let b = context.pop_element()?;
+
+    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
+        let left = element_decode(a);
+        let right = element_decode(b);
+
+        let equals = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.push_element(Operation::Element(equals.to_vec()));
+
+        // TODO: OP_EQUALVERIFY do not push the result to the stack and return error SCRIPT_ERR_EQUALVERIFY if the result is false
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
@@ -97,7 +180,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
-    unimplemented!("not implemented")
+    unimplemented!("operation not implemented")
 }
 
 #[cfg(test)]

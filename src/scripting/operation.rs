@@ -8,9 +8,44 @@ pub enum Operation {
     Command(OpCode),
 }
 
+impl Operation {
+    pub fn as_bool(&self) -> bool {
+        match self {
+            Operation::Element(value) => {
+                for i in value {
+                    // TODO: can be negative zero
+                    // if (i == vch.size()-1 && vch[i] == 0x80)
+                    // return false;
+                    // see: https://github.com/bitcoin/bitcoin/blob/a4ca4975880c4f870c6047065c70610af2529e74/src/script/interpreter.cpp#L42
+                    if *i != 0 {
+                        return true;
+                    }
+                }
+
+                false
+            }
+            _ => false,
+        }
+    }
+
+    pub fn is_op_condition(&self) -> bool {
+        use crate::scripting::opcode;
+
+        matches!(
+            self,
+            Operation::Command(opcode::OP_IF)
+                | Operation::Command(opcode::OP_NOTIF)
+                | Operation::Command(opcode::OP_ELSE)
+                | Operation::Command(opcode::OP_ENDIF)
+        )
+    }
+}
+
 pub static ELEMENT_ZERO: [u8; 1] = [0x00];
 pub static ELEMENT_ONE: [u8; 1] = [0x01];
 pub static ELEMENT_ONE_NEGATE: [u8; 1] = [0x81];
+pub static ELEMENT_TRUE: [u8; 1] = ELEMENT_ONE;
+pub static ELEMENT_FALSE: [u8; 1] = ELEMENT_ZERO;
 
 pub fn element_encode(num: i64) -> Vec<u8> {
     if num == 0 {

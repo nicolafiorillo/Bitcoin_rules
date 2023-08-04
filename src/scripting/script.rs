@@ -68,7 +68,7 @@ impl Script {
                     repr.push(' ');
                 }
                 Operation::Command(op_code) => {
-                    repr.push_str(&(*OP_TO_FN)[*op_code].name);
+                    repr.push_str((*OP_TO_FN)[*op_code].name);
                     repr.push(' ');
                 }
             }
@@ -92,14 +92,22 @@ impl Script {
         let mut context = Context::new(operations.clone(), z);
 
         while !context.is_over() {
+            let executing = context.executing();
+
             let operation = context.next();
+            log::debug!("Operation (exec: {}): {:?}", executing, operation);
+
+            if !executing && !operation.is_op_condition() {
+                continue;
+            }
+
             match operation {
                 Operation::Element(bytes) => {
                     let e = Operation::Element(bytes.to_vec());
                     context.push_element(e);
                 }
                 Operation::Command(op_code) => {
-                    if op_code > &OPS_LENGTH {
+                    if *op_code > OPS_LENGTH {
                         return Err(ContextError::InvalidOpCode);
                     }
 
@@ -226,10 +234,7 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        scripting::{
-            opcode::*,
-            operation::{element_encode, ELEMENT_ONE_NEGATE, ELEMENT_ZERO},
-        },
+        scripting::{opcode::*, operation::*},
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
     use rug::Integer;
@@ -478,5 +483,149 @@ mod script_test {
         assert!(context.has_elements(0));
     }
 
-    // 0 OP_IF 1 OP_IF OP_RETURN OP_ELSE OP_RETURN OP_ELSE OP_RETURN OP_ENDIF OP_ELSE 1 OP_IF 1 OP_ELSE OP_RETURN OP_ELSE 1 OP_ENDIF OP_ELSE OP_RETURN OP_ENDIF OP_ADD 2 OP_EQUAL
+    #[test]
+    fn evaluate_add() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x01]),
+            Operation::Element(vec![0x02]),
+            Operation::Command(OP_ADD),
+        ]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(vec![0x03]));
+    }
+
+    #[test]
+    fn evaluate_equal_true() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x01]),
+            Operation::Element(vec![0x01]),
+            Operation::Command(OP_EQUAL),
+        ]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(ELEMENT_TRUE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_equal_false() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x01]),
+            Operation::Element(vec![0x02]),
+            Operation::Command(OP_EQUAL),
+        ]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(ELEMENT_FALSE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_if() {
+        let script = Script::from_operations(vec![Operation::Element(vec![0x01]), Operation::Command(OP_IF)]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(0));
+        assert!(context.executing())
+    }
+
+    #[test]
+    fn evaluate_return() {
+        let script = Script::from_operations(vec![Operation::Element(vec![0x01]), Operation::Command(OP_RETURN)]);
+        let context = script.evaluate(Integer::from(0));
+
+        assert_eq!(ContextError::ExitByReturn, context.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_if_endif() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x01]),
+            Operation::Command(OP_IF),
+            Operation::Command(OP_ENDIF),
+        ]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(0));
+        assert!(context.executing())
+    }
+
+    #[test]
+    fn evaluate_if_else_endif() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x01]),
+            Operation::Command(OP_IF),
+            Operation::Command(OP_ELSE),
+            Operation::Command(OP_ENDIF),
+        ]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(0));
+        assert!(context.executing())
+    }
+
+    #[test]
+    fn evaluate_conditional_script_1() {
+        let script = Script::from_representation("01 00 OP_IF 02 OP_ENDIF").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(1));
+
+        assert!(context.executing());
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_conditional_script_2() {
+        let script = Script::from_representation("01 01 OP_IF 02 OP_ENDIF").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(2));
+
+        assert!(context.executing());
+        assert!(!context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_conditional_script_3() {
+        let script = Script::from_representation("00 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(1));
+
+        assert!(context.executing());
+        assert!(!context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_conditional_script_4() {
+        let script = Script::from_representation("01 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(1));
+
+        assert!(context.executing());
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_script_nested_if_1() {
+        let script = Script::from_representation("00 OP_IF 01 OP_IF OP_RETURN OP_ELSE OP_RETURN OP_ELSE OP_RETURN OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE OP_RETURN OP_ENDIF OP_ADD 02 OP_EQUAL").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_script_nested_if_2() {
+        let script = Script::from_representation("20 OP_IF 00 OP_IF OP_RETURN OP_ELSE 10 OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE 30 OP_ENDIF OP_ADD 40 OP_EQUAL").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+    }
 }

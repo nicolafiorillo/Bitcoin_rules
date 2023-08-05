@@ -94,7 +94,7 @@ impl Script {
         while !context.is_over() {
             let executing = context.executing();
 
-            let operation = context.next();
+            let operation = context.pop_next();
             log::debug!("Operation (exec: {}): {:?}", executing, operation);
 
             if !executing && !operation.is_op_condition() {
@@ -627,5 +627,80 @@ mod script_test {
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_dup() {
+        let script = Script::from_representation("09 OP_DUP").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(2));
+
+        let op = context.pop_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x09]));
+
+        let op = context.pop_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x09]));
+    }
+
+    #[test]
+    fn evaluate_hash160() {
+        let script = Script::from_representation("09 OP_HASH160").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(1));
+
+        let op = context.pop_element().unwrap();
+
+        let expected = string_to_bytes("d6a8a804d5be366ae5d3a318cdced1dc1cfe28ea").unwrap();
+        assert_eq!(op, Operation::Element(expected));
+    }
+
+    #[test]
+    fn evaluate_verify_true() {
+        let script = Script::from_representation("09 OP_VERIFY 01").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+        assert!(context.has_elements(1));
+    }
+
+    #[test]
+    fn evaluate_verify_false() {
+        let script = Script::from_representation("00 OP_VERIFY").unwrap();
+        let context = script.evaluate(Integer::from(0));
+
+        assert_eq!(ContextError::ExitByFailedVerify, context.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_equalverify_true() {
+        let script = Script::from_representation("09 09 OP_EQUALVERIFY 01").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+        assert!(context.has_elements(1));
+    }
+
+    #[test]
+    fn evaluate_equalverify_false() {
+        let script = Script::from_representation("09 08 OP_EQUALVERIFY 01").unwrap();
+        let context = script.evaluate(Integer::from(0));
+
+        assert_eq!(ContextError::ExitByFailedVerify, context.expect_err("Err"));
+    }
+
+    //
+    // P2PK
+    //
+    #[test]
+    fn evaluate_p2pk() {
+        let signature = "3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601";
+        let pubkey = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
+
+        let script = Script::from_representation(&format!("{} {} OP_CHECKSIG", signature, pubkey)).unwrap();
+        let z: Integer = IntegerEx::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
+
+        assert!(script.evaluate(z).unwrap().is_valid());
     }
 }

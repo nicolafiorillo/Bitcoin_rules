@@ -1,5 +1,6 @@
 use crate::{
     ecdsa::point::Point,
+    hashing::hash160::hash160,
     keys::{signature::Signature, verification::verify},
 };
 
@@ -72,7 +73,7 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
     let mut exec = false;
 
     if context.executing() {
-        if !context.has_elements(1) {
+        if !context.has_enough_elements(1) {
             return Err(ContextError::NotEnoughElementsInStack);
         }
 
@@ -104,7 +105,7 @@ pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_elements(2) {
+    if !context.has_enough_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -125,7 +126,7 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_elements(2) {
+    if !context.has_enough_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -148,7 +149,7 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_elements(2) {
+    if !context.has_enough_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -177,6 +178,52 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     }
 
     Ok(false)
+}
+
+pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_elements(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let op = context.top_stack();
+    context.push_element(op.clone());
+
+    Ok(true)
+}
+
+pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_elements(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let op = context.pop_element()?;
+
+    if op.as_bool() {
+        return Ok(true);
+    }
+
+    Err(ContextError::ExitByFailedVerify)
+}
+
+pub fn op_equalverify(context: &mut Context) -> Result<bool, ContextError> {
+    op_equal(context)?;
+    op_verify(context)
+}
+
+pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_elements(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let e = context.pop_element()?;
+    if let Operation::Element(value) = e {
+        let hash = hash160(&value);
+        context.push_element(Operation::Element(hash));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {

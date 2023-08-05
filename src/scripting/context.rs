@@ -26,6 +26,7 @@ pub enum ContextError {
     UnexpectedEndIf,
     UnexpectedElse,
     ExitByReturn,
+    ExitByFailedVerify,
 }
 
 impl Context {
@@ -52,7 +53,9 @@ impl Context {
         self.operations_position >= self.operations_length
     }
 
-    pub fn next(&mut self) -> &Operation {
+    pub fn pop_next(&mut self) -> &Operation {
+        assert!(self.operations_position < self.operations_length);
+
         let current = self.operations_position;
         self.operations_position += 1;
 
@@ -63,7 +66,14 @@ impl Context {
         self.stack.push_front(operation)
     }
 
+    pub fn top_stack(&self) -> &Operation {
+        assert!(!self.stack.is_empty());
+
+        self.stack.front().unwrap()
+    }
+
     pub fn pop_element(&mut self) -> Result<Operation, ContextError> {
+        // TODO: assert stack is not empty
         match self.stack.pop_front().unwrap() {
             Operation::Element(element) => Ok(Operation::Element(element)),
             op => {
@@ -77,8 +87,12 @@ impl Context {
         self.stack.len() == 1 && self.stack[0] == Operation::Element(vec![1])
     }
 
-    pub fn has_elements(&self, num: usize) -> bool {
+    pub fn has_enough_elements(&self, num: usize) -> bool {
         self.stack.len() >= num
+    }
+
+    pub fn has_elements(&self, num: usize) -> bool {
+        self.stack.len() == num
     }
 
     pub fn executing(&self) -> bool {

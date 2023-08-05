@@ -7,6 +7,7 @@ use super::{
     opcode_fn::*,
 };
 
+// TODO: why exit with bool?
 type OperationExec = fn(&mut Context) -> Result<bool, ContextError>;
 
 #[derive(Debug, Copy, Clone)]
@@ -173,7 +174,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_VERNOTIF] = OpCodeInfo::new("OP_VERNOTIF", not_implemented);
     op_to_fn[OP_ELSE] = OpCodeInfo::new("OP_ELSE", op_else);
     op_to_fn[OP_ENDIF] = OpCodeInfo::new("OP_ENDIF", op_endif);
-    op_to_fn[OP_VERIFY] = OpCodeInfo::new("OP_VERIFY", not_implemented);
+    op_to_fn[OP_VERIFY] = OpCodeInfo::new("OP_VERIFY", op_verify);
     op_to_fn[OP_RETURN] = OpCodeInfo::new("OP_RETURN", op_return);
     op_to_fn[OP_TOALTSTACK] = OpCodeInfo::new("OP_TOALTSTACK", not_implemented);
     op_to_fn[OP_FROMALTSTACK] = OpCodeInfo::new("OP_FROMALTSTACK", not_implemented);
@@ -186,7 +187,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_IFDUP] = OpCodeInfo::new("OP_IFDUP", not_implemented);
     op_to_fn[OP_DEPTH] = OpCodeInfo::new("OP_DEPTH", not_implemented);
     op_to_fn[OP_DROP] = OpCodeInfo::new("OP_DROP", not_implemented);
-    op_to_fn[OP_DUP] = OpCodeInfo::new("OP_DUP", not_implemented);
+    op_to_fn[OP_DUP] = OpCodeInfo::new("OP_DUP", op_dup);
     op_to_fn[OP_NIP] = OpCodeInfo::new("OP_NIP", not_implemented);
     op_to_fn[OP_OVER] = OpCodeInfo::new("OP_OVER", not_implemented);
     op_to_fn[OP_PICK] = OpCodeInfo::new("OP_PICK", not_implemented);
@@ -204,7 +205,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_OR] = OpCodeInfo::new("OP_OR", not_implemented);
     op_to_fn[OP_XOR] = OpCodeInfo::new("OP_XOR", not_implemented);
     op_to_fn[OP_EQUAL] = OpCodeInfo::new("OP_EQUAL", op_equal);
-    op_to_fn[OP_EQUALVERIFY] = OpCodeInfo::new("OP_EQUALVERIFY", not_implemented);
+    op_to_fn[OP_EQUALVERIFY] = OpCodeInfo::new("OP_EQUALVERIFY", op_equalverify);
     op_to_fn[OP_RESERVED1] = OpCodeInfo::new("OP_RESERVED1", not_implemented);
     op_to_fn[OP_RESERVED2] = OpCodeInfo::new("OP_RESERVED2", not_implemented);
     op_to_fn[OP_1ADD] = OpCodeInfo::new("OP_1ADD", not_implemented);
@@ -237,7 +238,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_RIPEMD160] = OpCodeInfo::new("OP_RIPEMD160", not_implemented);
     op_to_fn[OP_SHA1] = OpCodeInfo::new("OP_SHA1", not_implemented);
     op_to_fn[OP_SHA256] = OpCodeInfo::new("OP_SHA256", not_implemented);
-    op_to_fn[OP_HASH160] = OpCodeInfo::new("OP_HASH160", not_implemented);
+    op_to_fn[OP_HASH160] = OpCodeInfo::new("OP_HASH160", op_hash160);
     op_to_fn[OP_HASH256] = OpCodeInfo::new("OP_HASH256", not_implemented);
     op_to_fn[OP_CODESEPARATOR] = OpCodeInfo::new("OP_CODESEPARATOR", not_implemented);
     op_to_fn[OP_CHECKSIG] = OpCodeInfo::new("OP_CHECKSIG", op_checksig);

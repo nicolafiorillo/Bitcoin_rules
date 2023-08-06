@@ -54,7 +54,7 @@ impl Context {
         self.operations_position >= self.operations_length
     }
 
-    pub fn pop_next(&mut self) -> &Operation {
+    pub fn next_token(&mut self) -> &Operation {
         assert!(self.operations_position < self.operations_length);
 
         let current = self.operations_position;
@@ -63,7 +63,7 @@ impl Context {
         &self.operations[current]
     }
 
-    pub fn push_element(&mut self, operation: Operation) {
+    pub fn push(&mut self, operation: Operation) {
         self.stack.push_front(operation)
     }
 
@@ -73,8 +73,15 @@ impl Context {
         self.stack.front().unwrap()
     }
 
-    pub fn pop_element(&mut self) -> Result<Operation, ContextError> {
-        // TODO: assert stack is not empty
+    pub fn pop(&mut self) -> Operation {
+        assert!(!self.stack.is_empty());
+
+        self.stack.pop_front().unwrap()
+    }
+
+    pub fn pop_as_element(&mut self) -> Result<Operation, ContextError> {
+        assert!(!self.stack.is_empty());
+
         match self.stack.pop_front().unwrap() {
             Operation::Element(element) => Ok(Operation::Element(element)),
             op => {

@@ -94,7 +94,7 @@ impl Script {
         while !context.is_over() {
             let executing = context.executing();
 
-            let operation = context.pop_next();
+            let operation = context.next_token();
             log::debug!("Operation (exec: {}): {:?}", executing, operation);
 
             if !executing && !operation.is_op_condition() {
@@ -104,7 +104,7 @@ impl Script {
             match operation {
                 Operation::Element(bytes) => {
                     let e = Operation::Element(bytes.to_vec());
-                    context.push_element(e);
+                    context.push(e);
                 }
                 Operation::Command(op_code) => {
                     if *op_code > OPS_LENGTH {
@@ -314,7 +314,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_0)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
     }
@@ -324,7 +324,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_1)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(1)));
     }
@@ -334,7 +334,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_2)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(2)));
     }
@@ -343,7 +343,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_3)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(3)));
     }
@@ -352,7 +352,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_4)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(4)));
     }
@@ -361,7 +361,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_5)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(5)));
     }
@@ -370,7 +370,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_6)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(6)));
     }
@@ -379,7 +379,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_7)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(7)));
     }
@@ -388,7 +388,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_8)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(8)));
     }
@@ -397,7 +397,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_9)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(9)));
     }
@@ -406,7 +406,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_10)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(10)));
     }
@@ -415,7 +415,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_11)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(11)));
     }
@@ -424,7 +424,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_12)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(12)));
     }
@@ -433,7 +433,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_13)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(13)));
     }
@@ -442,7 +442,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_14)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(14)));
     }
@@ -451,7 +451,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_15)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(15)));
     }
@@ -460,7 +460,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_16)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(element_encode(16)));
     }
@@ -470,7 +470,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_1NEGATE)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
     }
@@ -492,7 +492,7 @@ mod script_test {
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(vec![0x03]));
     }
@@ -506,7 +506,7 @@ mod script_test {
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(vec![0x04]));
     }
@@ -520,7 +520,7 @@ mod script_test {
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_TRUE.to_vec()));
     }
@@ -534,7 +534,7 @@ mod script_test {
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         assert_eq!(op, Operation::Element(ELEMENT_FALSE.to_vec()));
     }
@@ -650,11 +650,31 @@ mod script_test {
 
         assert!(context.has_elements(2));
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
         assert_eq!(op, Operation::Element(vec![0x09]));
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
         assert_eq!(op, Operation::Element(vec![0x09]));
+    }
+
+    #[test]
+    fn evaluate_2dup() {
+        let script = Script::from_representation("01 02 OP_2DUP").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_elements(4));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x01]));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x02]));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x01]));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x02]));
     }
 
     #[test]
@@ -664,7 +684,7 @@ mod script_test {
 
         assert!(context.has_elements(1));
 
-        let op = context.pop_element().unwrap();
+        let op = context.pop_as_element().unwrap();
 
         let expected = string_to_bytes("d6a8a804d5be366ae5d3a318cdced1dc1cfe28ea").unwrap();
         assert_eq!(op, Operation::Element(expected));
@@ -697,6 +717,14 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_equalverify_false() {
+        let script = Script::from_representation("09 08 OP_EQUALVERIFY 01").unwrap();
+        let context = script.evaluate(Integer::from(0));
+
+        assert_eq!(ContextError::ExitByFailedVerify, context.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = Script::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
@@ -705,18 +733,27 @@ mod script_test {
         assert!(context.has_elements(1));
     }
 
-    #[test]
-    fn evaluate_equalverify_false() {
-        let script = Script::from_representation("09 08 OP_EQUALVERIFY 01").unwrap();
-        let context = script.evaluate(Integer::from(0));
+    // #[test]
+    // fn evaluate_generic_script_2() {
+    //     let script =
+    //         Script::from_representation("OP_2DUP OP_EQUAL OP_NOT OP_VERIFY OP_SHA1 OP_SWAP OP_SHA1 OP_EQUAL").unwrap();
+    //     let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert_eq!(ContextError::ExitByFailedVerify, context.expect_err("Err"));
-    }
+    //     assert!(context.is_valid());
+    //     assert!(context.has_elements(1));
+    // }
+
+    // OP_2DUP
+    // OP_NOT
+    // OP_SHA1
+    // OP_SWAP
+    // OP_SHA256
+    // OP_HASH160
+    // OP_HASH256
 
     //
     // Deprecated
     //
-
     macro_rules! evaluate_op_deprecated {
         ($n:literal, $f:ident) => {
             #[test]

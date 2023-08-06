@@ -12,7 +12,7 @@ use super::{
 macro_rules! op_n {
     ($n:tt, $f:ident) => {
         pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
-            context.push_element(Operation::Element(element_encode($n)));
+            context.push(Operation::Element(element_encode($n)));
 
             Ok(true)
         }
@@ -44,19 +44,19 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
 }
 
 pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
-    context.push_element(Operation::Element(ELEMENT_ZERO.to_vec()));
+    context.push(Operation::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }
 
 pub fn op_1(context: &mut Context) -> Result<bool, ContextError> {
-    context.push_element(Operation::Element(element_encode(1)));
+    context.push(Operation::Element(element_encode(1)));
 
     Ok(true)
 }
 
 pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
-    context.push_element(Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
+    context.push(Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
 
     Ok(true)
 }
@@ -77,7 +77,7 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::NotEnoughElementsInStack);
         }
 
-        let operation = context.pop_element()?;
+        let operation = context.pop_as_element()?;
         exec = operation.as_bool(); // OP_NOTIF is the same but with inverted exec
     }
 
@@ -109,15 +109,15 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let a = context.pop_element()?;
-    let b = context.pop_element()?;
+    let a = context.pop_as_element()?;
+    let b = context.pop_as_element()?;
 
     if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left + right; // TODO: check overflow
-        context.push_element(Operation::Element(element_encode(sum)));
+        context.push(Operation::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -130,15 +130,15 @@ pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let a = context.pop_element()?;
-    let b = context.pop_element()?;
+    let a = context.pop_as_element()?;
+    let b = context.pop_as_element()?;
 
     if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left * right;
-        context.push_element(Operation::Element(element_encode(sum)));
+        context.push(Operation::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -151,12 +151,12 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let a = context.pop_element()?;
-    let b = context.pop_element()?;
+    let a = context.pop_as_element()?;
+    let b = context.pop_as_element()?;
 
     if let (Operation::Element(left), Operation::Element(right)) = (a, b) {
         let equals = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.push_element(Operation::Element(equals.to_vec()));
+        context.push(Operation::Element(equals.to_vec()));
 
         return Ok(true);
     }
@@ -169,8 +169,8 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let pub_key = context.pop_element()?;
-    let sig = context.pop_element()?;
+    let pub_key = context.pop_as_element()?;
+    let sig = context.pop_as_element()?;
 
     if let Operation::Element(public_key) = pub_key {
         if let Operation::Element(mut der) = sig {
@@ -189,7 +189,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             let res = verify(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);
-            context.push_element(Operation::Element(element_value));
+            context.push(Operation::Element(element_value));
         }
     }
 
@@ -202,7 +202,23 @@ pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
     }
 
     let op = context.top_stack();
-    context.push_element(op.clone());
+    context.push(op.clone());
+
+    Ok(true)
+}
+
+pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_elements(2) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let op1 = context.pop();
+    let op2 = context.pop();
+
+    context.push(op1.clone());
+    context.push(op2.clone());
+    context.push(op1);
+    context.push(op2);
 
     Ok(true)
 }
@@ -212,7 +228,7 @@ pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let op = context.pop_element()?;
+    let op = context.pop_as_element()?;
 
     if op.as_bool() {
         return Ok(true);
@@ -231,10 +247,10 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
-    let e = context.pop_element()?;
+    let e = context.pop_as_element()?;
     if let Operation::Element(value) = e {
         let hash = hash160(&value);
-        context.push_element(Operation::Element(hash));
+        context.push(Operation::Element(hash));
 
         return Ok(true);
     }

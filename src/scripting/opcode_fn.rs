@@ -133,14 +133,9 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
     let a = context.pop_element()?;
     let b = context.pop_element()?;
 
-    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
-        let left = element_decode(a);
-        let right = element_decode(b);
-
+    if let (Operation::Element(left), Operation::Element(right)) = (a, b) {
         let equals = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
         context.push_element(Operation::Element(equals.to_vec()));
-
-        // TODO: OP_EQUALVERIFY do not push the result to the stack and return error SCRIPT_ERR_EQUALVERIFY if the result is false
 
         return Ok(true);
     }

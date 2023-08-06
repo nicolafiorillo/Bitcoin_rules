@@ -686,7 +686,20 @@ mod script_test {
 
         let op = context.pop_as_element().unwrap();
 
-        let expected = string_to_bytes("d6a8a804d5be366ae5d3a318cdced1dc1cfe28ea").unwrap();
+        let expected = string_to_bytes("D6A8A804D5BE366AE5D3A318CDCED1DC1CFE28EA").unwrap();
+        assert_eq!(op, Operation::Element(expected));
+    }
+
+    #[test]
+    fn evaluate_hash256() {
+        let script = Script::from_representation("09 OP_HASH256").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_items(1));
+
+        let op = context.pop_as_element().unwrap();
+
+        let expected = string_to_bytes("2AD16B189B68E7672A886C82A0550BC531782A3A4CFB2F08324E316BB0F3174D").unwrap();
         assert_eq!(op, Operation::Element(expected));
     }
 
@@ -796,7 +809,6 @@ mod script_test {
 
     // OP_SHA1
     // OP_SHA256
-    // OP_HASH256
 
     //
     // Deprecated

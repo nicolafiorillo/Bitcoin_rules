@@ -246,6 +246,10 @@ pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
     unimplemented!("operation not implemented")
 }
 
+pub fn deprecated(_context: &mut Context) -> Result<bool, ContextError> {
+    Err(ContextError::DeprecatedOpCode)
+}
+
 #[cfg(test)]
 mod opcode_fn_test {
     use rug::Integer;

@@ -714,6 +714,38 @@ mod script_test {
     }
 
     //
+    // Deprecated
+    //
+
+    macro_rules! evaluate_op_deprecated {
+        ($n:literal, $f:ident) => {
+            #[test]
+            fn $f() {
+                let script = Script::from_representation($n).unwrap();
+                let context = script.evaluate(Integer::from(0));
+
+                assert_eq!(ContextError::DeprecatedOpCode, context.expect_err("Err"));
+            }
+        };
+    }
+
+    // evaluate_op_deprecated!("OP_MUL", evaluate_op_mul);
+    evaluate_op_deprecated!("OP_CAT", evaluate_op_cat);
+    evaluate_op_deprecated!("OP_SUBSTR", evaluate_op_substr);
+    evaluate_op_deprecated!("OP_LEFT", evaluate_op_left);
+    evaluate_op_deprecated!("OP_RIGHT", evaluate_op_right);
+    evaluate_op_deprecated!("OP_INVERT", evaluate_op_invert);
+    evaluate_op_deprecated!("OP_AND", evaluate_op_and);
+    evaluate_op_deprecated!("OP_OR", evaluate_op_or);
+    evaluate_op_deprecated!("OP_XOR", evaluate_op_xor);
+    evaluate_op_deprecated!("OP_2MUL", evaluate_op_2mul);
+    evaluate_op_deprecated!("OP_2DIV", evaluate_op_2div);
+    evaluate_op_deprecated!("OP_DIV", evaluate_op_div);
+    evaluate_op_deprecated!("OP_MOD", evaluate_op_mod);
+    evaluate_op_deprecated!("OP_LSHIFT", evaluate_op_lshift);
+    evaluate_op_deprecated!("OP_RSHIFT", evaluate_op_rshift);
+
+    //
     // P2PK
     //
     #[test]

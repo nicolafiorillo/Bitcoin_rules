@@ -27,6 +27,7 @@ pub enum ContextError {
     UnexpectedElse,
     ExitByReturn,
     ExitByFailedVerify,
+    DeprecatedOpCode,
 }
 
 impl Context {

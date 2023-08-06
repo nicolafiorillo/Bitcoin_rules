@@ -196,34 +196,34 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_ROT] = OpCodeInfo::new("OP_ROT", not_implemented);
     op_to_fn[OP_SWAP] = OpCodeInfo::new("OP_SWAP", not_implemented);
     op_to_fn[OP_TUCK] = OpCodeInfo::new("OP_TUCK", not_implemented);
-    op_to_fn[OP_CAT] = OpCodeInfo::new("OP_CAT", not_implemented);
-    op_to_fn[OP_SUBSTR] = OpCodeInfo::new("OP_SUBSTR", not_implemented);
-    op_to_fn[OP_LEFT] = OpCodeInfo::new("OP_LEFT", not_implemented);
-    op_to_fn[OP_RIGHT] = OpCodeInfo::new("OP_RIGHT", not_implemented);
+    op_to_fn[OP_CAT] = OpCodeInfo::new("OP_CAT", deprecated);
+    op_to_fn[OP_SUBSTR] = OpCodeInfo::new("OP_SUBSTR", deprecated);
+    op_to_fn[OP_LEFT] = OpCodeInfo::new("OP_LEFT", deprecated);
+    op_to_fn[OP_RIGHT] = OpCodeInfo::new("OP_RIGHT", deprecated);
     op_to_fn[OP_SIZE] = OpCodeInfo::new("OP_SIZE", not_implemented);
-    op_to_fn[OP_INVERT] = OpCodeInfo::new("OP_INVERT", not_implemented);
-    op_to_fn[OP_AND] = OpCodeInfo::new("OP_AND", not_implemented);
-    op_to_fn[OP_OR] = OpCodeInfo::new("OP_OR", not_implemented);
-    op_to_fn[OP_XOR] = OpCodeInfo::new("OP_XOR", not_implemented);
+    op_to_fn[OP_INVERT] = OpCodeInfo::new("OP_INVERT", deprecated);
+    op_to_fn[OP_AND] = OpCodeInfo::new("OP_AND", deprecated);
+    op_to_fn[OP_OR] = OpCodeInfo::new("OP_OR", deprecated);
+    op_to_fn[OP_XOR] = OpCodeInfo::new("OP_XOR", deprecated);
     op_to_fn[OP_EQUAL] = OpCodeInfo::new("OP_EQUAL", op_equal);
     op_to_fn[OP_EQUALVERIFY] = OpCodeInfo::new("OP_EQUALVERIFY", op_equalverify);
     op_to_fn[OP_RESERVED1] = OpCodeInfo::new("OP_RESERVED1", not_implemented);
     op_to_fn[OP_RESERVED2] = OpCodeInfo::new("OP_RESERVED2", not_implemented);
     op_to_fn[OP_1ADD] = OpCodeInfo::new("OP_1ADD", not_implemented);
     op_to_fn[OP_1SUB] = OpCodeInfo::new("OP_1SUB", not_implemented);
-    op_to_fn[OP_2MUL] = OpCodeInfo::new("OP_2MUL", not_implemented);
-    op_to_fn[OP_2DIV] = OpCodeInfo::new("OP_2DIV", not_implemented);
+    op_to_fn[OP_2MUL] = OpCodeInfo::new("OP_2MUL", deprecated);
+    op_to_fn[OP_2DIV] = OpCodeInfo::new("OP_2DIV", deprecated);
     op_to_fn[OP_NEGATE] = OpCodeInfo::new("OP_NEGATE", not_implemented);
     op_to_fn[OP_ABS] = OpCodeInfo::new("OP_ABS", not_implemented);
     op_to_fn[OP_NOT] = OpCodeInfo::new("OP_NOT", not_implemented);
     op_to_fn[OP_0NOTEQUAL] = OpCodeInfo::new("OP_0NOTEQUAL", not_implemented);
     op_to_fn[OP_ADD] = OpCodeInfo::new("OP_ADD", op_add);
     op_to_fn[OP_SUB] = OpCodeInfo::new("OP_SUB", not_implemented);
-    op_to_fn[OP_MUL] = OpCodeInfo::new("OP_MUL", not_implemented);
-    op_to_fn[OP_DIV] = OpCodeInfo::new("OP_DIV", not_implemented);
-    op_to_fn[OP_MOD] = OpCodeInfo::new("OP_MOD", not_implemented);
-    op_to_fn[OP_LSHIFT] = OpCodeInfo::new("OP_LSHIFT", not_implemented);
-    op_to_fn[OP_RSHIFT] = OpCodeInfo::new("OP_RSHIFT", not_implemented);
+    op_to_fn[OP_MUL] = OpCodeInfo::new("OP_MUL", deprecated);
+    op_to_fn[OP_DIV] = OpCodeInfo::new("OP_DIV", deprecated);
+    op_to_fn[OP_MOD] = OpCodeInfo::new("OP_MOD", deprecated);
+    op_to_fn[OP_LSHIFT] = OpCodeInfo::new("OP_LSHIFT", deprecated);
+    op_to_fn[OP_RSHIFT] = OpCodeInfo::new("OP_RSHIFT", deprecated);
     op_to_fn[OP_BOOLAND] = OpCodeInfo::new("OP_BOOLAND", not_implemented);
     op_to_fn[OP_BOOLOR] = OpCodeInfo::new("OP_BOOLOR", not_implemented);
     op_to_fn[OP_NUMEQUAL] = OpCodeInfo::new("OP_NUMEQUAL", not_implemented);
@@ -267,9 +267,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     }
 
     #[cfg(not(test))]
-    fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {
-        op_to_fn[OP_MUL] = OpCodeInfo::new("OP_MUL", op_mul);
-    }
+    fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {}
 
     implement_deprecated(&mut op_to_fn);
 

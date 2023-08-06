@@ -498,6 +498,20 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_mul() {
+        let script = Script::from_operations(vec![
+            Operation::Element(vec![0x02]),
+            Operation::Element(vec![0x02]),
+            Operation::Command(OP_MUL),
+        ]);
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        let op = context.pop_element().unwrap();
+
+        assert_eq!(op, Operation::Element(vec![0x04]));
+    }
+
+    #[test]
     fn evaluate_equal_true() {
         let script = Script::from_operations(vec![
             Operation::Element(vec![0x01]),
@@ -676,6 +690,15 @@ mod script_test {
     #[test]
     fn evaluate_equalverify_true() {
         let script = Script::from_representation("09 09 OP_EQUALVERIFY 01").unwrap();
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+        assert!(context.has_elements(1));
+    }
+
+    #[test]
+    fn evaluate_generic_script_1() {
+        let script = Script::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.is_valid());

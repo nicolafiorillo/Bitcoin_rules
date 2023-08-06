@@ -22,8 +22,6 @@ use super::verification::verify;
 
 /// Key structure.
 pub struct Key {
-    // TODO: this is a bug, using Integer we can also pass also numbers bigger than 2^256;
-    //       manage private_key with 32 bytes number, e.g. with like u256
     /// real private key (k)
     private_key: Integer,
     /// public key

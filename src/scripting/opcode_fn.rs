@@ -125,6 +125,27 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::NotAnElement)
 }
 
+pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_elements(2) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let a = context.pop_element()?;
+    let b = context.pop_element()?;
+
+    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
+        let left = element_decode(a);
+        let right = element_decode(b);
+
+        let sum = left * right;
+        context.push_element(Operation::Element(element_encode(sum)));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
 pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_elements(2) {
         return Err(ContextError::NotEnoughElementsInStack);

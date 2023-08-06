@@ -144,6 +144,7 @@ pub const OPS_LENGTH: usize = 256;
 
 pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     let mut op_to_fn: [OpCodeInfo; OPS_LENGTH] = [OpCodeInfo::new("", not_implemented); OPS_LENGTH];
+
     op_to_fn[OP_0] = OpCodeInfo::new("OP_0", op_0);
     op_to_fn[OP_PUSHDATA1] = OpCodeInfo::new("OP_PUSHDATA1", not_implemented);
     op_to_fn[OP_PUSHDATA2] = OpCodeInfo::new("OP_PUSHDATA2", not_implemented);
@@ -257,6 +258,20 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_NOP10] = OpCodeInfo::new("OP_NOP10", not_implemented);
     op_to_fn[OP_CHECKSIGADD] = OpCodeInfo::new("OP_CHECKSIGADD", not_implemented);
     op_to_fn[OP_INVALIDOPCODE] = OpCodeInfo::new("OP_INVALIDOPCODE", not_implemented);
+
+    // implement deprecated op codes only for test
+    // https://github.com/bitcoin/bitcoin/blob/d096743150fd35578b7ed71ef6bced2341927d43/src/script/interpreter.cpp#L456
+    #[cfg(test)]
+    fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {
+        op_to_fn[OP_MUL] = OpCodeInfo::new("OP_MUL", op_mul);
+    }
+
+    #[cfg(not(test))]
+    fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {
+        op_to_fn[OP_MUL] = OpCodeInfo::new("OP_MUL", op_mul);
+    }
+
+    implement_deprecated(&mut op_to_fn);
 
     op_to_fn
 });

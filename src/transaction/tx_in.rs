@@ -20,6 +20,8 @@ pub struct TxIn {
     amount: Option<u64>,
 }
 
+// TODO: manage errors with Result
+
 impl TxIn {
     pub fn new(
         previous_transaction_id: Integer,

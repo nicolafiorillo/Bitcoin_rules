@@ -19,6 +19,8 @@ macro_rules! op_n {
     };
 }
 
+// TODO: put function in code order
+
 op_n!(2, op_2);
 op_n!(3, op_3);
 op_n!(4, op_4);
@@ -215,8 +217,22 @@ pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
     let op1 = context.pop();
     let op2 = context.pop();
 
-    context.push(op1.clone());
     context.push(op2.clone());
+    context.push(op1.clone());
+    context.push(op2);
+    context.push(op1);
+
+    Ok(true)
+}
+
+pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_items(2) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let op1 = context.pop();
+    let op2 = context.pop();
+
     context.push(op1);
     context.push(op2);
 

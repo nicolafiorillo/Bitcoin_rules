@@ -659,22 +659,22 @@ mod script_test {
 
     #[test]
     fn evaluate_2dup() {
-        let script = Script::from_representation("01 02 OP_2DUP").unwrap();
+        let script = Script::from_representation("0A 0B OP_2DUP").unwrap();
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.has_items(4));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x01]));
+        assert_eq!(op, Operation::Element(vec![0x0B]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x02]));
+        assert_eq!(op, Operation::Element(vec![0x0A]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x01]));
+        assert_eq!(op, Operation::Element(vec![0x0B]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x02]));
+        assert_eq!(op, Operation::Element(vec![0x0A]));
     }
 
     #[test]
@@ -761,6 +761,21 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_swap() {
+        let script = Script::from_representation("01 02 OP_SWAP").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(!context.is_valid());
+        assert!(context.has_items(2));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x01]));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(vec![0x02]));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = Script::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
@@ -780,9 +795,7 @@ mod script_test {
     // }
 
     // OP_SHA1
-    // OP_SWAP
     // OP_SHA256
-    // OP_HASH160
     // OP_HASH256
 
     //

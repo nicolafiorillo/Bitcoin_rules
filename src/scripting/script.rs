@@ -480,7 +480,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Command(OP_NOP)]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(0));
+        assert!(context.has_items(0));
     }
 
     #[test]
@@ -544,7 +544,7 @@ mod script_test {
         let script = Script::from_operations(vec![Operation::Element(vec![0x01]), Operation::Command(OP_IF)]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(0));
+        assert!(context.has_items(0));
         assert!(context.executing())
     }
 
@@ -565,7 +565,7 @@ mod script_test {
         ]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(0));
+        assert!(context.has_items(0));
         assert!(context.executing())
     }
 
@@ -579,7 +579,7 @@ mod script_test {
         ]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(0));
+        assert!(context.has_items(0));
         assert!(context.executing())
     }
 
@@ -588,7 +588,7 @@ mod script_test {
         let script = Script::from_representation("01 00 OP_IF 02 OP_ENDIF").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
 
         assert!(context.executing());
         assert!(context.is_valid());
@@ -599,7 +599,7 @@ mod script_test {
         let script = Script::from_representation("01 01 OP_IF 02 OP_ENDIF").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(2));
+        assert!(context.has_items(2));
 
         assert!(context.executing());
         assert!(!context.is_valid());
@@ -610,7 +610,7 @@ mod script_test {
         let script = Script::from_representation("00 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
 
         assert!(context.executing());
         assert!(!context.is_valid());
@@ -621,7 +621,7 @@ mod script_test {
         let script = Script::from_representation("01 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
 
         assert!(context.executing());
         assert!(context.is_valid());
@@ -648,7 +648,7 @@ mod script_test {
         let script = Script::from_representation("09 OP_DUP").unwrap();
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(2));
+        assert!(context.has_items(2));
 
         let op = context.pop_as_element().unwrap();
         assert_eq!(op, Operation::Element(vec![0x09]));
@@ -662,7 +662,7 @@ mod script_test {
         let script = Script::from_representation("01 02 OP_2DUP").unwrap();
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(4));
+        assert!(context.has_items(4));
 
         let op = context.pop_as_element().unwrap();
         assert_eq!(op, Operation::Element(vec![0x01]));
@@ -682,7 +682,7 @@ mod script_test {
         let script = Script::from_representation("09 OP_HASH160").unwrap();
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
 
         let op = context.pop_as_element().unwrap();
 
@@ -696,7 +696,7 @@ mod script_test {
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.is_valid());
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
     }
 
     #[test]
@@ -713,7 +713,7 @@ mod script_test {
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.is_valid());
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
     }
 
     #[test]
@@ -725,12 +725,48 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_not_1() {
+        let script = Script::from_representation("00 OP_NOT").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.is_valid());
+        assert!(context.has_items(1));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_not_2() {
+        let script = Script::from_representation("01 OP_NOT").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(!context.is_valid());
+        assert!(context.has_items(1));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_not_3() {
+        let script = Script::from_representation("AA OP_NOT").unwrap();
+        let mut context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(!context.is_valid());
+        assert!(context.has_items(1));
+
+        let op = context.pop_as_element().unwrap();
+        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = Script::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.is_valid());
-        assert!(context.has_elements(1));
+        assert!(context.has_items(1));
     }
 
     // #[test]
@@ -743,8 +779,6 @@ mod script_test {
     //     assert!(context.has_elements(1));
     // }
 
-    // OP_2DUP
-    // OP_NOT
     // OP_SHA1
     // OP_SWAP
     // OP_SHA256

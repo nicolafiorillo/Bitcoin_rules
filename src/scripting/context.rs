@@ -95,11 +95,11 @@ impl Context {
         self.stack.len() == 1 && self.stack[0] == Operation::Element(vec![1])
     }
 
-    pub fn has_enough_elements(&self, num: usize) -> bool {
+    pub fn has_enough_items(&self, num: usize) -> bool {
         self.stack.len() >= num
     }
 
-    pub fn has_elements(&self, num: usize) -> bool {
+    pub fn has_items(&self, num: usize) -> bool {
         self.stack.len() == num
     }
 

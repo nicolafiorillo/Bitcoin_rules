@@ -73,7 +73,7 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
     let mut exec = false;
 
     if context.executing() {
-        if !context.has_enough_elements(1) {
+        if !context.has_enough_items(1) {
             return Err(ContextError::NotEnoughElementsInStack);
         }
 
@@ -105,7 +105,7 @@ pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(2) {
+    if !context.has_enough_items(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -126,7 +126,7 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(2) {
+    if !context.has_enough_items(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -147,7 +147,7 @@ pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(2) {
+    if !context.has_enough_items(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -165,7 +165,7 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(2) {
+    if !context.has_enough_items(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -197,7 +197,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(1) {
+    if !context.has_enough_items(1) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -208,7 +208,7 @@ pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(2) {
+    if !context.has_enough_items(2) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -224,7 +224,7 @@ pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(1) {
+    if !context.has_enough_items(1) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -243,7 +243,7 @@ pub fn op_equalverify(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_elements(1) {
+    if !context.has_enough_items(1) {
         return Err(ContextError::NotEnoughElementsInStack);
     }
 
@@ -256,6 +256,25 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
     }
 
     Err(ContextError::NotAnElement)
+}
+
+pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_items(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let e = context.pop();
+
+    if let Operation::Element(value) = e {
+        if value == ELEMENT_ZERO {
+            context.push(Operation::Element(ELEMENT_ONE.to_vec()));
+            return Ok(true);
+        }
+    }
+
+    context.push(Operation::Element(ELEMENT_ZERO.to_vec()));
+
+    Ok(true)
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {

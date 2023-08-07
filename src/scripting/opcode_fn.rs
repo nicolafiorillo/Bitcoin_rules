@@ -1,6 +1,6 @@
 use crate::{
     ecdsa::point::Point,
-    hashing::{hash160::hash160, hash256::hash256},
+    hashing::{hash160::hash160, hash256::hash256, sha1::sha1, sha256::sha256},
     keys::{signature::Signature, verification::verify},
 };
 
@@ -282,6 +282,38 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
     let e = context.pop_as_element()?;
     if let Operation::Element(value) = e {
         let hash = hash160(&value);
+        context.push(Operation::Element(hash));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_items(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let e = context.pop_as_element()?;
+    if let Operation::Element(value) = e {
+        let hash = sha256(&value);
+        context.push(Operation::Element(hash));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.has_enough_items(1) {
+        return Err(ContextError::NotEnoughElementsInStack);
+    }
+
+    let e = context.pop_as_element()?;
+    if let Operation::Element(value) = e {
+        let hash = sha1(&value);
         context.push(Operation::Element(hash));
 
         return Ok(true);

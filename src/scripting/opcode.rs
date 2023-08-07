@@ -237,8 +237,8 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_MAX] = OpCodeInfo::new("OP_MAX", not_implemented);
     op_to_fn[OP_WITHIN] = OpCodeInfo::new("OP_WITHIN", not_implemented);
     op_to_fn[OP_RIPEMD160] = OpCodeInfo::new("OP_RIPEMD160", not_implemented);
-    op_to_fn[OP_SHA1] = OpCodeInfo::new("OP_SHA1", not_implemented);
-    op_to_fn[OP_SHA256] = OpCodeInfo::new("OP_SHA256", not_implemented);
+    op_to_fn[OP_SHA1] = OpCodeInfo::new("OP_SHA1", op_sha1);
+    op_to_fn[OP_SHA256] = OpCodeInfo::new("OP_SHA256", op_sha256);
     op_to_fn[OP_HASH160] = OpCodeInfo::new("OP_HASH160", op_hash160);
     op_to_fn[OP_HASH256] = OpCodeInfo::new("OP_HASH256", op_hash256);
     op_to_fn[OP_CODESEPARATOR] = OpCodeInfo::new("OP_CODESEPARATOR", not_implemented);
@@ -259,7 +259,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_CHECKSIGADD] = OpCodeInfo::new("OP_CHECKSIGADD", not_implemented);
     op_to_fn[OP_INVALIDOPCODE] = OpCodeInfo::new("OP_INVALIDOPCODE", not_implemented);
 
-    // implement deprecated op codes only for test
+    // implement deprecated op codes for testing only
     // https://github.com/bitcoin/bitcoin/blob/d096743150fd35578b7ed71ef6bced2341927d43/src/script/interpreter.cpp#L456
     #[cfg(test)]
     fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {
@@ -267,7 +267,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     }
 
     #[cfg(not(test))]
-    fn implement_deprecated(op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {}
+    fn implement_deprecated(_op_to_fn: &mut [OpCodeInfo; OPS_LENGTH]) {}
 
     implement_deprecated(&mut op_to_fn);
 

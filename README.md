@@ -43,7 +43,10 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 
 ### Tools
 - [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
+- [Hashing Online Tools](https://emn178.github.io/online-tools/index.html)
 
+### Interesting stuff
+- [REWARD offered for hash collisions for SHA1, SHA256, RIPEMD160 and other](https://bitcointalk.org/index.php?topic=293382.0) by [Peter Todd](https://twitter.com/peterktodd)
 ## To do
 
 - [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.

@@ -25,7 +25,7 @@ mod hashing_test {
         let hashed = hash256(&"A SECRET".to_string().as_bytes().to_vec());
         let hashed_integer = Integer::from_digits(&hashed, Order::Msf);
 
-        let expected = Integer::from_hex_str("64c8cc00820487ef146bc190e5664bee0d39654a1942809316cefd54c5def520");
+        let expected = Integer::from_hex_str("64C8CC00820487EF146BC190E5664BEE0D39654A1942809316CEFD54C5DEF520");
 
         assert_eq!(hashed_integer, expected);
     }
@@ -35,7 +35,7 @@ mod hashing_test {
         let hashed = hash256(&"".to_string().as_bytes().to_vec());
         let hashed_integer = Integer::from_digits(&hashed, Order::Msf);
 
-        let expected = Integer::from_hex_str("5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456");
+        let expected = Integer::from_hex_str("5DF6E0E2761359D30A8275058E299FCC0381534545F55CF43E41983F5D4C9456");
 
         assert_eq!(hashed_integer, expected);
     }

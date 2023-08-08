@@ -839,6 +839,28 @@ mod script_test {
     }
 
     //
+    // Reserved
+    //
+    macro_rules! evaluate_op_reserved {
+        ($n:literal, $f:ident) => {
+            #[test]
+            fn $f() {
+                let script = Script::from_representation($n).unwrap();
+                let context = script.evaluate(Integer::from(0));
+
+                assert_eq!(ContextError::ExitByReserved, context.expect_err("Err"));
+            }
+        };
+    }
+
+    evaluate_op_reserved!("OP_RESERVED", evaluate_op_reserved);
+    evaluate_op_reserved!("OP_VER", evaluate_op_ver);
+    evaluate_op_reserved!("OP_VERIF", evaluate_op_verif);
+    evaluate_op_reserved!("OP_VERNOTIF", evaluate_op_vernotif);
+    evaluate_op_reserved!("OP_RESERVED1", evaluate_op_reserved1);
+    evaluate_op_reserved!("OP_RESERVED2", evaluate_op_reserved2);
+
+    //
     // Deprecated
     //
     macro_rules! evaluate_op_deprecated {

@@ -349,6 +349,10 @@ pub fn deprecated(_context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::DeprecatedOpCode)
 }
 
+pub fn reserved(_context: &mut Context) -> Result<bool, ContextError> {
+    Err(ContextError::ExitByReserved)
+}
+
 #[cfg(test)]
 mod opcode_fn_test {
     use rug::Integer;

@@ -370,6 +370,10 @@ pub fn reserved(_context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::ExitByReserved)
 }
 
+pub fn ignored(_context: &mut Context) -> Result<bool, ContextError> {
+    Ok(true)
+}
+
 #[cfg(test)]
 mod opcode_fn_test {
     use rug::Integer;

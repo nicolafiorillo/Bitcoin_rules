@@ -866,6 +866,30 @@ mod script_test {
     }
 
     //
+    // Ignored
+    //
+    macro_rules! evaluate_op_ignored {
+        ($n:literal, $f:ident) => {
+            #[test]
+            fn $f() {
+                let script = Script::from_representation($n).unwrap();
+                let context = script.evaluate(Integer::from(0)).unwrap();
+
+                assert!(context.stack_has_items(0));
+            }
+        };
+    }
+
+    evaluate_op_ignored!("OP_NOP1", evaluate_op_nop1);
+    evaluate_op_ignored!("OP_NOP4", evaluate_op_nop4);
+    evaluate_op_ignored!("OP_NOP5", evaluate_op_nop5);
+    evaluate_op_ignored!("OP_NOP6", evaluate_op_nop6);
+    evaluate_op_ignored!("OP_NOP7", evaluate_op_nop7);
+    evaluate_op_ignored!("OP_NOP8", evaluate_op_nop8);
+    evaluate_op_ignored!("OP_NOP9", evaluate_op_nop9);
+    evaluate_op_ignored!("OP_NOP10", evaluate_op_nop10);
+
+    //
     // Reserved
     //
     macro_rules! evaluate_op_reserved {

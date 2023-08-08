@@ -51,7 +51,7 @@ impl Context {
         }
     }
 
-    pub fn is_over(&self) -> bool {
+    pub fn tokens_are_over(&self) -> bool {
         self.script_tokens_position >= self.script_tokens_length
     }
 
@@ -64,7 +64,7 @@ impl Context {
         &self.script_tokens[current]
     }
 
-    pub fn push(&mut self, token: Token) {
+    pub fn stack_push(&mut self, token: Token) {
         self.stack.push_front(token)
     }
 
@@ -74,13 +74,13 @@ impl Context {
         self.stack.front().unwrap()
     }
 
-    pub fn pop(&mut self) -> Token {
+    pub fn stack_pop(&mut self) -> Token {
         assert!(!self.stack.is_empty());
 
         self.stack.pop_front().unwrap()
     }
 
-    pub fn pop_as_element(&mut self) -> Result<Token, ContextError> {
+    pub fn stack_pop_as_element(&mut self) -> Result<Token, ContextError> {
         assert!(!self.stack.is_empty());
 
         match self.stack.pop_front().unwrap() {
@@ -96,11 +96,11 @@ impl Context {
         self.stack.len() == 1 && self.stack[0] == Token::Element(vec![1])
     }
 
-    pub fn has_enough_items(&self, num: usize) -> bool {
+    pub fn stack_has_enough_items(&self, num: usize) -> bool {
         self.stack.len() >= num
     }
 
-    pub fn has_items(&self, num: usize) -> bool {
+    pub fn stack_has_items(&self, num: usize) -> bool {
         self.stack.len() == num
     }
 

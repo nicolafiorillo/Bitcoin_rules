@@ -12,7 +12,7 @@ use super::{
 macro_rules! op_n {
     ($n:tt, $f:ident) => {
         pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
-            context.push(Token::Element(element_encode($n)));
+            context.stack_push(Token::Element(element_encode($n)));
 
             Ok(true)
         }
@@ -46,19 +46,19 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
 }
 
 pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Token::Element(ELEMENT_ZERO.to_vec()));
+    context.stack_push(Token::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }
 
 pub fn op_1(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Token::Element(element_encode(1)));
+    context.stack_push(Token::Element(element_encode(1)));
 
     Ok(true)
 }
 
 pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Token::Element(ELEMENT_ONE_NEGATE.to_vec()));
+    context.stack_push(Token::Element(ELEMENT_ONE_NEGATE.to_vec()));
 
     Ok(true)
 }
@@ -75,11 +75,11 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
     let mut exec = false;
 
     if context.executing() {
-        if !context.has_enough_items(1) {
+        if !context.stack_has_enough_items(1) {
             return Err(ContextError::NotEnoughItemsInStack);
         }
 
-        let token = context.pop_as_element()?;
+        let token = context.stack_pop_as_element()?;
         exec = token.as_bool();
     }
 
@@ -92,11 +92,11 @@ pub fn op_notif(context: &mut Context) -> Result<bool, ContextError> {
     let mut exec = false;
 
     if context.executing() {
-        if !context.has_enough_items(1) {
+        if !context.stack_has_enough_items(1) {
             return Err(ContextError::NotEnoughItemsInStack);
         }
 
-        let token = context.pop_as_element()?;
+        let token = context.stack_pop_as_element()?;
         exec = !token.as_bool();
     }
 
@@ -124,19 +124,19 @@ pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let a = context.pop_as_element()?;
-    let b = context.pop_as_element()?;
+    let a = context.stack_pop_as_element()?;
+    let b = context.stack_pop_as_element()?;
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left + right; // TODO: check overflow
-        context.push(Token::Element(element_encode(sum)));
+        context.stack_push(Token::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -145,19 +145,19 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let a = context.pop_as_element()?;
-    let b = context.pop_as_element()?;
+    let a = context.stack_pop_as_element()?;
+    let b = context.stack_pop_as_element()?;
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left * right;
-        context.push(Token::Element(element_encode(sum)));
+        context.stack_push(Token::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -166,16 +166,16 @@ pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let a = context.pop_as_element()?;
-    let b = context.pop_as_element()?;
+    let a = context.stack_pop_as_element()?;
+    let b = context.stack_pop_as_element()?;
 
     if let (Token::Element(left), Token::Element(right)) = (a, b) {
         let equals = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.push(Token::Element(equals.to_vec()));
+        context.stack_push(Token::Element(equals.to_vec()));
 
         return Ok(true);
     }
@@ -184,12 +184,12 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let pub_key = context.pop_as_element()?;
-    let sig = context.pop_as_element()?;
+    let pub_key = context.stack_pop_as_element()?;
+    let sig = context.stack_pop_as_element()?;
 
     if let Token::Element(public_key) = pub_key {
         if let Token::Element(mut der) = sig {
@@ -208,7 +208,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             let res = verify(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);
-            context.push(Token::Element(element_value));
+            context.stack_push(Token::Element(element_value));
         }
     }
 
@@ -216,52 +216,52 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let op = context.top_stack();
-    context.push(op.clone());
+    context.stack_push(op.clone());
 
     Ok(true)
 }
 
 pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let op1 = context.pop();
-    let op2 = context.pop();
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
 
-    context.push(op2.clone());
-    context.push(op1.clone());
-    context.push(op2);
-    context.push(op1);
+    context.stack_push(op2.clone());
+    context.stack_push(op1.clone());
+    context.stack_push(op2);
+    context.stack_push(op1);
 
     Ok(true)
 }
 
 pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(2) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let op1 = context.pop();
-    let op2 = context.pop();
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
 
-    context.push(op1);
-    context.push(op2);
+    context.stack_push(op1);
+    context.stack_push(op2);
 
     Ok(true)
 }
 
 pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let op = context.pop_as_element()?;
+    let op = context.stack_pop_as_element()?;
 
     if op.as_bool() {
         return Ok(true);
@@ -276,14 +276,14 @@ pub fn op_equalverify(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let e = context.pop_as_element()?;
+    let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = hash256(&value);
-        context.push(Token::Element(hash));
+        context.stack_push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -292,14 +292,14 @@ pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let e = context.pop_as_element()?;
+    let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = hash160(&value);
-        context.push(Token::Element(hash));
+        context.stack_push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -308,14 +308,14 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let e = context.pop_as_element()?;
+    let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = sha256(&value);
-        context.push(Token::Element(hash));
+        context.stack_push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -324,14 +324,14 @@ pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let e = context.pop_as_element()?;
+    let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = sha1(&value);
-        context.push(Token::Element(hash));
+        context.stack_push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -340,20 +340,20 @@ pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.has_enough_items(1) {
+    if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let e = context.pop();
+    let e = context.stack_pop();
 
     if let Token::Element(value) = e {
         if value == ELEMENT_ZERO {
-            context.push(Token::Element(ELEMENT_ONE.to_vec()));
+            context.stack_push(Token::Element(ELEMENT_ONE.to_vec()));
             return Ok(true);
         }
     }
 
-    context.push(Token::Element(ELEMENT_ZERO.to_vec()));
+    context.stack_push(Token::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }

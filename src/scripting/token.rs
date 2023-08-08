@@ -3,15 +3,15 @@ use crate::std_lib::vector::{padding_left, trim_right};
 use super::opcode::OpCode;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Operation {
+pub enum Token {
     Element(Vec<u8>),
     Command(OpCode),
 }
 
-impl Operation {
+impl Token {
     pub fn as_bool(&self) -> bool {
         match self {
-            Operation::Element(value) => {
+            Token::Element(value) => {
                 for i in value {
                     // TODO: can be negative zero
                     // if (i == vch.size()-1 && vch[i] == 0x80)
@@ -33,10 +33,10 @@ impl Operation {
 
         matches!(
             self,
-            Operation::Command(opcode::OP_IF)
-                | Operation::Command(opcode::OP_NOTIF)
-                | Operation::Command(opcode::OP_ELSE)
-                | Operation::Command(opcode::OP_ENDIF)
+            Token::Command(opcode::OP_IF)
+                | Token::Command(opcode::OP_NOTIF)
+                | Token::Command(opcode::OP_ELSE)
+                | Token::Command(opcode::OP_ENDIF)
         )
     }
 }
@@ -96,7 +96,7 @@ pub fn element_decode(bytes: Vec<u8>) -> i64 {
 }
 
 #[cfg(test)]
-mod operation_test {
+mod token_test {
     use super::*;
 
     #[test]

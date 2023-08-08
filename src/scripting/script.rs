@@ -9,11 +9,11 @@ use crate::{
 use super::{
     context::{Context, ContextError},
     opcode::*,
-    operation::Operation,
+    token::Token,
 };
 
 #[derive(Debug)]
-pub struct Script(Vec<Operation>);
+pub struct Script(Vec<Token>);
 
 #[derive(Debug)]
 pub enum ScriptError {
@@ -32,22 +32,22 @@ impl Script {
         }
     }
 
-    pub fn from_operations(items: Vec<Operation>) -> Self {
-        Script(items)
+    pub fn from_tokens(tokens: Vec<Token>) -> Self {
+        Script(tokens)
     }
 
     pub fn from_representation(repr: &str) -> Result<Self, ScriptError> {
         let trimmed_repr = repr.trim();
-        let mut items: Vec<Operation> = vec![];
+        let mut items: Vec<Token> = vec![];
 
         let tokens = trimmed_repr.split(' ').collect::<Vec<&str>>();
 
         for item in tokens {
             if let Some(op_code) = OP_TO_FN.iter().position(|op| op.name == item) {
-                items.push(Operation::Command(op_code));
+                items.push(Token::Command(op_code));
             } else {
                 match string_to_bytes(item) {
-                    Ok(bytes) => items.push(Operation::Element(bytes)),
+                    Ok(bytes) => items.push(Token::Element(bytes)),
                     Err(_) => return Err(ScriptError::InvalidScriptRepresentation),
                 };
             }
@@ -62,51 +62,50 @@ impl Script {
         let mut repr = String::new();
         for item in items {
             match item {
-                Operation::Element(bytes) => {
+                Token::Element(bytes) => {
                     let e = vect_to_hex_string(bytes);
                     repr.push_str(&e);
-                    repr.push(' ');
                 }
-                Operation::Command(op_code) => {
+                Token::Command(op_code) => {
                     repr.push_str((*OP_TO_FN)[*op_code].name);
-                    repr.push(' ');
                 }
             }
+            repr.push(' ');
         }
 
         repr.trim_end().to_string()
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>, ScriptError> {
-        let Self(operations) = self;
+        let Self(tokens) = self;
 
-        let raw = Script::raw_serialize(operations)?;
+        let raw = Script::raw_serialize(tokens)?;
 
         let length = varint_encode(raw.len() as u64);
         Ok([length.as_slice(), raw.as_slice()].concat())
     }
 
     pub fn evaluate(&self, z: Integer) -> Result<Context, ContextError> {
-        let Self(operations) = self;
+        let Self(tokens) = self;
 
-        let mut context = Context::new(operations.clone(), z);
+        let mut context = Context::new(tokens.clone(), z);
 
         while !context.is_over() {
             let executing = context.executing();
 
-            let operation = context.next_token();
-            log::debug!("Operation (exec: {}): {:?}", executing, operation);
+            let token = context.next_token();
+            log::debug!("Token (exec: {}): {:?}", executing, token);
 
-            if !executing && !operation.is_op_condition() {
+            if !executing && !token.is_op_condition() {
                 continue;
             }
 
-            match operation {
-                Operation::Element(bytes) => {
-                    let e = Operation::Element(bytes.to_vec());
+            match token {
+                Token::Element(bytes) => {
+                    let e = Token::Element(bytes.to_vec());
                     context.push(e);
                 }
-                Operation::Command(op_code) => {
+                Token::Command(op_code) => {
                     if *op_code > OPS_LENGTH {
                         return Err(ContextError::InvalidOpCode);
                     }
@@ -126,12 +125,12 @@ impl Script {
         Script([left_items, right_items].concat())
     }
 
-    fn raw_serialize(operations: &Vec<Operation>) -> Result<Vec<u8>, ScriptError> {
+    fn raw_serialize(tokens: &Vec<Token>) -> Result<Vec<u8>, ScriptError> {
         let mut raw: Vec<u8> = vec![];
 
-        for operation in operations {
-            match operation {
-                Operation::Element(bytes) => {
+        for token in tokens {
+            match token {
+                Token::Element(bytes) => {
                     let len = bytes.len();
                     if len <= 75 {
                         raw.push(len as u8);
@@ -149,7 +148,7 @@ impl Script {
 
                     raw.extend(bytes);
                 }
-                Operation::Command(op_code) => {
+                Token::Command(op_code) => {
                     raw.push(*op_code as u8);
                 }
             }
@@ -159,7 +158,7 @@ impl Script {
     }
 
     fn raw_deserialize(data: &[u8], var_int: &VarInt) -> Result<Self, ScriptError> {
-        let mut operations: Vec<Operation> = vec![];
+        let mut tokens: Vec<Token> = vec![];
         let length = var_int.value;
 
         let mut i = var_int.length as u64;
@@ -172,7 +171,7 @@ impl Script {
                 let end = start + first as usize;
 
                 let bytes = &data[start..end];
-                operations.push(Operation::Element(bytes.to_vec()));
+                tokens.push(Token::Element(bytes.to_vec()));
 
                 i += first as u64;
             } else if first == OP_PUSHDATA1 as u8 {
@@ -185,7 +184,7 @@ impl Script {
                 let end = start + len as usize;
 
                 let bytes = &data[start..end];
-                operations.push(Operation::Element(bytes.to_vec()));
+                tokens.push(Token::Element(bytes.to_vec()));
 
                 i += len as u64;
             } else if first == OP_PUSHDATA2 as u8 {
@@ -199,7 +198,7 @@ impl Script {
                 let end = start + len as usize;
 
                 let bytes = &data[start..end];
-                operations.push(Operation::Element(bytes.to_vec()));
+                tokens.push(Token::Element(bytes.to_vec()));
 
                 i += 1 + len as u64;
             } else if first == OP_PUSHDATA4 as u8 {
@@ -213,15 +212,15 @@ impl Script {
                 let end = start + len as usize;
 
                 let bytes = &data[start..end];
-                operations.push(Operation::Element(bytes.to_vec()));
+                tokens.push(Token::Element(bytes.to_vec()));
 
                 i += 1 + len as u64;
             } else {
-                operations.push(Operation::Command(first as OpCode));
+                tokens.push(Token::Command(first as OpCode));
                 i += 1;
             }
         }
-        Ok(Script(operations))
+        Ok(Script(tokens))
     }
 }
 
@@ -234,7 +233,7 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        scripting::{opcode::*, operation::*},
+        scripting::{opcode::*, token::*},
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
     use rug::Integer;
@@ -243,10 +242,10 @@ mod script_test {
 
     #[test]
     fn represent() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x00]),
-            Operation::Element(vec![0x01]),
-            Operation::Command(OP_CHECKSIG),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x00]),
+            Token::Element(vec![0x01]),
+            Token::Command(OP_CHECKSIG),
         ]);
 
         assert_eq!(format!("{}", script), "00 01 OP_CHECKSIG");
@@ -255,15 +254,15 @@ mod script_test {
     #[test]
     fn from_representation() {
         let expected = vec![
-            Operation::Element(vec![0x00]),
-            Operation::Element(vec![0x01]),
-            Operation::Command(OP_CHECKSIG),
+            Token::Element(vec![0x00]),
+            Token::Element(vec![0x01]),
+            Token::Command(OP_CHECKSIG),
         ];
 
         let script = Script::from_representation("00 01 OP_CHECKSIG").unwrap();
-        let Script(operations) = script;
+        let Script(tokens) = script;
 
-        assert_eq!(expected, operations);
+        assert_eq!(expected, tokens);
     }
 
     #[test]
@@ -271,9 +270,9 @@ mod script_test {
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script = Script::from_operations(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
+        let pubkey_script = Script::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_operations(vec![Operation::Element(signature)]);
+        let signature_script = Script::from_tokens(vec![Token::Element(signature)]);
         let script = Script::combine(signature_script, pubkey_script);
 
         let serialized = script.serialize().unwrap();
@@ -287,12 +286,12 @@ mod script_test {
         let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
         let script = Script::deserialize(&data).unwrap();
 
-        let Script(operations) = script;
+        let Script(tokens) = script;
 
-        assert_eq!(operations.len(), 3);
-        assert_eq!(operations[0], Operation::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
-        assert_eq!(operations[1], Operation::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap()));
-        assert_eq!(operations[2], Operation::Command(OP_CHECKSIG));
+        assert_eq!(tokens.len(), 3);
+        assert_eq!(tokens[0], Token::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
+        assert_eq!(tokens[1], Token::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap()));
+        assert_eq!(tokens[2], Token::Command(OP_CHECKSIG));
     }
 
     #[test]
@@ -301,9 +300,9 @@ mod script_test {
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script = Script::from_operations(vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)]);
+        let pubkey_script = Script::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_operations(vec![Operation::Element(signature)]);
+        let signature_script = Script::from_tokens(vec![Token::Element(signature)]);
         let script = Script::combine(signature_script, pubkey_script);
 
         assert!(script.evaluate(z).unwrap().is_valid());
@@ -311,173 +310,173 @@ mod script_test {
 
     #[test]
     fn evaluate_0() {
-        let script = Script::from_operations(vec![Operation::Command(OP_0)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_0)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
     }
 
     #[test]
     fn evaluate_1() {
-        let script = Script::from_operations(vec![Operation::Command(OP_1)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_1)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(1)));
+        assert_eq!(op, Token::Element(element_encode(1)));
     }
 
     #[test]
     fn evaluate_2() {
-        let script = Script::from_operations(vec![Operation::Command(OP_2)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_2)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(2)));
+        assert_eq!(op, Token::Element(element_encode(2)));
     }
     #[test]
     fn evaluate_3() {
-        let script = Script::from_operations(vec![Operation::Command(OP_3)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_3)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(3)));
+        assert_eq!(op, Token::Element(element_encode(3)));
     }
     #[test]
     fn evaluate_4() {
-        let script = Script::from_operations(vec![Operation::Command(OP_4)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_4)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(4)));
+        assert_eq!(op, Token::Element(element_encode(4)));
     }
     #[test]
     fn evaluate_5() {
-        let script = Script::from_operations(vec![Operation::Command(OP_5)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_5)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(5)));
+        assert_eq!(op, Token::Element(element_encode(5)));
     }
     #[test]
     fn evaluate_6() {
-        let script = Script::from_operations(vec![Operation::Command(OP_6)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_6)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(6)));
+        assert_eq!(op, Token::Element(element_encode(6)));
     }
     #[test]
     fn evaluate_7() {
-        let script = Script::from_operations(vec![Operation::Command(OP_7)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_7)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(7)));
+        assert_eq!(op, Token::Element(element_encode(7)));
     }
     #[test]
     fn evaluate_8() {
-        let script = Script::from_operations(vec![Operation::Command(OP_8)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_8)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(8)));
+        assert_eq!(op, Token::Element(element_encode(8)));
     }
     #[test]
     fn evaluate_9() {
-        let script = Script::from_operations(vec![Operation::Command(OP_9)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_9)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(9)));
+        assert_eq!(op, Token::Element(element_encode(9)));
     }
     #[test]
     fn evaluate_10() {
-        let script = Script::from_operations(vec![Operation::Command(OP_10)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_10)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(10)));
+        assert_eq!(op, Token::Element(element_encode(10)));
     }
     #[test]
     fn evaluate_11() {
-        let script = Script::from_operations(vec![Operation::Command(OP_11)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_11)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(11)));
+        assert_eq!(op, Token::Element(element_encode(11)));
     }
     #[test]
     fn evaluate_12() {
-        let script = Script::from_operations(vec![Operation::Command(OP_12)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_12)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(12)));
+        assert_eq!(op, Token::Element(element_encode(12)));
     }
     #[test]
     fn evaluate_13() {
-        let script = Script::from_operations(vec![Operation::Command(OP_13)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_13)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(13)));
+        assert_eq!(op, Token::Element(element_encode(13)));
     }
     #[test]
     fn evaluate_14() {
-        let script = Script::from_operations(vec![Operation::Command(OP_14)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_14)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(14)));
+        assert_eq!(op, Token::Element(element_encode(14)));
     }
     #[test]
     fn evaluate_15() {
-        let script = Script::from_operations(vec![Operation::Command(OP_15)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_15)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(15)));
+        assert_eq!(op, Token::Element(element_encode(15)));
     }
     #[test]
     fn evaluate_16() {
-        let script = Script::from_operations(vec![Operation::Command(OP_16)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_16)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(element_encode(16)));
+        assert_eq!(op, Token::Element(element_encode(16)));
     }
 
     #[test]
     fn evaluate_negate() {
-        let script = Script::from_operations(vec![Operation::Command(OP_1NEGATE)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_1NEGATE)]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_ONE_NEGATE.to_vec()));
     }
 
     #[test]
     fn evaluate_nop() {
-        let script = Script::from_operations(vec![Operation::Command(OP_NOP)]);
+        let script = Script::from_tokens(vec![Token::Command(OP_NOP)]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.has_items(0));
@@ -485,63 +484,63 @@ mod script_test {
 
     #[test]
     fn evaluate_add() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x01]),
-            Operation::Element(vec![0x02]),
-            Operation::Command(OP_ADD),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x01]),
+            Token::Element(vec![0x02]),
+            Token::Command(OP_ADD),
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(vec![0x03]));
+        assert_eq!(op, Token::Element(vec![0x03]));
     }
 
     #[test]
     fn evaluate_mul() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x02]),
-            Operation::Element(vec![0x02]),
-            Operation::Command(OP_MUL),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x02]),
+            Token::Element(vec![0x02]),
+            Token::Command(OP_MUL),
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(vec![0x04]));
+        assert_eq!(op, Token::Element(vec![0x04]));
     }
 
     #[test]
     fn evaluate_equal_true() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x01]),
-            Operation::Element(vec![0x01]),
-            Operation::Command(OP_EQUAL),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x01]),
+            Token::Element(vec![0x01]),
+            Token::Command(OP_EQUAL),
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(ELEMENT_TRUE.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_TRUE.to_vec()));
     }
 
     #[test]
     fn evaluate_equal_false() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x01]),
-            Operation::Element(vec![0x02]),
-            Operation::Command(OP_EQUAL),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x01]),
+            Token::Element(vec![0x02]),
+            Token::Command(OP_EQUAL),
         ]);
         let mut context = script.evaluate(Integer::from(0)).unwrap();
 
         let op = context.pop_as_element().unwrap();
 
-        assert_eq!(op, Operation::Element(ELEMENT_FALSE.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_FALSE.to_vec()));
     }
 
     #[test]
     fn evaluate_if() {
-        let script = Script::from_operations(vec![Operation::Element(vec![0x01]), Operation::Command(OP_IF)]);
+        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_IF)]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.has_items(0));
@@ -550,7 +549,7 @@ mod script_test {
 
     #[test]
     fn evaluate_return() {
-        let script = Script::from_operations(vec![Operation::Element(vec![0x01]), Operation::Command(OP_RETURN)]);
+        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_RETURN)]);
         let context = script.evaluate(Integer::from(0));
 
         assert_eq!(ContextError::ExitByReturn, context.expect_err("Err"));
@@ -558,10 +557,10 @@ mod script_test {
 
     #[test]
     fn evaluate_if_endif() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x01]),
-            Operation::Command(OP_IF),
-            Operation::Command(OP_ENDIF),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x01]),
+            Token::Command(OP_IF),
+            Token::Command(OP_ENDIF),
         ]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
@@ -571,11 +570,11 @@ mod script_test {
 
     #[test]
     fn evaluate_if_else_endif() {
-        let script = Script::from_operations(vec![
-            Operation::Element(vec![0x01]),
-            Operation::Command(OP_IF),
-            Operation::Command(OP_ELSE),
-            Operation::Command(OP_ENDIF),
+        let script = Script::from_tokens(vec![
+            Token::Element(vec![0x01]),
+            Token::Command(OP_IF),
+            Token::Command(OP_ELSE),
+            Token::Command(OP_ENDIF),
         ]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
@@ -651,10 +650,10 @@ mod script_test {
         assert!(context.has_items(2));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x09]));
+        assert_eq!(op, Token::Element(vec![0x09]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x09]));
+        assert_eq!(op, Token::Element(vec![0x09]));
     }
 
     #[test]
@@ -665,16 +664,16 @@ mod script_test {
         assert!(context.has_items(4));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x0B]));
+        assert_eq!(op, Token::Element(vec![0x0B]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x0A]));
+        assert_eq!(op, Token::Element(vec![0x0A]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x0B]));
+        assert_eq!(op, Token::Element(vec![0x0B]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x0A]));
+        assert_eq!(op, Token::Element(vec![0x0A]));
     }
 
     #[test]
@@ -687,7 +686,7 @@ mod script_test {
         let op = context.pop_as_element().unwrap();
 
         let expected = string_to_bytes("D6A8A804D5BE366AE5D3A318CDCED1DC1CFE28EA").unwrap();
-        assert_eq!(op, Operation::Element(expected));
+        assert_eq!(op, Token::Element(expected));
     }
 
     #[test]
@@ -700,7 +699,7 @@ mod script_test {
         let op = context.pop_as_element().unwrap();
 
         let expected = string_to_bytes("2AD16B189B68E7672A886C82A0550BC531782A3A4CFB2F08324E316BB0F3174D").unwrap();
-        assert_eq!(op, Operation::Element(expected));
+        assert_eq!(op, Token::Element(expected));
     }
 
     #[test]
@@ -713,7 +712,7 @@ mod script_test {
         let op = context.pop_as_element().unwrap();
 
         let expected = string_to_bytes("2B4C342F5433EBE591A1DA77E013D1B72475562D48578DCA8B84BAC6651C3CB9").unwrap();
-        assert_eq!(op, Operation::Element(expected));
+        assert_eq!(op, Token::Element(expected));
     }
 
     #[test]
@@ -726,7 +725,7 @@ mod script_test {
         let op = context.pop_as_element().unwrap();
 
         let expected = string_to_bytes("AC9231DA4082430AFE8F4D40127814C613648D8E").unwrap();
-        assert_eq!(op, Operation::Element(expected));
+        assert_eq!(op, Token::Element(expected));
     }
 
     #[test]
@@ -772,7 +771,7 @@ mod script_test {
         assert!(context.has_items(1));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(ELEMENT_ONE.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
     }
 
     #[test]
@@ -784,7 +783,7 @@ mod script_test {
         assert!(context.has_items(1));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
     }
 
     #[test]
@@ -796,7 +795,7 @@ mod script_test {
         assert!(context.has_items(1));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(ELEMENT_ZERO.to_vec()));
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
     }
 
     #[test]
@@ -808,10 +807,10 @@ mod script_test {
         assert!(context.has_items(2));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x01]));
+        assert_eq!(op, Token::Element(vec![0x01]));
 
         let op = context.pop_as_element().unwrap();
-        assert_eq!(op, Operation::Element(vec![0x02]));
+        assert_eq!(op, Token::Element(vec![0x02]));
     }
 
     #[test]

@@ -8,16 +8,16 @@ use super::{
 };
 
 // TODO: why exit with bool?
-type OperationExec = fn(&mut Context) -> Result<bool, ContextError>;
+type CommandExec = fn(&mut Context) -> Result<bool, ContextError>;
 
 #[derive(Debug, Copy, Clone)]
 pub struct OpCodeInfo {
     pub name: &'static str,
-    pub exec: OperationExec,
+    pub exec: CommandExec,
 }
 
 impl OpCodeInfo {
-    pub fn new(name: &'static str, exec: OperationExec) -> Self {
+    pub fn new(name: &'static str, exec: CommandExec) -> Self {
         Self { name, exec }
     }
 }

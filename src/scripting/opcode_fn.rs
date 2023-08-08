@@ -6,13 +6,13 @@ use crate::{
 
 use super::{
     context::{Context, ContextError},
-    operation::*,
+    token::*,
 };
 
 macro_rules! op_n {
     ($n:tt, $f:ident) => {
         pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
-            context.push(Operation::Element(element_encode($n)));
+            context.push(Token::Element(element_encode($n)));
 
             Ok(true)
         }
@@ -46,19 +46,19 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
 }
 
 pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Operation::Element(ELEMENT_ZERO.to_vec()));
+    context.push(Token::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }
 
 pub fn op_1(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Operation::Element(element_encode(1)));
+    context.push(Token::Element(element_encode(1)));
 
     Ok(true)
 }
 
 pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
-    context.push(Operation::Element(ELEMENT_ONE_NEGATE.to_vec()));
+    context.push(Token::Element(ELEMENT_ONE_NEGATE.to_vec()));
 
     Ok(true)
 }
@@ -76,11 +76,11 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
 
     if context.executing() {
         if !context.has_enough_items(1) {
-            return Err(ContextError::NotEnoughElementsInStack);
+            return Err(ContextError::NotEnoughItemsInStack);
         }
 
-        let operation = context.pop_as_element()?;
-        exec = operation.as_bool(); // OP_NOTIF is the same but with inverted exec
+        let token = context.pop_as_element()?;
+        exec = token.as_bool(); // OP_NOTIF is the same but with inverted exec
     }
 
     context.set_execute(exec);
@@ -108,18 +108,18 @@ pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let a = context.pop_as_element()?;
     let b = context.pop_as_element()?;
 
-    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
+    if let (Token::Element(a), Token::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left + right; // TODO: check overflow
-        context.push(Operation::Element(element_encode(sum)));
+        context.push(Token::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -129,18 +129,18 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let a = context.pop_as_element()?;
     let b = context.pop_as_element()?;
 
-    if let (Operation::Element(a), Operation::Element(b)) = (a, b) {
+    if let (Token::Element(a), Token::Element(b)) = (a, b) {
         let left = element_decode(a);
         let right = element_decode(b);
 
         let sum = left * right;
-        context.push(Operation::Element(element_encode(sum)));
+        context.push(Token::Element(element_encode(sum)));
 
         return Ok(true);
     }
@@ -150,15 +150,15 @@ pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let a = context.pop_as_element()?;
     let b = context.pop_as_element()?;
 
-    if let (Operation::Element(left), Operation::Element(right)) = (a, b) {
+    if let (Token::Element(left), Token::Element(right)) = (a, b) {
         let equals = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.push(Operation::Element(equals.to_vec()));
+        context.push(Token::Element(equals.to_vec()));
 
         return Ok(true);
     }
@@ -168,14 +168,14 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let pub_key = context.pop_as_element()?;
     let sig = context.pop_as_element()?;
 
-    if let Operation::Element(public_key) = pub_key {
-        if let Operation::Element(mut der) = sig {
+    if let Token::Element(public_key) = pub_key {
+        if let Token::Element(mut der) = sig {
             // Removing last byte, that is the signature hash (SIGHASH): https://learn.saylor.org/mod/book/view.php?id=36341&chapterid=18919
             der.pop();
 
@@ -191,7 +191,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             let res = verify(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);
-            context.push(Operation::Element(element_value));
+            context.push(Token::Element(element_value));
         }
     }
 
@@ -200,7 +200,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let op = context.top_stack();
@@ -211,7 +211,7 @@ pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let op1 = context.pop();
@@ -227,7 +227,7 @@ pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(2) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let op1 = context.pop();
@@ -241,7 +241,7 @@ pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let op = context.pop_as_element()?;
@@ -260,13 +260,13 @@ pub fn op_equalverify(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let e = context.pop_as_element()?;
-    if let Operation::Element(value) = e {
+    if let Token::Element(value) = e {
         let hash = hash256(&value);
-        context.push(Operation::Element(hash));
+        context.push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -276,13 +276,13 @@ pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let e = context.pop_as_element()?;
-    if let Operation::Element(value) = e {
+    if let Token::Element(value) = e {
         let hash = hash160(&value);
-        context.push(Operation::Element(hash));
+        context.push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -292,13 +292,13 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let e = context.pop_as_element()?;
-    if let Operation::Element(value) = e {
+    if let Token::Element(value) = e {
         let hash = sha256(&value);
-        context.push(Operation::Element(hash));
+        context.push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -308,13 +308,13 @@ pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let e = context.pop_as_element()?;
-    if let Operation::Element(value) = e {
+    if let Token::Element(value) = e {
         let hash = sha1(&value);
-        context.push(Operation::Element(hash));
+        context.push(Token::Element(hash));
 
         return Ok(true);
     }
@@ -324,25 +324,25 @@ pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
 
 pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
     if !context.has_enough_items(1) {
-        return Err(ContextError::NotEnoughElementsInStack);
+        return Err(ContextError::NotEnoughItemsInStack);
     }
 
     let e = context.pop();
 
-    if let Operation::Element(value) = e {
+    if let Token::Element(value) = e {
         if value == ELEMENT_ZERO {
-            context.push(Operation::Element(ELEMENT_ONE.to_vec()));
+            context.push(Token::Element(ELEMENT_ONE.to_vec()));
             return Ok(true);
         }
     }
 
-    context.push(Operation::Element(ELEMENT_ZERO.to_vec()));
+    context.push(Token::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
-    unimplemented!("operation not implemented")
+    unimplemented!("command not implemented")
 }
 
 pub fn deprecated(_context: &mut Context) -> Result<bool, ContextError> {
@@ -354,7 +354,7 @@ mod opcode_fn_test {
     use rug::Integer;
 
     use crate::{
-        scripting::{opcode::*, operation::Operation},
+        scripting::{opcode::*, token::Token},
         std_lib::vector::string_to_bytes,
     };
 
@@ -364,7 +364,7 @@ mod opcode_fn_test {
     #[should_panic(expected = "not implemented")]
     fn not_implemented_test() {
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
-        let ops = vec![Operation::Element(pubkey), Operation::Command(OP_CHECKSIG)];
+        let ops = vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)];
 
         let mut context = Context::new(ops, Integer::from(0));
 

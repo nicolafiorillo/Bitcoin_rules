@@ -2,17 +2,17 @@ use std::collections::VecDeque;
 
 use rug::Integer;
 
-use super::{condition_stack::ConditionStack, operation::Operation};
+use super::{condition_stack::ConditionStack, token::Token};
 
 #[derive(Debug)]
 pub struct Context {
-    operations: Vec<Operation>,
+    script_tokens: Vec<Token>,
     pub z: Integer,
-    operations_length: usize,
-    operations_position: usize,
+    script_tokens_length: usize,
+    script_tokens_position: usize,
 
-    stack: VecDeque<Operation>,
-    alternative_stack: VecDeque<Operation>,
+    stack: VecDeque<Token>,
+    alternative_stack: VecDeque<Token>,
 
     condition_stack: ConditionStack,
 }
@@ -21,7 +21,7 @@ pub struct Context {
 pub enum ContextError {
     InvalidOpCode,
     NotAnElement,
-    NotEnoughElementsInStack,
+    NotEnoughItemsInStack,
     DerError,
     UnexpectedEndIf,
     UnexpectedElse,
@@ -31,19 +31,19 @@ pub enum ContextError {
 }
 
 impl Context {
-    pub fn new(operations: Vec<Operation>, z: Integer) -> Self {
-        let operations_length = operations.len();
-        let operations_position = 0;
+    pub fn new(script_tokens: Vec<Token>, z: Integer) -> Self {
+        let script_tokens_length = script_tokens.len();
+        let script_tokens_position = 0;
 
-        let stack = VecDeque::<Operation>::new();
-        let alternative_stack = VecDeque::<Operation>::new();
+        let stack = VecDeque::<Token>::new();
+        let alternative_stack = VecDeque::<Token>::new();
         let condition_stack = ConditionStack::new();
 
         Context {
-            operations,
+            script_tokens,
             z,
-            operations_length,
-            operations_position,
+            script_tokens_length,
+            script_tokens_position,
             stack,
             alternative_stack,
             condition_stack,
@@ -51,39 +51,39 @@ impl Context {
     }
 
     pub fn is_over(&self) -> bool {
-        self.operations_position >= self.operations_length
+        self.script_tokens_position >= self.script_tokens_length
     }
 
-    pub fn next_token(&mut self) -> &Operation {
-        assert!(self.operations_position < self.operations_length);
+    pub fn next_token(&mut self) -> &Token {
+        assert!(self.script_tokens_position < self.script_tokens_length);
 
-        let current = self.operations_position;
-        self.operations_position += 1;
+        let current = self.script_tokens_position;
+        self.script_tokens_position += 1;
 
-        &self.operations[current]
+        &self.script_tokens[current]
     }
 
-    pub fn push(&mut self, operation: Operation) {
-        self.stack.push_front(operation)
+    pub fn push(&mut self, token: Token) {
+        self.stack.push_front(token)
     }
 
-    pub fn top_stack(&self) -> &Operation {
+    pub fn top_stack(&self) -> &Token {
         assert!(!self.stack.is_empty());
 
         self.stack.front().unwrap()
     }
 
-    pub fn pop(&mut self) -> Operation {
+    pub fn pop(&mut self) -> Token {
         assert!(!self.stack.is_empty());
 
         self.stack.pop_front().unwrap()
     }
 
-    pub fn pop_as_element(&mut self) -> Result<Operation, ContextError> {
+    pub fn pop_as_element(&mut self) -> Result<Token, ContextError> {
         assert!(!self.stack.is_empty());
 
         match self.stack.pop_front().unwrap() {
-            Operation::Element(element) => Ok(Operation::Element(element)),
+            Token::Element(element) => Ok(Token::Element(element)),
             op => {
                 log::error!("Expected element, found {:?}", op);
                 Err(ContextError::NotAnElement)
@@ -92,7 +92,7 @@ impl Context {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.stack.len() == 1 && self.stack[0] == Operation::Element(vec![1])
+        self.stack.len() == 1 && self.stack[0] == Token::Element(vec![1])
     }
 
     pub fn has_enough_items(&self, num: usize) -> bool {

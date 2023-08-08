@@ -1,6 +1,6 @@
 # Tools
 
-Tools helping to build `BTCR`.
+Tools helping to build `Bitcoin_rules!`.
 
 # `opcodes_gen.py`
 

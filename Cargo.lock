@@ -18,6 +18,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
 
 [[package]]
+name = "bitcoin_rules"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "hmac",
+ "log",
+ "once_cell",
+ "ripemd",
+ "rug",
+ "sha1",
+ "sha2",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -30,20 +44,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "btcr"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "hmac",
- "log",
- "once_cell",
- "ripemd",
- "rug",
- "sha1",
- "sha2",
 ]
 
 [[package]]

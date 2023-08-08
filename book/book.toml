@@ -3,7 +3,7 @@ authors = ["Nicola Fiorillo"]
 language = "en"
 multilingual = false
 src = "src"
-title = "BTCR, a Bitcoin node written in Rust"
+title = "Bitcoin_rules!, a Bitcoin node written in Rust"
 
 [output.html]
 mathjax-support = true

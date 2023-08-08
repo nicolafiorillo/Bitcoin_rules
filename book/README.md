@@ -1,4 +1,4 @@
-# BTCR, the book
+# Bitcoin_rules!, the book
 
 To build the book:
 

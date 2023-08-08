@@ -4,7 +4,7 @@ An address is a convenient way to communicate which script needs to go on the bl
 
 When a wallet sees an address, it recognizes the address type and produces the suitable script to manage it in the transaction.
 
-## In `BTRC` code
+## In `Bitcoin_rules!` code
 
 The `address` function:
 ```rust,no_run,noplayground

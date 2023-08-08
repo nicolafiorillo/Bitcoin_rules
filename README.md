@@ -1,74 +1,22 @@
-# `BTCR`, a Bitcoin node written in Rust
+![Bitcoin_rules!](/images/bitcoin_rules.png)
 
-[![Build/Test](https://github.com/nicolafiorillo/btcr/workflows/CI/badge.svg)](https://github.com/nicolafiorillo/btcr/actions)
+# `Bitcoin_rules!`
 
-Opinionated bitcoin node written in Rust mainly for (my own) educational purposes (both Bitcoin and Rust).
+[![Build/Test](https://github.com/nicolafiorillo/Bitcoin_rules/workflows/CI/badge.svg)](https://github.com/nicolafiorillo/Bitcoin_rules/actions)
 
-This is my contribute to the Bitcoin spread and adoption.
+`Bitcoin_rules!` (initially named 'BTCR') is a Bitcoin (the protocol) node written in Rust mainly for educational purposes.
 
-_Do not use this for production stuff. Stability and expecially security are not guaranteed._
+## Motivation and disclaimer
 
-_Moreover, my Rust is still not idiomatic enough._
+This is a humble contribute to the Bitcoin spread and adoption.
+
+_Do not use this for production stuff. Completeness, stability, and expecially security are not guaranteed._
 
 ## Documentations, references, and articles
 
-Here we list some useful documentations, references, and articles for Bitcoin developers gathered during the development of `BTCR`.
+See [REFERENCES](REFERENCES.md).
 
-- [Elliptic Curve Cryptography](docs/ecc/)
-- [Bitcoin Core source code](https://github.com/bitcoin)
-- [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
-- [Bitcoin secp256k1](https://github.com/bitcoin-core/secp256k1)
-- [Bitcoin Improvement Proposals (BIPs)](https://github.com/bitcoin/bips)
-- [Script](https://en.bitcoin.it/wiki/Script)
-- [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [James O'Beirne](https://twitter.com/jamesob)
-- [Bitcoin Developer Guides](https://developer.bitcoin.org/devguide/index.html)
-- [Bitcoin Tutorials](https://www.herongyang.com/Bitcoin/)
-- [CS120: Bitcoin for Developers I](https://learn.saylor.org/course/view.php?id=500)
-- [Technical Bitcoin Resources](https://www.lopp.net/bitcoin-information/technical-resources.html) by [Jameson Loop](https://twitter.com/lopp)
-- [Bitcoin Development Tools](https://www.lopp.net/bitcoin-information/developer-tools.html) by [Jameson Loop](https://twitter.com/lopp)
-- [A developer-oriented series about Bitcoin](http://davidederosa.com/basic-blockchain-programming/) by [Davide De Rosa](https://twitter.com/keeshux)
-
-- [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
-- [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
-- [Libbitcoin library](https://github.com/libbitcoin/libbitcoin-system/wiki)
-- [Bitcoin Dev Kit](https://github.com/bitcoindevkit)
-
-- [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
-- [Number Theory in Python](https://github.com/Robert-Campbell-256/Number-Theory-Python)
-
-### Articles
-
-- [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
-- [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
-
-### Tools
-- [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
-- [Hashing Online Tools](https://emn178.github.io/online-tools/index.html)
-
-### Interesting stuff
-- [REWARD offered for hash collisions for SHA1, SHA256, RIPEMD160 and other](https://bitcointalk.org/index.php?topic=293382.0) by [Peter Todd](https://twitter.com/peterktodd)
-## To do
-
-- [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
-- [X] Show compilation status of the project and unit test results in README.md.
-- [X] Signing commits.
-- [X] Preparing a book for notes.
-- [ ] Wrap in container.
-- [ ] Substitute `rug` with custom implementation of big integers.
-- [ ] Verify array bounds, especially in deserialization.
-- [ ] Minimize `clone()` usage.
-
-## sats used for testing
-
-| | |
-|----------|----------|
-|Network|`Testnet (0x6F)`|
-|Address|`mh5KJHiC4DcMBVBgxnx18J2mBmk4n9o9Cr`|
-|bitcoins|`0.00009326 BTC`|
-|Transaction|[`ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d`](https://live.blockcypher.com/btc-testnet/tx/ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d/)|
-|Block|[0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1](https://live.blockcypher.com/btc-testnet/block/0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1/)|
-
-## Development Roadmap
+## Features development roadmap
 
 - [X] Elliptic Curve Cryptography
   - [X] Finite fields implementation
@@ -176,14 +124,49 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 - [ ] Taproot
 - [ ] Sidechains
 
+## To do
+
+- [X] Add Github Action to run `cargo test`, `cargo clippy`, and `cargo fmt` on every commit.
+- [X] Show compilation status of the project and unit test results in README.md.
+- [X] Signing commits.
+- [X] Preparing a book for notes.
+- [ ] Wrap in container.
+- [ ] Substitute `rug` with custom implementation of big integers.
+- [ ] Verify array bounds, especially in deserialization.
+- [ ] Minimize `clone()` usage.
+
+## sats used for testing
+
+| | |
+|----------|----------|
+|Network|`Testnet (0x6F)`|
+|Address|`mh5KJHiC4DcMBVBgxnx18J2mBmk4n9o9Cr`|
+|bitcoins|`0.00009326 BTC`|
+|Transaction|[`ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d`](https://live.blockcypher.com/btc-testnet/tx/ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d/)|
+|Block|[0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1](https://live.blockcypher.com/btc-testnet/block/0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1/)|
+
+## Building
+
+At time `main()` is empty but you can run unit tests with:
+
+  cargo test
+
+## Contributors
+
+- [Nicola Fiorillo](https://www.nicolafiorillo.com) (author and maintainer)
+
 ## Feedback
 
 Feedback are welcome! Please open an issue or PR.
 
-## Donate
+## Support
 
-If you want to support: 
+If you want to support this project, you can donate to: 
 
 - [BTCPayServer](https://priorato.btcpayserver.it/api/v1/invoices?storeId=6ZWNeeMiCdJcAPGVtBG31NMGK3dHjg1xweuMMyGKUsVA&price=1000&currency=SATS)
 - [Paypal](https://paypal.me/nicolafiorillo)
 
+## Acknowledgments
+- [Rust](https://www.rust-lang.org/) for being a great language.
+- [Ludovico Einaudi](https://en.wikipedia.org/wiki/Ludovico_Einaudi) for his music during the development of this project.
+- [Satoshi Nakamoto](https://www.metzdowd.com/pipermail/cryptography/2008-October/014810.html) for bringing us here.

@@ -539,8 +539,35 @@ mod script_test {
     }
 
     #[test]
-    fn evaluate_if() {
+    fn evaluate_if_true() {
         let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_IF)]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_items(0));
+        assert!(context.executing())
+    }
+
+    #[test]
+    fn evaluate_if_false() {
+        let script = Script::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_IF)]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_items(0));
+        assert!(!context.executing())
+    }
+
+    #[test]
+    fn evaluate_notif() {
+        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_NOTIF)]);
+        let context = script.evaluate(Integer::from(0)).unwrap();
+
+        assert!(context.has_items(0));
+        assert!(!context.executing())
+    }
+
+    #[test]
+    fn evaluate_notif_false() {
+        let script = Script::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_NOTIF)]);
         let context = script.evaluate(Integer::from(0)).unwrap();
 
         assert!(context.has_items(0));

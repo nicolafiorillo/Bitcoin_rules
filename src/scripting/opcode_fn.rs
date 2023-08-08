@@ -80,7 +80,24 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
         }
 
         let token = context.pop_as_element()?;
-        exec = token.as_bool(); // OP_NOTIF is the same but with inverted exec
+        exec = token.as_bool();
+    }
+
+    context.set_execute(exec);
+
+    Ok(true)
+}
+
+pub fn op_notif(context: &mut Context) -> Result<bool, ContextError> {
+    let mut exec = false;
+
+    if context.executing() {
+        if !context.has_enough_items(1) {
+            return Err(ContextError::NotEnoughItemsInStack);
+        }
+
+        let token = context.pop_as_element()?;
+        exec = !token.as_bool();
     }
 
     context.set_execute(exec);

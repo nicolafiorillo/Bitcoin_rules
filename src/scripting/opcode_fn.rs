@@ -20,6 +20,7 @@ macro_rules! op_n {
 }
 
 // TODO: put function in code order
+// TODO: split in more files, one for each category
 
 op_n!(2, op_2);
 op_n!(3, op_3);
@@ -67,6 +68,17 @@ pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+///
+/// OP_RETURN
+/// Since 0.12, standard relay rules allow a single output with OP_RETURN, that contains any sequence of push
+/// statements (or OP_RESERVED[1]) after the OP_RETURN provided the total scriptPubKey length
+/// is at most 83 bytes.
+///
+/// Examples:
+/// https://blockchain.info/tx/d276abe15791941649c3ca8425d79167cc1cf801f83aa99753fe7f42740c0f23
+/// https://blockchain.info/tx/728e24b2e7dd137e574c433a8db08ac2aa0bf0588ad7716e4c5a7da45dbb5933
+/// https://blockchain.info/tx/52dd20f60d6e14e5a783e7668cf410efdea40cd9a92479b0f2423d0bc63575fa
+///
 pub fn op_return(_context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::ExitByReturn)
 }
@@ -354,6 +366,28 @@ pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
     }
 
     context.stack_push(Token::Element(ELEMENT_ZERO.to_vec()));
+
+    Ok(true)
+}
+
+pub fn op_toaltstack(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op = context.stack_pop();
+    context.alt_stack_push(op);
+
+    Ok(true)
+}
+
+pub fn op_fromaltstack(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.alt_stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op = context.alt_stack_pop();
+    context.stack_push(op);
 
     Ok(true)
 }

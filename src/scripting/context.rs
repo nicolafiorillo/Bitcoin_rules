@@ -12,7 +12,7 @@ pub struct Context {
     script_tokens_position: usize,
 
     stack: VecDeque<Token>,
-    alternative_stack: VecDeque<Token>,
+    alt_stack: VecDeque<Token>,
 
     condition_stack: ConditionStack,
 }
@@ -46,7 +46,7 @@ impl Context {
             script_tokens_length,
             script_tokens_position,
             stack,
-            alternative_stack,
+            alt_stack: alternative_stack,
             condition_stack,
         }
     }
@@ -92,6 +92,16 @@ impl Context {
         }
     }
 
+    pub fn alt_stack_pop(&mut self) -> Token {
+        assert!(!self.alt_stack.is_empty());
+
+        self.alt_stack.pop_front().unwrap()
+    }
+
+    pub fn alt_stack_push(&mut self, token: Token) {
+        self.alt_stack.push_front(token)
+    }
+
     pub fn is_valid(&self) -> bool {
         self.stack.len() == 1 && self.stack[0] == Token::Element(vec![1])
     }
@@ -102,6 +112,14 @@ impl Context {
 
     pub fn stack_has_items(&self, num: usize) -> bool {
         self.stack.len() == num
+    }
+
+    pub fn alt_stack_has_enough_items(&self, num: usize) -> bool {
+        self.alt_stack.len() >= num
+    }
+
+    pub fn alt_stack_has_items(&self, num: usize) -> bool {
+        self.alt_stack.len() == num
     }
 
     pub fn executing(&self) -> bool {

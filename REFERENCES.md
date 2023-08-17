@@ -1,7 +1,11 @@
 # `bitcoin_rules!`
 
+Where we list some useful resources for Bitcoin developers gathered during the development of `Bitcoin_rules!`.
+
+## History
+- [The Complete Satoshi](https://satoshi.nakamotoinstitute.org/)
+
 ## Documentations, references, and articles
-Here we list some useful documentations, references, and articles for Bitcoin developers gathered during the development of `Bitcoin_rules!`.
 - [Elliptic Curve Cryptography](docs/ecc/)
 - [Bitcoin Core source code](https://github.com/bitcoin)
 - [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
@@ -15,12 +19,15 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 - [Technical Bitcoin Resources](https://www.lopp.net/bitcoin-information/technical-resources.html) by [Jameson Loop](https://twitter.com/lopp)
 - [Bitcoin Development Tools](https://www.lopp.net/bitcoin-information/developer-tools.html) by [Jameson Loop](https://twitter.com/lopp)
 - [A developer-oriented series about Bitcoin](http://davidederosa.com/basic-blockchain-programming/) by [Davide De Rosa](https://twitter.com/keeshux)
-- [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
-- [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
 - [Libbitcoin library](https://github.com/libbitcoin/libbitcoin-system/wiki)
 - [Bitcoin Dev Kit](https://github.com/bitcoindevkit)
 - [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 - [Number Theory in Python](https://github.com/Robert-Campbell-256/Number-Theory-Python)
+- [learn me a bitcoin](https://learnmeabitcoin.com/) by [Greg Walker](https://twitter.com/in3rsha)
+
+### Books
+- [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
+- [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
 
 ### Articles
 - [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
@@ -41,3 +48,12 @@ Here we list some useful documentations, references, and articles for Bitcoin de
 
 ### People
 - [Peter Todd](https://petertodd.org/)
+
+###  Communities
+- [Bitcoin Forum](https://bitcointalk.org/index.php)
+- [Bitcoin Stack Exchange](https://bitcoin.stackexchange.com/)
+
+<!-- Not verified yet:
+- [Bitcoin Core Slack](https://bitcoincore.slack.com/)
+- [Bitcoin Core IRC](https://bitcoincore.org/en/contact/)
+- [Bitcoin Core Mailing List](https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev) for development and protocol discussion. -->

@@ -1,5 +1,5 @@
 <div align="center">
- <img src="" width="300" alt="Bitcoin_rules!" style="border-radius: 5%">
+ <img src="https://raw.githubusercontent.com/nicolafiorillo/Bitcoin_rules/main/images/bitcoin_rules.webp" width="300" alt="Bitcoin_rules!" style="border-radius: 5%">
  <br>
  <strong>
    a Bitcoin (the protocol) node written in Rust mainly for educational purposes

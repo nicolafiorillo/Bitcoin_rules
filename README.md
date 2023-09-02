@@ -1,10 +1,14 @@
-![Bitcoin_rules!](/images/bitcoin_rules.png)
+<div align="center">
+ <img src="" width="300" alt="Bitcoin_rules!" style="border-radius: 5%">
+ <br>
+ <strong>
+   a Bitcoin (the protocol) node written in Rust mainly for educational purposes
+ </strong>
+</div>
 
-# `Bitcoin_rules!`
+## Status
 
 [![Build/Test](https://github.com/nicolafiorillo/Bitcoin_rules/workflows/CI/badge.svg)](https://github.com/nicolafiorillo/Bitcoin_rules/actions)
-
-`Bitcoin_rules!` (initially named 'BTCR') is a Bitcoin (the protocol) node written in Rust mainly for educational purposes.
 
 ## Motivation and disclaimer
 

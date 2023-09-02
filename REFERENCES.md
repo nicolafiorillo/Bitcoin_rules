@@ -33,6 +33,9 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
 - [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
 
+### Literature
+- ["_Bitcoin was not forged in a vacuum_"](https://nakamotoinstitute.org/literature/)
+
 ### Courses
 - [MIT, MAS.S62-Spring 2018, Cryptocurrency Engineering and Design](https://www.youtube.com/watch?v=l2iv2MiGaYI)
 - [bitcoin-curriculum](https://github.com/chaincodelabs/bitcoin-curriculum)

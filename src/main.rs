@@ -1,4 +1,6 @@
-//! Entry point
+/*!
+Entry point
+*/
 
 // #![warn(
 //     missing_docs,

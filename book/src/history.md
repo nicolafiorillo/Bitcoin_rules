@@ -22,5 +22,20 @@ The paper ["A Protocol for Packet Network Intercommunication"](https://ieeexplor
 ["New Directions in Cryptography"](https://www-ee.stanford.edu/~hellman/publications/24.pdf) paper is published by Whitfield Diffie and Martin Hellman. The paper describes a new method of distributing cryptographic keys, which went far toward solving one of the fundamental problems of cryptography, key distribution.
 The paper also introduced a concept of asymmetric key cryptography (or public key cryptography).
 
+First edition of the book ["Denationalisation of Money"](https://mises.org/library/denationalisation-money-argument-refined) is published by Friedrich Hayek. The book describes a private money system, which is based on the free market.
+
 ## 1978
 The paper ["A Method for Obtaining Digital Signatures and Public-Key Cryptosystems"](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) is published by Ron Rivest, Adi Shamir, and Leonard Adleman. The paper describes a public key cryptosystem based on the computational difficulty of factoring prime integers.
+
+The paper ["Protocols for Public Key Cryptosystems"](http://www.ralphmerkle.com/papers/Protocols.pdf) is published by Ralph Merkle. The paper describes a number of cryptographic protocols which take advantage of the unique properties of public key cryptosystems.
+
+## 1979
+[Ralph Merkle](https://ralphmerkle.com/)'s patent proposal ["Method of providing digital signatures"](https://patents.google.com/patent/US4309569) is also filed. The patent describes a method of providing [digital signatures using a public key cryptosystem](https://en.wikipedia.org/wiki/Merkle_tree).
+
+## 1980
+[New Libertarian Manifesto](https://theanarchistlibrary.org/library/samuel-edward-konkin-iii-new-libertarian-manifesto) is published by Samuel Edward Konkin III. The book describes a new form of libertarianism, called agorism, which is based on the idea of counter-economics.
+
+## 1981
+The paper ["Untraceable Electronic Mail, Return Addresses, and Digital Pseudonyms"](https://nakamotoinstitute.org/static/docs/untraceable-electronic-mail.pdf) is published by David Chaum. The paper describes a method of sending untraceable electronic mail.
+
+

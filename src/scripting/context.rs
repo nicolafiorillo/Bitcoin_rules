@@ -102,8 +102,10 @@ impl Context {
         self.alt_stack.push_front(token)
     }
 
+    // See https://github.com/bitcoin/bitcoin/blob/d096743150fd35578b7ed71ef6bced2341927d43/src/script/interpreter.cpp#L1956C1-L1956C1
+    // for reference validation
     pub fn is_valid(&self) -> bool {
-        self.stack.len() == 1 && self.stack[0] == Token::Element(vec![1])
+        self.stack.len() == 1 && self.stack[0].as_bool()
     }
 
     pub fn stack_has_enough_items(&self, num: usize) -> bool {

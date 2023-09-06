@@ -70,9 +70,12 @@ pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
 
 ///
 /// OP_RETURN
-/// Since 0.12, standard relay rules allow a single output with OP_RETURN, that contains any sequence of push
-/// statements (or OP_RESERVED[1]) after the OP_RETURN provided the total scriptPubKey length
-/// is at most 83 bytes.
+/// Script containing OP_RETURN is considered as a particular script and is used to add data to a transaction.
+/// This always causes the script to fail.
+/// For validation purposes the data after the OP_RETURN is ignored.
+/// TODO: We will read the extra data in adifferent context (see
+/// https://github.com/coinspark/python-OP_RETURN/blob/07e1dcd0d61b26b9b554ee0095cb4945f04a5ac7/OP_RETURN.py#L331
+/// for structure: 0x6A + varint + data)
 ///
 /// Examples:
 /// https://blockchain.info/tx/d276abe15791941649c3ca8425d79167cc1cf801f83aa99753fe7f42740c0f23

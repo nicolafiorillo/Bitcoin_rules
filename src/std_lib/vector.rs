@@ -1,10 +1,10 @@
 use std::num::ParseIntError;
 
 /// u8 Msf vector to Msf array with 32 bytes fixed length.
-pub fn vect_to_array_32(v: &Vec<u8>) -> [u8; 32] {
+pub fn vect_to_array_32(v: &[u8]) -> [u8; 32] {
     let mut arr: [u8; 32] = [0u8; 32];
     let cursor = 32 - v.len();
-    arr[cursor..(v.len() + cursor)].copy_from_slice(&v[..]);
+    arr[cursor..(v.len() + cursor)].copy_from_slice(v);
 
     arr
 }
@@ -27,7 +27,7 @@ pub fn vect_to_hex_string(bytes: &[u8]) -> String {
 }
 
 /// trim left leading byte
-pub fn trim_left(v: &Vec<u8>, value: u8) -> Vec<u8> {
+pub fn trim_left(v: &[u8], value: u8) -> Vec<u8> {
     let mut l: usize = 0;
     let len = v.len();
 
@@ -39,7 +39,7 @@ pub fn trim_left(v: &Vec<u8>, value: u8) -> Vec<u8> {
 }
 
 /// trim right leading byte
-pub fn trim_right(v: &Vec<u8>, value: u8) -> Vec<u8> {
+pub fn trim_right(v: &[u8], value: u8) -> Vec<u8> {
     let mut l: usize = 0;
     let len = v.len();
 
@@ -50,24 +50,24 @@ pub fn trim_right(v: &Vec<u8>, value: u8) -> Vec<u8> {
     v[..len - l].to_vec()
 }
 
-pub fn padding_left(v: &Vec<u8>, length: usize, value: u8) -> Vec<u8> {
+pub fn padding_left(v: &[u8], length: usize, value: u8) -> Vec<u8> {
     if v.len() > length {
         return v.to_vec();
     }
 
     let mut arr: Vec<u8> = vec![value; length];
-    arr[length - v.len()..length].copy_from_slice(&v[..]);
+    arr[length - v.len()..length].copy_from_slice(v);
 
     arr
 }
 
-pub fn padding_right(v: &Vec<u8>, length: usize, value: u8) -> Vec<u8> {
+pub fn padding_right(v: &[u8], length: usize, value: u8) -> Vec<u8> {
     if v.len() > length {
         return v.to_vec();
     }
 
     let mut arr: Vec<u8> = vec![value; length];
-    arr[0..v.len()].copy_from_slice(&v[..]);
+    arr[0..v.len()].copy_from_slice(v);
 
     arr
 }

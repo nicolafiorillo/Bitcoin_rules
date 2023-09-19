@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    encoding::varint::{varint_decode, varint_encode, VarInt},
+    encoding::varint::varint_encode,
     std_lib::vector::{string_to_bytes, vect_to_hex_string},
 };
 
@@ -11,7 +11,7 @@ use super::{
     token::Token,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Script(Vec<Token>);
 
 #[derive(Debug)]
@@ -24,11 +24,72 @@ pub enum ScriptError {
 }
 
 impl Script {
-    pub fn deserialize(data: &[u8]) -> Result<Self, ScriptError> {
-        match varint_decode(data, 0) {
-            Err(_) => Err(ScriptError::InvalidScript),
-            Ok(var_int) => Self::raw_deserialize(data, &var_int),
+    // TODO: refactor
+    pub fn deserialize(data: &[u8], length: u64, offset: usize) -> Result<Self, ScriptError> {
+        let mut tokens: Vec<Token> = vec![];
+
+        let mut i = offset as u64;
+        let max = length + offset as u64;
+
+        while i < max {
+            let first = data[i as usize];
+            if OP_ELEMENTS_RANGE.contains(&(first as OpCode)) {
+                i += 1;
+
+                let start = i as usize;
+                let end = start + first as usize;
+
+                let bytes = &data[start..end];
+                tokens.push(Token::Element(bytes.to_vec()));
+
+                i += first as u64;
+            } else if first == OP_PUSHDATA1 as u8 {
+                // TODO: NOT TESTED
+                i += 1;
+                let len = data[i as usize];
+
+                i += 1;
+                let start = i as usize;
+                let end = start + len as usize;
+
+                let bytes = &data[start..end];
+                tokens.push(Token::Element(bytes.to_vec()));
+
+                i += len as u64;
+            } else if first == OP_PUSHDATA2 as u8 {
+                // TODO: NOT TESTED
+                let len_bytes = &data[(i + 1) as usize..(i + 3) as usize];
+                let len = u16::from_le_bytes([len_bytes[0], len_bytes[1]]);
+
+                i += 2;
+
+                let start = (i + 1) as usize;
+                let end = start + len as usize;
+
+                let bytes = &data[start..end];
+                tokens.push(Token::Element(bytes.to_vec()));
+
+                i += 1 + len as u64;
+            } else if first == OP_PUSHDATA4 as u8 {
+                // TODO: NOT TESTED
+                let len_bytes = &data[(i + 1) as usize..(i + 5) as usize];
+                let len = u32::from_le_bytes([len_bytes[0], len_bytes[1], len_bytes[2], len_bytes[3]]);
+
+                i += 4;
+
+                let start = (i + 1) as usize;
+                let end = start + len as usize;
+
+                let bytes = &data[start..end];
+                tokens.push(Token::Element(bytes.to_vec()));
+
+                i += 1 + len as u64;
+            } else {
+                tokens.push(Token::Command(first as OpCode));
+                i += 1;
+            }
         }
+        Ok(Script(tokens))
     }
 
     pub fn from_tokens(tokens: Vec<Token>) -> Self {
@@ -125,7 +186,7 @@ impl Script {
         Script([left_items, right_items].concat())
     }
 
-    fn raw_serialize(tokens: &Vec<Token>) -> Result<Vec<u8>, ScriptError> {
+    fn raw_serialize(tokens: &[Token]) -> Result<Vec<u8>, ScriptError> {
         let mut raw: Vec<u8> = vec![];
 
         for token in tokens {
@@ -156,73 +217,6 @@ impl Script {
 
         Ok(raw)
     }
-
-    // TODO: refactor
-    fn raw_deserialize(data: &[u8], var_int: &VarInt) -> Result<Self, ScriptError> {
-        let mut tokens: Vec<Token> = vec![];
-        let length = var_int.value;
-
-        let mut i = var_int.length as u64;
-        while i <= length {
-            let first = data[i as usize];
-            if OP_ELEMENTS_RANGE.contains(&(first as OpCode)) {
-                i += 1;
-
-                let start = i as usize;
-                let end = start + first as usize;
-
-                let bytes = &data[start..end];
-                tokens.push(Token::Element(bytes.to_vec()));
-
-                i += first as u64;
-            } else if first == OP_PUSHDATA1 as u8 {
-                // TODO: NOT TESTED
-                i += 1;
-                let len = data[i as usize];
-
-                i += 1;
-                let start = i as usize;
-                let end = start + len as usize;
-
-                let bytes = &data[start..end];
-                tokens.push(Token::Element(bytes.to_vec()));
-
-                i += len as u64;
-            } else if first == OP_PUSHDATA2 as u8 {
-                // TODO: NOT TESTED
-                let len_bytes = &data[(i + 1) as usize..(i + 3) as usize];
-                let len = u16::from_le_bytes([len_bytes[0], len_bytes[1]]);
-
-                i += 2;
-
-                let start = (i + 1) as usize;
-                let end = start + len as usize;
-
-                let bytes = &data[start..end];
-                tokens.push(Token::Element(bytes.to_vec()));
-
-                i += 1 + len as u64;
-            } else if first == OP_PUSHDATA4 as u8 {
-                // TODO: NOT TESTED
-                let len_bytes = &data[(i + 1) as usize..(i + 5) as usize];
-                let len = u32::from_le_bytes([len_bytes[0], len_bytes[1], len_bytes[2], len_bytes[3]]);
-
-                i += 4;
-
-                let start = (i + 1) as usize;
-                let end = start + len as usize;
-
-                let bytes = &data[start..end];
-                tokens.push(Token::Element(bytes.to_vec()));
-
-                i += 1 + len as u64;
-            } else {
-                tokens.push(Token::Command(first as OpCode));
-                i += 1;
-            }
-        }
-        Ok(Script(tokens))
-    }
 }
 
 impl Display for Script {
@@ -234,9 +228,11 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
+        encoding::varint::varint_decode,
         scripting::{opcode::*, token::*},
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
+
     use rug::Integer;
 
     use super::*;
@@ -285,7 +281,9 @@ mod script_test {
     #[test]
     fn deserialize() {
         let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
-        let script = Script::deserialize(&data).unwrap();
+
+        let var_int = varint_decode(&data, 0).unwrap();
+        let script = Script::deserialize(&data, var_int.value, var_int.length).unwrap();
 
         let Script(tokens) = script;
 

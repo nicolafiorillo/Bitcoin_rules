@@ -14,15 +14,18 @@ use crate::transaction::{
 
 use crate::encoding::varint::varint_encode;
 
+use super::tx_ins::TxIns;
+use super::tx_outs::TxOuts;
+
 // nLockTime
 //      Block height or timestamp after which transaction can be added to the chain.
 //      If >= 500000000 (Unix timestamp) -> timestamp; else -> block height.
 //      Must be ignored when sequence numbers for all inputs are 0xFFFFFFFF.
 #[derive(Debug)]
 pub struct Tx {
-    pub version: u32,
-    pub inputs: Vec<TxIn>,
-    pub outputs: Vec<TxOut>,
+    version: u32,
+    inputs: TxIns,
+    outputs: TxOuts,
     locktime: u32,
     network: Network,
 }
@@ -31,11 +34,13 @@ impl Display for Tx {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "Transaction: {:?}\nVersion: {:?}\nLocktime: {:?}\nNetwork: {:?}",
+            "Id: {:}\nVersion: {:}\nLocktime: {:}\nNetwork: {:}\nInputs:\n{:}\nOutputs:\n{:}",
             self.id(),
             self.version,
             self.locktime,
-            self.network
+            self.network,
+            self.inputs,
+            self.outputs
         )
     }
 }
@@ -45,17 +50,21 @@ impl Tx {
         format!("{:x}", self.hash())
     }
 
+    pub fn outputs(&self, index: usize) -> &TxOut {
+        &self.outputs[index]
+    }
+
     fn hash(&self) -> Integer {
         let serialized = hash256(&self.serialize());
         Integer::from_digits(&serialized, Order::Lsf)
     }
 
     pub fn input_amount(&self) -> u64 {
-        self.inputs.iter().fold(0u64, |acc, i: &TxIn| acc + i.amount())
+        self.inputs.amount()
     }
 
     pub fn output_amount(&self) -> u64 {
-        self.outputs.iter().fold(0u64, |acc, i: &TxOut| acc + i.amount)
+        self.outputs.amount()
     }
 
     pub fn fee(&self) -> u64 {
@@ -63,9 +72,7 @@ impl Tx {
     }
 
     pub fn retrive_input_amount(&mut self) {
-        for i in 0..self.inputs.len() {
-            self.inputs[i].retreive_amount();
-        }
+        self.inputs.retreive_amount()
     }
 
     // TODO: implement with stream
@@ -73,6 +80,7 @@ impl Tx {
         if serialized.len() < 5 {
             return Err(TxError::InvalidTransactionLength);
         }
+
         let mut cursor: usize = 0;
 
         // Version
@@ -83,26 +91,26 @@ impl Tx {
         let tx_in_count = varint_decode(serialized, cursor)?;
         cursor += tx_in_count.length;
 
-        let mut inputs: Vec<TxIn> = vec![];
+        let mut txs_in: Vec<TxIn> = vec![];
 
         for _ in 0..tx_in_count.value {
             let (tx_in, c) = TxIn::from_serialized(serialized, cursor, network)?;
             cursor = c;
 
-            inputs.push(tx_in);
+            txs_in.push(tx_in);
         }
 
         // Outputs
         let tx_out_count = varint_decode(serialized, cursor)?;
         cursor += tx_out_count.length;
 
-        let mut outputs: Vec<TxOut> = vec![];
+        let mut txs_out: Vec<TxOut> = vec![];
 
         for _ in 0..tx_out_count.value {
             let (tx_out, c) = TxOut::from_serialized(serialized, cursor)?;
             cursor = c;
 
-            outputs.push(tx_out);
+            txs_out.push(tx_out);
         }
 
         // Locktime
@@ -119,6 +127,9 @@ impl Tx {
             return Err(TxError::PartiallyReadTransaction);
         }
 
+        let inputs = TxIns::new(txs_in);
+        let outputs = TxOuts::new(txs_out);
+
         // Result transaction
         Ok(Tx {
             version,
@@ -132,9 +143,9 @@ impl Tx {
     fn serialize(&self) -> Vec<u8> {
         let version_serialized = self.version.to_le_bytes();
         let inputs_length = varint_encode(self.inputs.len() as u64);
-        let inputs_serialized: Vec<u8> = self.inputs.iter().flat_map(|i| i.serialize()).collect();
+        let inputs_serialized: Vec<u8> = self.inputs.serialize();
         let outputs_length = varint_encode(self.outputs.len() as u64);
-        let outputs_serialized: Vec<u8> = self.outputs.iter().flat_map(|i| i.serialize()).collect();
+        let outputs_serialized: Vec<u8> = self.outputs.serialize();
         let locktime_serialized = self.locktime.to_le_bytes();
 
         [

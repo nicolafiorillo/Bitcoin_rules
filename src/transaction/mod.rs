@@ -3,5 +3,8 @@ pub mod script_sig;
 pub mod tx;
 pub mod tx_error;
 pub mod tx_in;
+pub mod tx_ins;
 pub mod tx_lib;
 pub mod tx_out;
+pub mod tx_outs;
+pub mod validation;

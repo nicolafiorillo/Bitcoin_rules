@@ -1,15 +1,19 @@
-use crate::encoding::varint::varint_encode;
-
 use super::{tx_error::TxError, tx_lib::varint_decode};
+use crate::{
+    encoding::varint::varint_encode,
+    scripting::script::{Script, ScriptError},
+};
 
-#[derive(Debug)]
+use std::fmt::{Display, Formatter};
+
+#[derive(Debug, Clone)]
 pub struct ScriptSig {
-    content: Vec<u8>,
+    raw: Vec<u8>,
 }
 
 impl ScriptSig {
     pub fn new(content: Vec<u8>) -> Self {
-        ScriptSig { content }
+        ScriptSig { raw: content }
     }
 
     pub fn from_serialized(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {
@@ -27,7 +31,21 @@ impl ScriptSig {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        let length = varint_encode(self.content.len() as u64);
-        [length.as_slice(), self.content.as_slice()].concat()
+        let length = varint_encode(self.raw.len() as u64);
+        [length.as_slice(), self.raw.as_slice()].concat()
+    }
+
+    pub fn script(&self) -> Result<Script, ScriptError> {
+        Script::deserialize(&self.raw, self.raw.len() as u64, 0)
+    }
+}
+
+impl Display for ScriptSig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = match &self.script() {
+            Ok(s) => s.representation(),
+            Err(e) => format!("Cannot represent script: {:?}", e),
+        };
+        writeln!(f, "{:}", s)
     }
 }

@@ -9,15 +9,15 @@ use super::script_pub_key::ScriptPubKey;
 use super::tx_error::TxError;
 use super::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxIn {
-    previous_transaction_id: Integer, // will be u256
-    previous_transaction_index: u32,
-    previous_transaction_script_pubkey: Option<ScriptPubKey>,
-    script_sig: ScriptSig,
-    sequence: u32,
-    network: Network, // TODO: to be removed when we can retreive transaction from real network
-    amount: Option<u64>,
+    pub previous_transaction_id: Integer, // will be u256
+    pub previous_transaction_index: u32,
+    pub previous_transaction_script_pubkey: Option<ScriptPubKey>,
+    pub script_sig: ScriptSig,
+    pub sequence: u32,
+    pub network: Network, // TODO: to be removed when we can retreive transaction from real network
+    pub amount: Option<u64>,
 }
 
 // TODO: manage errors with Result
@@ -62,7 +62,9 @@ impl TxIn {
         }
 
         let previous_transaction = tx.unwrap();
-        let amount = previous_transaction.outputs[self.previous_transaction_index as usize].amount;
+        let amount = previous_transaction
+            .outputs(self.previous_transaction_index as usize)
+            .amount;
 
         self.amount = Some(amount);
     }
@@ -82,7 +84,8 @@ impl TxIn {
         }
 
         let previous_transaction = tx.unwrap();
-        let script_pubkey = previous_transaction.outputs[self.previous_transaction_index as usize]
+        let script_pubkey = previous_transaction
+            .outputs(self.previous_transaction_index as usize)
             .script_pub_key
             .clone();
 

@@ -1,8 +1,9 @@
 use crate::transaction::script_pub_key::ScriptPubKey;
+use std::fmt::{Display, Formatter};
 
 use super::{tx_error::TxError, tx_lib::u64_le_bytes};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TxOut {
     pub amount: u64,
     pub script_pub_key: ScriptPubKey,
@@ -31,6 +32,12 @@ impl TxOut {
         let amount_serialized = self.amount.to_le_bytes();
         let script_pub_key_serialized = self.script_pub_key.serialize();
         [amount_serialized.as_slice(), script_pub_key_serialized.as_slice()].concat()
+    }
+}
+
+impl Display for TxOut {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "amount: {:}\nScriptPubKey: {:}", self.amount, self.script_pub_key,)
     }
 }
 

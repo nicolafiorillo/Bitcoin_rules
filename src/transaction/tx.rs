@@ -3,8 +3,11 @@ use std::fmt::{Display, Formatter};
 use rug::{integer::Order, Integer};
 
 use crate::bitcoin::network::Network;
+use crate::chain::tx::get_transaction;
 use crate::hashing::hash256::hash256;
 
+use crate::scripting::context::Context;
+use crate::scripting::script::Script;
 use crate::transaction::{
     tx_error::TxError,
     tx_in::TxIn,
@@ -14,6 +17,8 @@ use crate::transaction::{
 
 use crate::encoding::varint::varint_encode;
 
+use super::script_pub_key::ScriptPubKey;
+use super::sighash::SIGHASH;
 use super::tx_ins::TxIns;
 use super::tx_outs::TxOuts;
 
@@ -21,7 +26,7 @@ use super::tx_outs::TxOuts;
 //      Block height or timestamp after which transaction can be added to the chain.
 //      If >= 500000000 (Unix timestamp) -> timestamp; else -> block height.
 //      Must be ignored when sequence numbers for all inputs are 0xFFFFFFFF.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tx {
     version: u32,
     inputs: TxIns,
@@ -30,6 +35,7 @@ pub struct Tx {
     network: Network,
 }
 
+// Ref. https://github.com/bitcoin/bitcoin/blob/b66f6dcb26906ca8187c7e54735e21168b8101c7/src/primitives/transaction.cpp#L106
 impl Display for Tx {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(
@@ -47,15 +53,15 @@ impl Display for Tx {
 
 impl Tx {
     pub fn id(&self) -> String {
-        format!("{:x}", self.hash())
+        format!("{:02X}", Self::hash(&self.serialize()))
     }
 
     pub fn outputs(&self, index: usize) -> &TxOut {
         &self.outputs[index]
     }
 
-    fn hash(&self) -> Integer {
-        let serialized = hash256(&self.serialize());
+    fn hash(bin: &[u8]) -> Integer {
+        let serialized = hash256(bin);
         Integer::from_digits(&serialized, Order::Lsf)
     }
 
@@ -158,11 +164,92 @@ impl Tx {
         ]
         .concat()
     }
+
+    /*
+       Validating a transaction involve validating the signature of each input.
+       The signature of each input is calculated as follows:
+        1. take the transaction
+        2. remove all the ScriptSig of each input
+        3. set the ScriptPubKey corresponding to the output the input is pointing to (the one you are spending) instead of its ScriptSig
+        4. serialize the modified transaction
+        5. append the hash type
+        6. hash (hash256) the entire transaction
+        And we have the transaction signature for input i.
+       This signature, if correct, "unlocks" via OP_CHECKSIG the ScriptPubKey of the output that input i is pointing to.
+    */
+    fn hash_signature(&self, input_index: usize, script_pub_key: ScriptPubKey) -> Integer {
+        // 1. take the transaction
+        let mut tx: Tx = self.clone();
+
+        // 2. remove all the ScriptSig of each input
+        tx.inputs.remove_script();
+
+        // 3. set the ScriptPubKey corresponding to the output the input is pointing to (the one you are spending) instead of its ScriptSig
+        tx.inputs.substitute_script(input_index, script_pub_key);
+
+        // 4. serialize the modified transaction
+        let mut tx_serialized = tx.serialize();
+
+        // 5. append the hash type
+        let hash_type = (SIGHASH::All as u32).to_le_bytes().to_vec();
+        tx_serialized = [tx_serialized, hash_type].concat();
+
+        // 6. hash (hash256) the entire transaction
+        let tx_hash = hash256(&tx_serialized);
+
+        Integer::from_digits(&tx_hash, Order::Msf)
+    }
+
+    pub fn verify_input(&self, input_index: usize) -> Result<bool, TxError> {
+        if &self.inputs.len() <= &input_index {
+            return Err(TxError::InputIndexOutOfBounds);
+        }
+
+        let input_transaction = &self.inputs[input_index];
+        let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, self.network) {
+            Ok(tx) => tx,
+            Err(_e) => return Err(TxError::TransactionNotFoundInChain),
+        };
+
+        let script_sig = match input_transaction.script_sig.script() {
+            Ok(script) => script,
+            Err(_e) => return Err(TxError::ScriptError),
+        };
+
+        let output_index = input_transaction.previous_transaction_index as usize;
+        if &previous_transaction.outputs.len() <= &output_index {
+            return Err(TxError::OutputIndexOutOfBounds);
+        }
+
+        let output_transaction = &previous_transaction.outputs[output_index];
+
+        let script_pub_key = match output_transaction.script_pub_key.script() {
+            Ok(script) => script,
+            Err(_e) => return Err(TxError::ScriptError),
+        };
+
+        let z = self.hash_signature(input_index, output_transaction.script_pub_key.clone());
+        let complete_script = Script::combine(script_sig, script_pub_key);
+
+        let mut context = Context::new(complete_script.tokens(), z);
+
+        match complete_script.evaluate(&mut context) {
+            Err(e) => return Err(TxError::ScriptError),
+            Ok(val) => Ok(val),
+        }
+    }
 }
 
 #[cfg(test)]
 mod tx_test {
-    use crate::{bitcoin::network::Network, std_lib::vector::string_to_bytes, transaction::tx::Tx};
+    use rug::Integer;
+
+    use crate::{
+        bitcoin::network::Network,
+        chain::tx::get_transaction,
+        std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
+        transaction::{tx::Tx, tx_error::TxError},
+    };
 
     pub const SERIALIZED_TRANSACTION: &str = "010000000456919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e010000006a47304402204585bcdef85e6b1c6af5c2669d4830ff86e42dd205c0e089bc2a821657e951c002201024a10366077f87d6bce1f7100ad8cfa8a064b39d4e8fe4ea13a7b71aa8180f012102f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7feffffffeb8f51f4038dc17e6313cf831d4f02281c2a468bde0fafd37f1bf882729e7fd3000000006a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937feffffff567bf40595119d1bb8a3037c356efd56170b64cbcc160fb028fa10704b45d775000000006a47304402204c7c7818424c7f7911da6cddc59655a70af1cb5eaf17c69dadbfc74ffa0b662f02207599e08bc8023693ad4e9527dc42c34210f7a7d1d1ddfc8492b654a11e7620a0012102158b46fbdff65d0172b7989aec8850aa0dae49abfb84c81ae6e5b251a58ace5cfeffffffd63a5e6c16e620f86f375925b21cabaf736c779f88fd04dcad51d26690f7f345010000006a47304402200633ea0d3314bea0d95b3cd8dadb2ef79ea8331ffe1e61f762c0f6daea0fabde022029f23b3e9c30f080446150b23852028751635dcee2be669c2a1686a4b5edf304012103ffd6f4a67e94aba353a00882e563ff2722eb4cff0ad6006e86ee20dfe7520d55feffffff0251430f00000000001976a914ab0c0b2e98b1ab6dbf67d4750b0a56244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac46430600";
 
@@ -179,7 +266,7 @@ mod tx_test {
         let tx = Tx::from_serialized(&transaction, Network::Mainnet);
         assert_eq!(
             tx.unwrap().id(),
-            "ee51510d7bbabe28052038d1deb10c03ec74f06a79e21913c6fcf48d56217c87"
+            "EE51510D7BBABE28052038D1DEB10C03EC74F06A79E21913C6FCF48D56217C87"
         );
     }
 
@@ -248,5 +335,25 @@ mod tx_test {
         transaction.retrive_input_amount();
 
         assert_eq!(transaction.fee(), 140500);
+    }
+
+    #[test]
+    fn verify_first_transaction_ever() {
+        let satoshi_transaction_id: Integer =
+            IntegerEx::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
+        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
+
+        let res = satoshi_transaction.verify_input(0).unwrap();
+        assert!(res);
+    }
+
+    #[test]
+    fn verify_transaction_invalid_input_index() {
+        let satoshi_transaction_id: Integer =
+            IntegerEx::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
+        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
+
+        let res = satoshi_transaction.verify_input(1);
+        assert_eq!(TxError::InputIndexOutOfBounds, res.expect_err("Err"));
     }
 }

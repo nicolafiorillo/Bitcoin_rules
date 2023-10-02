@@ -134,6 +134,7 @@ See [REFERENCES](REFERENCES.md).
 - [X] Show compilation status of the project and unit test results in README.md.
 - [X] Signing commits.
 - [X] Preparing a book for notes.
+- [ ] Use a global Error enum.
 - [ ] Wrap in container.
 - [ ] Substitute `rug` with custom implementation of big integers.
 - [ ] Verify array bounds, especially in deserialization.

@@ -5,3 +5,4 @@
 - [Symbols](./symbols.md)
 - [ECDSA](./ecdsa.md)
 - [Addresses](./addresses.md)
+- [Curiosities and technicisms](./curiosities.md)

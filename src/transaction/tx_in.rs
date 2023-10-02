@@ -41,6 +41,14 @@ impl TxIn {
         }
     }
 
+    pub fn remove_script(&mut self) {
+        self.script_sig = ScriptSig::new(vec![0x00]);
+    }
+
+    pub fn substitute_script(&mut self, script_pub_key: ScriptPubKey) {
+        self.script_sig = ScriptSig::new(script_pub_key.raw);
+    }
+
     pub fn amount(&self) -> u64 {
         match self.amount {
             Some(amount) => amount,

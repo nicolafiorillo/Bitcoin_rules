@@ -51,6 +51,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 
 ### People
 - [Peter Todd](https://petertodd.org/)
+- [Hal Finney](https://en.wikipedia.org/wiki/Hal_Finney_(computer_scientist))
+- [Pieter Wuille](https://twitter.com/pwuille)
 
 ###  Communities
 - [Bitcoin Forum](https://bitcointalk.org/index.php)

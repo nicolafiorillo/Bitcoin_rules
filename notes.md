@@ -6,3 +6,9 @@ https://blockchain.info/rawtx/728e24b2e7dd137e574c433a8db08ac2aa0bf0588ad7716e4c
 
 
 https://blockchain.info/rawtx/ee51510d7bbabe28052038d1deb10c03ec74f06a79e21913c6fcf48d56217c87?cors=true&format=hex
+
+https://blockchain.info/rawtx/0437CD7F8525CEED2324359C2D0BA26006D92D856A9C20FA0241106EE5A597C9?cors=true&format=hex
+https://blockchain.info/rawtx/F4184FC596403B9D638783CF57ADFE4C75C605F6356FBC91338530E9831E9E16?cors=true&format=hex
+
+https://blockstream.info/api/tx/f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16.hex
+

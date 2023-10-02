@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TxError {
     InvalidTransactionLength,
     Invalid4BytesLength,
@@ -6,4 +6,8 @@ pub enum TxError {
     Invalid8BytesLength,
     PartiallyReadTransaction,
     VarIntError,
+    TransactionNotFoundInChain,
+    ScriptError,
+    InputIndexOutOfBounds,
+    OutputIndexOutOfBounds,
 }

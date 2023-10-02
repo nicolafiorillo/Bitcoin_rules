@@ -1,5 +1,6 @@
 pub mod script_pub_key;
 pub mod script_sig;
+pub mod sighash;
 pub mod tx;
 pub mod tx_error;
 pub mod tx_in;

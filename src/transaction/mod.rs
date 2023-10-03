@@ -8,4 +8,3 @@ pub mod tx_ins;
 pub mod tx_lib;
 pub mod tx_out;
 pub mod tx_outs;
-pub mod validation;

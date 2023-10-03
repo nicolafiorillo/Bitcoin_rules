@@ -104,8 +104,22 @@ impl Context {
 
     // See https://github.com/bitcoin/bitcoin/blob/d096743150fd35578b7ed71ef6bced2341927d43/src/script/interpreter.cpp#L1956C1-L1956C1
     // for reference validation
+    /*
+       Transactions valid:
+           if the top result on the stack is TRUE (noted as {0x01}) or
+           any other non-zero value or
+           if the stack is empty
+       Transactions are invalid:
+           if the top value on the stack is FALSE (a zero-length empty value, noted as {}) or
+           if script execution is halted explicitly by an operator (such as OP_VERIFY, OP_RETURN, or a conditional terminator such as OP_ENDIF)
+    */
     pub fn is_valid(&self) -> bool {
-        self.stack.len() == 1 && self.stack[0].as_bool()
+        if self.stack.len() == 0 {
+            return true;
+        }
+
+        let last = self.stack.len() - 1;
+        self.stack[last].as_bool()
     }
 
     pub fn stack_has_enough_items(&self, num: usize) -> bool {

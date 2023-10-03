@@ -238,6 +238,38 @@ impl Tx {
             Ok(val) => Ok(val),
         }
     }
+
+    /*
+        Criteria to validate a transaction:
+
+            1. The input of the transaction are previously unspent, to avoid double-spending
+            2. The sum of the inputs is greater then or equal to the sum of the outputs. No new bitcoins must be created.
+               The difference between the sum of the inputs and the sum of the outputs goes is the transaction fee for the miner.
+            3. The ScriptSig in the input successfully unlocks the previous ScriptPubKey of the outputs.
+
+        Other validations: https://developer.bitcoin.org/devguide/transactions.html#non-standard-transactions
+
+            1. The transaction must be finalized: either its locktime must be in the past (or less than or equal to the current block height),
+            or all of its sequence numbers must be 0xffffffff.
+
+            2. The transaction must be smaller than 100,000 bytes. That’s around 200 times larger than a typical single-input,
+            single-output P2PKH transaction.
+
+            3. Each of the transaction’s signature scripts must be smaller than 1,650 bytes.
+            That’s large enough to allow 15-of-15 multisig transactions in P2SH using compressed public keys.
+
+            4. Bare (non-P2SH) multisig transactions which require more than 3 public keys are currently non-standard.
+
+            5. The transaction’s signature script must only push data to the script evaluation stack.
+            It cannot push new opcodes, with the exception of opcodes which solely push data to the stack.
+
+            6. The transaction must not include any outputs which receive fewer than 1/3 as many satoshis as it would take
+            to spend it in a typical input. That’s currently 546 satoshis for a P2PKH or P2SH output on a Bitcoin Core node
+            with the default relay fee. Exception: standard null data outputs must receive zero satoshis.
+    */
+    pub fn validate(&self) -> Result<bool, TxError> {
+        unimplemented!("Tx::validate");
+    }
 }
 
 #[cfg(test)]

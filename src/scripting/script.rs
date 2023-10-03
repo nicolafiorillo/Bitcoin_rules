@@ -535,7 +535,7 @@ mod script_test {
         assert!(context.stack_has_items(2));
 
         assert!(context.executing());
-        assert!(!context.is_valid());
+        assert!(context.is_valid());
     }
 
     #[test]
@@ -782,7 +782,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
-        assert!(!context.is_valid());
+        assert!(context.is_valid());
         assert!(context.stack_has_items(2));
 
         let op = context.stack_pop_as_element().unwrap();

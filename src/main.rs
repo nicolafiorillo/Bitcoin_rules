@@ -11,7 +11,10 @@ Entry point
 
 use rug::Integer;
 
-use crate::{chain::tx::get_transaction, flags::network::Network, std_lib::integer_ex::IntegerEx};
+use crate::{
+    chain::tx::get_transaction, flags::network::Network, std_lib::integer_ex::IntegerEx,
+    transaction::verification::verify_input,
+};
 
 mod bitcoin;
 mod chain;
@@ -39,6 +42,6 @@ fn main() {
     println!("Satoshi transaction");
     println!("{:}", satoshi_transaction);
 
-    let res = satoshi_transaction.verify_input(0).unwrap();
+    let res = verify_input(satoshi_transaction, 0).unwrap();
     println!("Satoshi transaction verification: {}", res);
 }

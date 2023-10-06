@@ -66,7 +66,7 @@ pub fn varint_decode(v: &[u8], from: usize) -> Result<VarInt, VarIntError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::encoding::varint::{varint_decode, varint_encode, VarIntError};
+    use super::{varint_decode, varint_encode, VarIntError};
 
     #[test]
     fn varint_encode_0x00() {

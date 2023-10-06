@@ -2,7 +2,7 @@
 
 use rug::{integer::Order, Complete, Integer};
 
-use crate::std_lib::vector::padding_right;
+use super::vector::padding_right;
 
 pub trait IntegerEx {
     fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;

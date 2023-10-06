@@ -1,7 +1,7 @@
 use rug::Integer;
 
-use crate::bitcoin::network::Network;
 use crate::chain::tx::get_transaction;
+use crate::flags::network::Network;
 use crate::transaction::script_sig::ScriptSig;
 use crate::transaction::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
 
@@ -147,7 +147,7 @@ mod tx_in_test {
     use rug::Integer;
 
     use crate::{
-        bitcoin::network::Network,
+        flags::network::Network,
         std_lib::integer_ex::IntegerEx,
         std_lib::vector::string_to_bytes,
         transaction::{script_sig::ScriptSig, tx_in::TxIn},

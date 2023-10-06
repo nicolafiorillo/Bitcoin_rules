@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use rug::Integer;
 
 use crate::{
-    bitcoin::network::Network,
+    flags::network::Network,
     std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     transaction::tx::Tx,
 };

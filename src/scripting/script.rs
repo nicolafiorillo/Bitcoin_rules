@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    encoding::varint::varint_encode,
+    std_lib::varint::varint_encode,
     std_lib::vector::{string_to_bytes, vect_to_hex_string},
 };
 
@@ -228,8 +228,8 @@ impl Display for Script {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        encoding::varint::varint_decode,
         scripting::{opcode::*, token::*},
+        std_lib::varint::varint_decode,
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
     };
 

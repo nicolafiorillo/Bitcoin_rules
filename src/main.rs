@@ -11,12 +11,12 @@ Entry point
 
 use rug::Integer;
 
-use crate::{bitcoin::network::Network, chain::tx::get_transaction, std_lib::integer_ex::IntegerEx};
+use crate::{chain::tx::get_transaction, flags::network::Network, std_lib::integer_ex::IntegerEx};
 
 mod bitcoin;
 mod chain;
 mod ecdsa;
-mod encoding;
+mod flags;
 mod hashing;
 mod keys;
 mod scripting;

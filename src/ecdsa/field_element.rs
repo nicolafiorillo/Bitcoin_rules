@@ -34,7 +34,7 @@ impl FieldElement {
 
     /// New `FieldElement` with given `num` and bitcoin P as prime.
     pub fn new_in_secp256k1(num: Integer) -> FieldElement {
-        use crate::bitcoin::ecdsa_btc::P;
+        use crate::bitcoin::ecdsa::P;
 
         // TODO: verify that `num` is less than `P`? (there is a verification in Point...)
 

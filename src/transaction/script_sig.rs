@@ -1,7 +1,7 @@
 use super::{tx_error::TxError, tx_lib::varint_decode};
 use crate::{
-    encoding::varint::varint_encode,
     scripting::script::{Script, ScriptError},
+    std_lib::varint::varint_encode,
 };
 
 use std::fmt::{Display, Formatter};

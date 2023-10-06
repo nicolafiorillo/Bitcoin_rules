@@ -1,18 +1,18 @@
 /// 'Point' is a point on an elliptic curve.
-use crate::{
-    bitcoin::{
-        compression::Compression,
-        ecdsa_btc::{N, P, SEVEN, ZERO},
-    },
-    ecdsa::field_element::FieldElement,
-    hashing::hash160::hash160,
-    std_lib::vector::vect_to_array_32,
-};
-use rug::{integer::Order, Integer};
-
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Mul},
+};
+
+use rug::{integer::Order, Integer};
+
+use super::field_element::FieldElement;
+
+use crate::{
+    bitcoin::ecdsa::{N, P, SEVEN, ZERO},
+    flags::compression::Compression,
+    hashing::hash160::hash160,
+    std_lib::vector::vect_to_array_32,
 };
 
 /// `Point` is a point on an elliptic curve.
@@ -321,7 +321,7 @@ impl Mul<Integer> for &Point {
 mod point_test {
     use super::*;
     use crate::{
-        bitcoin::ecdsa_btc::G,
+        bitcoin::ecdsa::G,
         keys::{signature::Signature, verification::verify},
         std_lib::integer_ex::IntegerEx,
     };

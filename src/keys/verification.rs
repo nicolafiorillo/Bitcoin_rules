@@ -1,7 +1,7 @@
 use rug::Integer;
 
 use crate::{
-    bitcoin::ecdsa_btc::{G, N},
+    bitcoin::ecdsa::{G, N},
     ecdsa::point::Point,
     std_lib::integer_ex::IntegerEx,
 };

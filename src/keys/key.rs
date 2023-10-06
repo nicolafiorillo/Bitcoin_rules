@@ -7,13 +7,12 @@ use rug::{integer::Order, Integer};
 use crate::{
     bitcoin::{
         address_prefix::AddressPrefix,
-        compression::Compression,
-        ecdsa_btc::{G, N},
-        network::Network,
+        ecdsa::{G, N},
     },
     ecdsa::point::Point,
-    encoding::*,
+    flags::{compression::Compression, network::Network},
     keys::signature::Signature,
+    std_lib::base58,
     std_lib::integer_ex::IntegerEx,
     std_lib::vector::{padding_left, vect_to_array_32},
 };
@@ -169,8 +168,8 @@ mod private_key_test {
     use rug::{integer::Order, ops::Pow, Integer};
 
     use crate::{
-        bitcoin::{compression::Compression, network::Network},
         ecdsa::point::Point,
+        flags::{compression::Compression, network::Network},
         hashing::hash256::hash256,
         keys::key::Key,
         std_lib::{

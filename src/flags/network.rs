@@ -14,6 +14,6 @@ impl Display for Network {
             Network::Mainnet => "Mainnet",
             Network::Testnet => "Testnet",
         };
-        writeln!(f, "{:?}", n)
+        writeln!(f, "{:}", n)
     }
 }

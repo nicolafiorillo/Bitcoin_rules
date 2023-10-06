@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 
-use super::network::Network;
+use crate::flags::network::Network;
 
 pub enum AddressPrefix {
     PrivateKeyP2pkhMainnet = Network::Mainnet as isize,

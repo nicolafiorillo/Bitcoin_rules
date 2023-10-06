@@ -2,8 +2,8 @@ use std::fmt::{Display, Formatter};
 
 use rug::{integer::Order, Integer};
 
-use crate::bitcoin::network::Network;
 use crate::chain::tx::get_transaction;
+use crate::flags::network::Network;
 use crate::hashing::hash256::hash256;
 
 use crate::scripting::context::Context;
@@ -15,7 +15,7 @@ use crate::transaction::{
     tx_out::TxOut,
 };
 
-use crate::encoding::varint::varint_encode;
+use crate::std_lib::varint::varint_encode;
 
 use super::script_pub_key::ScriptPubKey;
 use super::sighash::SIGHASH;
@@ -277,8 +277,8 @@ mod tx_test {
     use rug::Integer;
 
     use crate::{
-        bitcoin::network::Network,
         chain::tx::get_transaction,
+        flags::network::Network,
         std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
         transaction::{tx::Tx, tx_error::TxError},
     };

@@ -1,6 +1,5 @@
-use std::fmt::{Display, Formatter};
-
 use rug::{integer::Order, Integer};
+use std::fmt::{Display, Formatter};
 
 use crate::std_lib::vector::trim_left;
 

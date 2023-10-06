@@ -1,7 +1,6 @@
 use rug::{integer::Order, Integer};
 
-use crate::std_lib::varint::VarInt;
-use crate::transaction::tx_error::TxError;
+use crate::{std_lib::varint::VarInt, transaction::tx_error::TxError};
 
 pub fn le_bytes_to_u32(bytes: &[u8], from: usize) -> Result<u32, TxError> {
     if bytes.len() < (from + 4) {

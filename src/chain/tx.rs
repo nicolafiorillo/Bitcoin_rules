@@ -1,9 +1,8 @@
 // For now we will use the tx.rs file to mocking fetching transaction from node
 
-use std::collections::HashMap;
-
 use once_cell::sync::Lazy;
 use rug::Integer;
+use std::collections::HashMap;
 
 use crate::{
     flags::network::Network,

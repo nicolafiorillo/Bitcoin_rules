@@ -1,23 +1,21 @@
+use rug::{integer::Order, Integer};
 use std::fmt::{Display, Formatter};
 
-use rug::{integer::Order, Integer};
-
-use crate::flags::network::Network;
-use crate::hashing::hash256::hash256;
-
-use crate::transaction::{
-    tx_error::TxError,
-    tx_in::TxIn,
-    tx_lib::{le_bytes_to_u32, varint_decode},
-    tx_out::TxOut,
+use crate::{
+    flags::{network::Network, sighash::SIGHASH},
+    hashing::hash256::hash256,
+    std_lib::varint::varint_encode,
 };
 
-use crate::std_lib::varint::varint_encode;
-
-use super::script_pub_key::ScriptPubKey;
-use super::sighash::SIGHASH;
-use super::tx_ins::TxIns;
-use super::tx_outs::TxOuts;
+use super::{
+    script_pub_key::ScriptPubKey,
+    tx_error::TxError,
+    tx_in::TxIn,
+    tx_ins::TxIns,
+    tx_lib::{le_bytes_to_u32, varint_decode},
+    tx_out::TxOut,
+    tx_outs::TxOuts,
+};
 
 // nLockTime
 //      Block height or timestamp after which transaction can be added to the chain.
@@ -212,7 +210,7 @@ impl Tx {
         let mut tx_serialized = tx.serialize();
 
         // 5. append the hash type
-        let hash_type = (SIGHASH::All as u32).to_le_bytes().to_vec();
+        let hash_type = (SIGHASH::All as u32).to_le_bytes().to_vec(); //TODO parametrize SIGHASH
         tx_serialized = [tx_serialized, hash_type].concat();
 
         // 6. hash (hash256) the entire transaction

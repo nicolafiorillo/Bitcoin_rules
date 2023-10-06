@@ -1,9 +1,11 @@
-use crate::scripting::script::Script;
-use crate::{chain::tx::get_transaction, scripting::context::Context};
+use crate::{
+    chain::tx::get_transaction,
+    scripting::{context::Context, script::Script},
+};
 
 use super::{tx::Tx, tx_error::TxError};
 
-pub fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
+fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
     if tx.input_len() <= input_index {
         return Err(TxError::InputIndexOutOfBounds);
     }

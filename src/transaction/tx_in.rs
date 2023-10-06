@@ -1,13 +1,19 @@
 use rug::Integer;
 
-use crate::chain::tx::get_transaction;
-use crate::flags::network::Network;
-use crate::transaction::script_sig::ScriptSig;
-use crate::transaction::tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes};
+use crate::{
+    chain::tx::get_transaction,
+    flags::network::Network,
+    transaction::{
+        script_sig::ScriptSig,
+        tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes},
+    },
+};
 
-use super::script_pub_key::ScriptPubKey;
-use super::tx_error::TxError;
-use super::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
+use super::{
+    script_pub_key::ScriptPubKey,
+    tx_error::TxError,
+    tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32},
+};
 
 #[derive(Debug, Clone)]
 pub struct TxIn {

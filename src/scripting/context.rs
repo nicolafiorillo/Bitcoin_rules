@@ -1,6 +1,5 @@
-use std::collections::VecDeque;
-
 use rug::Integer;
+use std::collections::VecDeque;
 
 use super::{condition_stack::ConditionStack, token::Token};
 

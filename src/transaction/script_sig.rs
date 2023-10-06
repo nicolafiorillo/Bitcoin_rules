@@ -1,10 +1,11 @@
-use super::{tx_error::TxError, tx_lib::varint_decode};
+use std::fmt::{Display, Formatter};
+
 use crate::{
     scripting::script::{Script, ScriptError},
     std_lib::varint::varint_encode,
 };
 
-use std::fmt::{Display, Formatter};
+use super::{tx_error::TxError, tx_lib::varint_decode};
 
 #[derive(Debug, Clone)]
 pub struct ScriptSig {

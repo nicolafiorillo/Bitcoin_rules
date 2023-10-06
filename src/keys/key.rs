@@ -1,8 +1,7 @@
 //! Private key management
 
-use std::fmt::{Display, Formatter, Result};
-
 use rug::{integer::Order, Integer};
+use std::fmt::{Display, Formatter, Result};
 
 use crate::{
     bitcoin::{

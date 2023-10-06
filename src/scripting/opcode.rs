@@ -1,6 +1,5 @@
-use std::ops::Range;
-
 use once_cell::sync::Lazy;
+use std::ops::Range;
 
 use super::{
     context::{Context, ContextError},

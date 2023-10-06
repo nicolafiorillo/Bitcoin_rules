@@ -1,7 +1,9 @@
-use super::tx_out::TxOut;
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    ops::Index,
+};
 
-use std::ops::Index;
+use super::tx_out::TxOut;
 
 #[derive(Debug, Clone)]
 pub struct TxOuts(Vec<TxOut>);

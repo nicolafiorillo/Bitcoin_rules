@@ -1,5 +1,6 @@
-use crate::transaction::script_pub_key::ScriptPubKey;
 use std::fmt::{Display, Formatter};
+
+use crate::transaction::script_pub_key::ScriptPubKey;
 
 use super::{tx_error::TxError, tx_lib::u64_le_bytes};
 

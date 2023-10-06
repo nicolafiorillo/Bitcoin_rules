@@ -1,12 +1,9 @@
 /// 'Point' is a point on an elliptic curve.
+use rug::{integer::Order, Integer};
 use std::{
     fmt::{Display, Formatter, Result},
     ops::{Add, Mul},
 };
-
-use rug::{integer::Order, Integer};
-
-use super::field_element::FieldElement;
 
 use crate::{
     bitcoin::ecdsa::{N, P, SEVEN, ZERO},
@@ -14,6 +11,8 @@ use crate::{
     hashing::hash160::hash160,
     std_lib::vector::vect_to_array_32,
 };
+
+use super::field_element::FieldElement;
 
 /// `Point` is a point on an elliptic curve.
 /// Both `x` and `y` as `None` indicates point at infinite.

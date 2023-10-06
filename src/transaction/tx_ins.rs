@@ -1,7 +1,9 @@
-use super::script_pub_key::ScriptPubKey;
-use super::tx_in::TxIn;
-use std::fmt::{Display, Formatter};
-use std::ops::Index;
+use std::{
+    fmt::{Display, Formatter},
+    ops::Index,
+};
+
+use super::{script_pub_key::ScriptPubKey, tx_in::TxIn};
 
 #[derive(Debug, Clone)]
 pub struct TxIns(Vec<TxIn>);

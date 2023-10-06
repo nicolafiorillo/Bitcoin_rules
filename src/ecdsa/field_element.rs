@@ -6,7 +6,7 @@ use std::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use crate::std_lib::integer_ex::IntegerEx;
+use crate::std_lib::integer_extended::IntegerExtended;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct FieldElement {

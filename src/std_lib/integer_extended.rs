@@ -4,7 +4,7 @@ use rug::{integer::Order, Complete, Integer};
 
 use super::vector::padding_right;
 
-pub trait IntegerEx {
+pub trait IntegerExtended {
     fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Self;
     fn from_hex_str(s: &str) -> Self;
     fn from_dec_str(s: &str) -> Self;
@@ -14,7 +14,7 @@ pub trait IntegerEx {
     fn to_little_endian_bytes(&self, length: usize) -> Vec<u8>;
 }
 
-impl IntegerEx for Integer {
+impl IntegerExtended for Integer {
     /// New Integer from 256 digits.
     fn from_256_digits(ll: u64, lr: u64, rl: u64, rr: u64) -> Integer {
         let digits: [u64; 4] = [ll, lr, rl, rr];
@@ -58,11 +58,11 @@ impl IntegerEx for Integer {
 mod integer_ex_test {
     use rug::Integer;
 
-    use crate::std_lib::integer_ex::IntegerEx;
+    use crate::std_lib::integer_extended::IntegerExtended;
 
     #[test]
     fn from_little_endian() {
-        let bytes: Integer = IntegerEx::from_little_endian_bytes(&[0x39, 0x30]);
+        let bytes: Integer = Integer::from_little_endian_bytes(&[0x39, 0x30]);
         assert_eq!(bytes, 12345);
     }
 

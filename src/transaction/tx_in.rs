@@ -148,7 +148,7 @@ mod tx_in_test {
 
     use crate::{
         flags::network::Network,
-        std_lib::integer_ex::IntegerEx,
+        std_lib::integer_extended::IntegerExtended,
         std_lib::vector::string_to_bytes,
         transaction::{script_sig::ScriptSig, tx_in::TxIn},
     };

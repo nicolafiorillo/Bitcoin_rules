@@ -323,7 +323,7 @@ mod point_test {
     use crate::{
         bitcoin::ecdsa::G,
         keys::{signature::Signature, verification::verify},
-        std_lib::integer_ex::IntegerEx,
+        std_lib::integer_extended::IntegerExtended,
     };
 
     #[test]

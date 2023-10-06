@@ -81,14 +81,14 @@ mod verification_test {
     use crate::{
         chain::tx::get_transaction,
         flags::network::Network,
-        std_lib::integer_ex::IntegerEx,
+        std_lib::integer_extended::IntegerExtended,
         transaction::{tx_error::TxError, verification::verify_input},
     };
 
     #[test]
     fn verify_first_transaction_ever() {
         let satoshi_transaction_id: Integer =
-            IntegerEx::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
+            Integer::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
         let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
 
         let res = verify_input(satoshi_transaction, 0).unwrap();
@@ -98,7 +98,7 @@ mod verification_test {
     #[test]
     fn verify_transaction_invalid_input_index() {
         let satoshi_transaction_id: Integer =
-            IntegerEx::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
+            Integer::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
         let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
 
         let res = verify_input(satoshi_transaction, 1);

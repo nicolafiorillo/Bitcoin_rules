@@ -3,7 +3,7 @@ use rug::Integer;
 use crate::{
     bitcoin::ecdsa::{G, N},
     ecdsa::point::Point,
-    std_lib::integer_ex::IntegerEx,
+    std_lib::integer_extended::IntegerExtended,
 };
 
 use super::signature::Signature;

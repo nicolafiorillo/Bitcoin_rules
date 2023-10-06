@@ -109,7 +109,7 @@ mod signature_test {
     use crate::{
         bitcoin::ecdsa::{G, N, P},
         ecdsa::{field_element::FieldElement, point::Point},
-        std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
+        std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
     };
 
     #[test]

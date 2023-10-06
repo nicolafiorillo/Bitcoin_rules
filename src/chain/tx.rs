@@ -7,7 +7,7 @@ use rug::Integer;
 
 use crate::{
     flags::network::Network,
-    std_lib::{integer_ex::IntegerEx, vector::string_to_bytes},
+    std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
     transaction::tx::Tx,
 };
 
@@ -19,7 +19,7 @@ pub enum ChainError {
 fn get_id_to_transaction(id: &str, tx: &str, network: Network) -> (Integer, Tx) {
     let s = string_to_bytes(tx).unwrap();
     let tx = Tx::from_serialized(&s, network).unwrap();
-    let id = IntegerEx::from_hex_str(id);
+    let id = Integer::from_hex_str(id);
 
     (id, tx)
 }

@@ -18,7 +18,7 @@ mod hashing_test {
     use rug::{integer::Order, Integer};
 
     use super::hash160;
-    use crate::std_lib::integer_ex::IntegerEx;
+    use crate::std_lib::integer_extended::IntegerExtended;
 
     #[test]
     fn verify_a_hash160() {

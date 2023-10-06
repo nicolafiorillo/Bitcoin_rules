@@ -95,7 +95,7 @@ pub fn base58_decode_with_checksum(s: &str) -> Result<Vec<u8>, Base58DecodeError
 mod base58_test {
     use rug::{integer::Order, Integer};
 
-    use crate::std_lib::integer_ex::IntegerEx;
+    use crate::std_lib::integer_extended::IntegerExtended;
 
     use super::{
         base58_decode, base58_decode_with_checksum, base58_encode, base58_encode_with_checksum, Base58DecodeError,

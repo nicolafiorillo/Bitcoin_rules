@@ -13,7 +13,7 @@ use crate::{
     flags::{compression::Compression, network::Network},
     keys::signature::Signature,
     std_lib::base58,
-    std_lib::integer_ex::IntegerEx,
+    std_lib::integer_extended::IntegerExtended,
     std_lib::vector::{padding_left, vect_to_array_32},
 };
 
@@ -173,7 +173,7 @@ mod private_key_test {
         hashing::hash256::hash256,
         keys::key::Key,
         std_lib::{
-            integer_ex::IntegerEx,
+            integer_extended::IntegerExtended,
             vector::{string_to_bytes, vect_to_hex_string},
         },
     };

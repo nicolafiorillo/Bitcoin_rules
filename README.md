@@ -71,5 +71,4 @@ If you want to support this project, you can donate to:
 
 ## Acknowledgments
 - [Rust](https://www.rust-lang.org/) for being a great language.
-- [Ludovico Einaudi](https://en.wikipedia.org/wiki/Ludovico_Einaudi) for his music during the development of this project.
 - [Satoshi Nakamoto](https://www.metzdowd.com/pipermail/cryptography/2008-October/014810.html) for bringing us here.

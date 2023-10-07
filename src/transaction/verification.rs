@@ -91,6 +91,8 @@ pub fn validate(tx: &Tx) -> Result<bool, TxError> {
     // to spend it in a typical input. That’s currently 546 satoshis for a P2PKH or P2SH output on a Bitcoin Core node
     // with the default relay fee. Exception: standard null data outputs must receive zero satoshis.
 
+    // 10. Max sigops: https://github.com/bitcoin/bitcoin/blob/d2b8c5e1234cdaff84bd1f60aea598d219cdac5e/src/policy/policy.h#L33
+
     Ok(true)
 }
 

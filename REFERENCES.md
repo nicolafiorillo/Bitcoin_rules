@@ -1,4 +1,4 @@
-# `bitcoin_rules!`
+# `Bitcoin_rules!`
 
 Where we list some useful resources for Bitcoin developers gathered during the development of `Bitcoin_rules!`.
 
@@ -14,6 +14,7 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Script](https://en.bitcoin.it/wiki/Script)
 - [Bitcoin Core architecture overview](https://jameso.be/dev++2018/#1) by [James O'Beirne](https://twitter.com/jamesob)
 - [Bitcoin Developer Guides](https://developer.bitcoin.org/devguide/index.html)
+- [Bitcoin Developer Reference](https://developer.bitcoin.org/reference/index.html)
 - [Bitcoin Tutorials](https://www.herongyang.com/Bitcoin/)
 - [CS120: Bitcoin for Developers I](https://learn.saylor.org/course/view.php?id=500)
 - [Technical Bitcoin Resources](https://www.lopp.net/bitcoin-information/technical-resources.html) by [Jameson Loop](https://twitter.com/lopp)

@@ -13,22 +13,12 @@ impl TxIns {
         TxIns(txs_in)
     }
 
-    pub fn amount(&self) -> u64 {
-        self.0.iter().fold(0u64, |acc, i: &TxIn| acc + i.amount())
-    }
-
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
     pub fn serialize(&self) -> Vec<u8> {
         self.0.iter().flat_map(|i| i.serialize()).collect()
-    }
-
-    pub fn retreive_amount(&mut self) {
-        for i in 0..self.0.len() {
-            self.0[i].retreive_amount();
-        }
     }
 
     pub fn remove_script(&mut self) {
@@ -56,8 +46,8 @@ impl Display for TxIns {
         for tx_in in &self.0 {
             write!(
                 f,
-                "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   previous_transaction_script_pubkey: {:?}\n   script_sig: {:}   sequence: {:}\n   network: {:}   amount: {:?}\n   --\n",
-                tx_in.previous_transaction_id, tx_in.previous_transaction_index, tx_in.previous_transaction_script_pubkey, tx_in.script_sig, tx_in.sequence, tx_in.network, tx_in.amount
+                "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   script_sig: {:}   sequence: {:}\n   network: {:}\n   --\n",
+                tx_in.previous_transaction_id, tx_in.previous_transaction_index, tx_in.script_sig, tx_in.sequence, tx_in.network
             )?;
         }
         write!(f, "")

@@ -19,11 +19,9 @@ use super::{
 pub struct TxIn {
     pub previous_transaction_id: Integer, // will be u256
     pub previous_transaction_index: u32,
-    pub previous_transaction_script_pubkey: Option<ScriptPubKey>,
     pub script_sig: ScriptSig,
     pub sequence: u32,
     pub network: Network, // TODO: to be removed when we can retreive transaction from real network
-    pub amount: Option<u64>,
 }
 
 // TODO: manage errors with Result
@@ -42,8 +40,6 @@ impl TxIn {
             script_sig,
             sequence,
             network,
-            amount: None,
-            previous_transaction_script_pubkey: None,
         }
     }
 
@@ -53,57 +49,6 @@ impl TxIn {
 
     pub fn substitute_script(&mut self, script_pub_key: ScriptPubKey) {
         self.script_sig = ScriptSig::new(script_pub_key.raw);
-    }
-
-    pub fn amount(&self) -> u64 {
-        match self.amount {
-            Some(amount) => amount,
-            None => panic!("amount not calculated: first call calculate_amount()"),
-        }
-    }
-
-    pub fn retreive_amount(&mut self) {
-        log::debug!(
-            "Searching for (previous) transaction_id {:x} (index {:?}) on network {:?}",
-            &self.previous_transaction_id,
-            self.previous_transaction_index,
-            self.network
-        );
-
-        let tx = get_transaction(&self.previous_transaction_id, self.network);
-        if tx.is_err() {
-            panic!("(previous) transaction not found");
-        }
-
-        let previous_transaction = tx.unwrap();
-        let amount = previous_transaction
-            .outputs(self.previous_transaction_index as usize)
-            .amount;
-
-        self.amount = Some(amount);
-    }
-
-    // TODO: missing tests
-    pub fn retreive_script_pubkey(&mut self) {
-        log::debug!(
-            "Searching for (previous) transaction_id {:x} (index {:?}) on network {:?}",
-            &self.previous_transaction_id,
-            self.previous_transaction_index,
-            self.network
-        );
-
-        let tx = get_transaction(&self.previous_transaction_id, self.network);
-        if tx.is_err() {
-            panic!("(previous) transaction not found");
-        }
-
-        let previous_transaction = tx.unwrap();
-        let script_pubkey = previous_transaction
-            .outputs(self.previous_transaction_index as usize)
-            .script_pub_key
-            .clone();
-
-        self.previous_transaction_script_pubkey = Some(script_pubkey);
     }
 
     pub fn from_serialized(serialized: &[u8], cursor: usize, network: Network) -> Result<(Self, usize), TxError> {

@@ -10,4 +10,6 @@ pub enum TxError {
     ScriptError,
     InputIndexOutOfBounds,
     OutputIndexOutOfBounds,
+    InvalidTransactionFee,
+    ScriptVerificationFailed,
 }

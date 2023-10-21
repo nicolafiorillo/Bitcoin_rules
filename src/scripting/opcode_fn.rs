@@ -257,6 +257,45 @@ pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_3dup(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(3) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+    let op3 = context.stack_pop();
+
+    context.stack_push(op3.clone());
+    context.stack_push(op2.clone());
+    context.stack_push(op1.clone());
+    context.stack_push(op3);
+    context.stack_push(op2);
+    context.stack_push(op1);
+
+    Ok(true)
+}
+
+pub fn op_2over(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(4) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+    let op3 = context.stack_pop();
+    let op4 = context.stack_pop();
+
+    context.stack_push(op4.clone());
+    context.stack_push(op3.clone());
+    context.stack_push(op2);
+    context.stack_push(op1);
+    context.stack_push(op4);
+    context.stack_push(op3);
+
+    Ok(true)
+}
+
 pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -391,6 +430,17 @@ pub fn op_fromaltstack(context: &mut Context) -> Result<bool, ContextError> {
 
     let op = context.alt_stack_pop();
     context.stack_push(op);
+
+    Ok(true)
+}
+
+pub fn op_2drop(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    context.stack_pop();
+    context.stack_pop();
 
     Ok(true)
 }

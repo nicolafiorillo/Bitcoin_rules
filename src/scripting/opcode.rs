@@ -26,6 +26,7 @@ pub type OpCode = usize;
 pub const OP_ELEMENTS_RANGE: Range<OpCode> = OP_0..OP_PUSHDATA1;
 
 pub const OP_0: OpCode = 0x00;
+// From 0x01 to 0x4B: OP_PUSHBYTES_XX
 pub const OP_PUSHDATA1: OpCode = 0x4C;
 pub const OP_PUSHDATA2: OpCode = 0x4D;
 pub const OP_PUSHDATA4: OpCode = 0x4E;
@@ -178,10 +179,10 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op_to_fn[OP_RETURN] = OpCodeInfo::new("OP_RETURN", op_return);
     op_to_fn[OP_TOALTSTACK] = OpCodeInfo::new("OP_TOALTSTACK", op_toaltstack);
     op_to_fn[OP_FROMALTSTACK] = OpCodeInfo::new("OP_FROMALTSTACK", op_fromaltstack);
-    op_to_fn[OP_2DROP] = OpCodeInfo::new("OP_2DROP", not_implemented);
+    op_to_fn[OP_2DROP] = OpCodeInfo::new("OP_2DROP", op_2drop);
     op_to_fn[OP_2DUP] = OpCodeInfo::new("OP_2DUP", op_2dup);
-    op_to_fn[OP_3DUP] = OpCodeInfo::new("OP_3DUP", not_implemented);
-    op_to_fn[OP_2OVER] = OpCodeInfo::new("OP_2OVER", not_implemented);
+    op_to_fn[OP_3DUP] = OpCodeInfo::new("OP_3DUP", op_3dup);
+    op_to_fn[OP_2OVER] = OpCodeInfo::new("OP_2OVER", op_2over);
     op_to_fn[OP_2ROT] = OpCodeInfo::new("OP_2ROT", not_implemented);
     op_to_fn[OP_2SWAP] = OpCodeInfo::new("OP_2SWAP", not_implemented);
     op_to_fn[OP_IFDUP] = OpCodeInfo::new("OP_IFDUP", not_implemented);

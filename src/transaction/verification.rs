@@ -1,6 +1,6 @@
 use crate::{
     chain::tx::get_transaction,
-    scripting::{context::Context, script::Script},
+    scripting::{context::Context, script_lang::ScriptLang},
 };
 
 use super::{tx::Tx, tx_error::TxError};
@@ -16,10 +16,7 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
         Err(_e) => return Err(TxError::TransactionNotFoundInChain),
     };
 
-    let script_sig = match input_transaction.script_sig.script() {
-        Ok(script) => script,
-        Err(_e) => return Err(TxError::ScriptError),
-    };
+    let script_sig = &input_transaction.script_sig.script_lang;
 
     let output_index = input_transaction.previous_transaction_index as usize;
     if previous_transaction.output_len() <= output_index {
@@ -28,18 +25,18 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
 
     let output_transaction = previous_transaction.get_output(output_index)?;
 
-    let script_pub_key = match output_transaction.script_pub_key.script() {
-        Ok(script) => script,
-        Err(_e) => return Err(TxError::ScriptError),
-    };
+    let script_pub_key = &output_transaction.script_pub_key.script_lang;
 
     let z = tx.hash_signature(input_index, output_transaction.script_pub_key.clone());
-    let complete_script = Script::combine(script_sig, script_pub_key);
+    let complete_script = ScriptLang::combine(script_sig.clone(), script_pub_key.clone());
 
     let mut context = Context::new(complete_script.tokens(), z);
 
     match complete_script.evaluate(&mut context) {
-        Err(e) => return Err(TxError::ScriptError),
+        Err(e) => {
+            log::debug!("Script error: {:?}", e);
+            Err(TxError::ScriptError)
+        }
         Ok(val) => Ok(val),
     }
 }
@@ -72,7 +69,8 @@ pub fn validate(tx: &Tx) -> Result<bool, TxError> {
     }
 
     // Other validations: https://developer.bitcoin.org/devguide/transactions.html#non-standard-transactions
-
+    // https://en.bitcoin.it/wiki/Protocol_rules#.22tx.22_messages
+    //
     // 4. The transaction must be finalized: either its locktime must be in the past (or less than or equal to the current block height),
     // or all of its sequence numbers must be 0xffffffff.
 

@@ -113,7 +113,7 @@ impl Context {
            if script execution is halted explicitly by an operator (such as OP_VERIFY, OP_RETURN, or a conditional terminator such as OP_ENDIF)
     */
     pub fn is_valid(&self) -> bool {
-        if self.stack.len() == 0 {
+        if self.stack.is_empty() {
             return true;
         }
 

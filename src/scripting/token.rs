@@ -1,4 +1,9 @@
-use crate::std_lib::vector::{padding_left, trim_right};
+use std::fmt::{Display, Formatter};
+
+use crate::{
+    scripting::opcode::OP_TO_FN,
+    std_lib::vector::{padding_left, trim_right, vect_to_hex_string},
+};
 
 use super::opcode::OpCode;
 
@@ -38,6 +43,17 @@ impl Token {
                 | Token::Command(opcode::OP_ELSE)
                 | Token::Command(opcode::OP_ENDIF)
         )
+    }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = match &self {
+            Token::Element(bytes) => vect_to_hex_string(bytes),
+            Token::Command(op_code) => (*OP_TO_FN)[*op_code].name.to_string(),
+        };
+
+        write!(f, "{:}", s)
     }
 }
 

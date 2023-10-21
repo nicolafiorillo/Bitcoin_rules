@@ -57,6 +57,19 @@ impl Key {
     }
     // ANCHOR_END: fn_address
 
+    pub fn address_to_hash160(address: &str, network: Network) -> Vec<u8> {
+        // TODO: manage by Result<>
+        let decoded = base58::base58_decode_with_checksum(address).unwrap();
+
+        let net = decoded[0];
+        if net != network as u8 {
+            // TODO: manage by Result<>
+            panic!("Incongruent network");
+        }
+
+        decoded[1..].to_vec()
+    }
+
     /// Sign a message.
     /// `z` is the hash of the message.
     /// Return the `Signature` for the signed message.
@@ -118,7 +131,7 @@ impl Key {
 
         loop {
             v = Key::hmac_for_data(&v, k);
-            let candidate: Integer = Integer::from_digits(&v, Order::MsfBe);
+            let candidate: Integer = Integer::from_digits(&v, Order::MsfBe); // TODO: MsfBe? Only Msf
 
             if candidate >= 1 && candidate < *N {
                 return candidate;
@@ -128,6 +141,10 @@ impl Key {
             k = Key::hmac_for_data(&data, k);
             v = Key::hmac_for_data(&v, k);
         }
+    }
+
+    pub fn public_key_sec(&self) -> Vec<u8> {
+        self.public_key.serialize(Compression::Compressed)
     }
 
     pub fn to_wif(&self, compression: Compression, network: Network) -> String {

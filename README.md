@@ -10,19 +10,13 @@
 
 [![Build/Test](https://github.com/nicolafiorillo/Bitcoin_rules/workflows/CI/badge.svg)](https://github.com/nicolafiorillo/Bitcoin_rules/actions)
 
-## Motivation and disclaimer
+## Motivation and other info
 
-This is a humble contribute to the Bitcoin spread and adoption.
+This is a contribute to the Bitcoin spread and adoption. _Do not use this for production stuff. Completeness, stability, and expecially security are not guaranteed._
 
-_Do not use this for production stuff. Completeness, stability, and expecially security are not guaranteed._
+See [references](REFERENCES.md) for documentations, references, and articles used building this project.
 
-## Documentations, references, and articles
-
-See [REFERENCES](REFERENCES.md).
-
-## Roadmap
-
-See [ROADMAP](ROADMAP.md)
+See also [roadmap](ROADMAP.md).
 
 ## To do
 
@@ -38,25 +32,22 @@ See [ROADMAP](ROADMAP.md)
 
 ## sats used for testing
 
-| | |
-|----------|----------|
-|Network|`Testnet (0x6F)`|
-|Address|`mh5KJHiC4DcMBVBgxnx18J2mBmk4n9o9Cr`|
-|bitcoins|`0.00009326 BTC`|
-|Transaction|[`ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d`](https://live.blockcypher.com/btc-testnet/tx/ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d/)|
-|Block|[0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1](https://live.blockcypher.com/btc-testnet/block/0000000000000006dace4cc7b840e5296a6fa248957b89e87c912d7f3bb396c1/)|
+Testnet (`0x6F`)
+
+|Address|Value|Transaction|Status|
+|-|-|-|-|
+|`mh5kjhic4dcmbvbgxnx18j2mbmk4n9o9cr`|`0.00009326 tBTC`|[`ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d`](https://live.blockcypher.com/btc-testnet/tx/ea27e55c870cbfb9f2fae55255754752bcdd718ea1f1a1fd6c16f7112fd69c2d/)|lost in action|
+|`n3adrwnBHvrQ26omXe4bhBFg5VPBP1ZiDK`|`0.00005930 tBTC`|[`2d5830f2a3dd491a9e0fa1d842c4b22debaf3133158fb7f992041f3dd2eaf2fb`](https://live.blockcypher.com/btc-testnet/tx/2d5830f2a3dd491a9e0fa1d842c4b22debaf3133158fb7f992041f3dd2eaf2fb/)|lost in action|
+|`mnfoJ71rZhhdCJs372B5CiD5DrYWQyR1UZ`|`0.00006484 tBTC`|[`2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646`](https://live.blockcypher.com/btc-testnet/tx/2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646/)|lost in action|
+|`mnfoJ71rZhhdCJs372B5CiD5DrYWQyR1UZ`|`0.00006484 tBTC`|[`2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646`](https://live.blockcypher.com/btc-testnet/tx/2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646/)|unspent|
 
 ## Building
 
-At time `main()` is empty but you can run unit tests with:
+At time `main()` is almost empty but tests can be executed with:
 
 ```
 cargo test
 ```
-
-## Contributors
-
-- [Nicola Fiorillo](https://www.nicolafiorillo.com) (author and maintainer)
 
 ## Feedback
 

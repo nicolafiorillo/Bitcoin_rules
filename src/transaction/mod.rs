@@ -1,5 +1,5 @@
-pub mod script_pub_key;
-pub mod script_sig;
+pub mod script;
+pub mod signing;
 pub mod tx;
 pub mod tx_error;
 pub mod tx_in;

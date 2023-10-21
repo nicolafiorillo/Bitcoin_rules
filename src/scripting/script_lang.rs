@@ -1,9 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::{
-    std_lib::varint::varint_encode,
-    std_lib::vector::{string_to_bytes, vect_to_hex_string},
-};
+use crate::std_lib::vector::{string_to_bytes, vect_to_hex_string};
 
 use super::{
     context::{Context, ContextError},
@@ -12,10 +9,10 @@ use super::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Script(Vec<Token>);
+pub struct ScriptLang(Vec<Token>);
 
 #[derive(Debug)]
-pub enum ScriptError {
+pub enum ScriptLangError {
     InvalidScript,
     InvalidScriptLength,
     ElementTooLong,
@@ -23,9 +20,9 @@ pub enum ScriptError {
     InvalidScriptRepresentation,
 }
 
-impl Script {
+impl ScriptLang {
     // TODO: refactor
-    pub fn deserialize(data: &[u8], length: u64, offset: usize) -> Result<Self, ScriptError> {
+    pub fn deserialize(data: &[u8], length: u64, offset: usize) -> Result<Self, ScriptLangError> {
         let mut tokens: Vec<Token> = vec![];
 
         let mut i = offset as u64;
@@ -89,11 +86,11 @@ impl Script {
                 i += 1;
             }
         }
-        Ok(Script(tokens))
+        Ok(ScriptLang(tokens))
     }
 
     pub fn from_tokens(tokens: Vec<Token>) -> Self {
-        Script(tokens)
+        ScriptLang(tokens)
     }
 
     pub fn tokens(&self) -> Vec<Token> {
@@ -101,7 +98,7 @@ impl Script {
         tokens.to_vec()
     }
 
-    pub fn from_representation(repr: &str) -> Result<Self, ScriptError> {
+    pub fn from_representation(repr: &str) -> Result<Self, ScriptLangError> {
         let trimmed_repr = repr.trim();
         let mut items: Vec<Token> = vec![];
 
@@ -113,12 +110,12 @@ impl Script {
             } else {
                 match string_to_bytes(item) {
                     Ok(bytes) => items.push(Token::Element(bytes)),
-                    Err(_) => return Err(ScriptError::InvalidScriptRepresentation),
+                    Err(_) => return Err(ScriptLangError::InvalidScriptRepresentation),
                 };
             }
         }
 
-        Ok(Script(items))
+        Ok(ScriptLang(items))
     }
 
     pub fn representation(&self) -> String {
@@ -141,13 +138,11 @@ impl Script {
         repr.trim_end().to_string()
     }
 
-    pub fn serialize(&self) -> Result<Vec<u8>, ScriptError> {
+    pub fn serialize(&self) -> Result<Vec<u8>, ScriptLangError> {
         let Self(tokens) = self;
 
-        let raw = Script::raw_serialize(tokens)?;
-
-        let length = varint_encode(raw.len() as u64);
-        Ok([length.as_slice(), raw.as_slice()].concat())
+        let raw = ScriptLang::raw_serialize(tokens)?;
+        Ok(raw)
     }
 
     pub fn evaluate<'a>(&'a self, context: &'a mut Context) -> Result<bool, ContextError> {
@@ -155,7 +150,7 @@ impl Script {
             let executing = context.executing();
 
             let token = context.next_token();
-            log::debug!("Token (exec: {}): {:?}", executing, token);
+            log::debug!("Token (exec: {}): {:}", executing, token);
 
             if !executing && !token.is_op_condition() {
                 continue;
@@ -183,10 +178,10 @@ impl Script {
         let Self(left_items) = left;
         let Self(right_items) = right;
 
-        Script([left_items, right_items].concat())
+        ScriptLang([left_items, right_items].concat())
     }
 
-    fn raw_serialize(tokens: &[Token]) -> Result<Vec<u8>, ScriptError> {
+    fn raw_serialize(tokens: &[Token]) -> Result<Vec<u8>, ScriptLangError> {
         let mut raw: Vec<u8> = vec![];
 
         for token in tokens {
@@ -202,9 +197,9 @@ impl Script {
                         raw.push(OP_PUSHDATA2 as u8);
                         raw.extend(len.to_le_bytes().iter());
                     } else if len < 0x100000000 {
-                        return Err(ScriptError::PushData4IsDeprecated);
+                        return Err(ScriptLangError::PushData4IsDeprecated);
                     } else {
-                        return Err(ScriptError::ElementTooLong);
+                        return Err(ScriptLangError::ElementTooLong);
                     }
 
                     raw.extend(bytes);
@@ -219,7 +214,7 @@ impl Script {
     }
 }
 
-impl Display for Script {
+impl Display for ScriptLang {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:}", self.representation())
     }
@@ -229,7 +224,7 @@ impl Display for Script {
 mod script_test {
     use crate::{
         scripting::{opcode::*, token::*},
-        std_lib::varint::varint_decode,
+        std_lib::varint::{varint_decode, varint_encode},
         std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
     };
 
@@ -239,7 +234,7 @@ mod script_test {
 
     #[test]
     fn represent() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x00]),
             Token::Element(vec![0x01]),
             Token::Command(OP_CHECKSIG),
@@ -256,8 +251,8 @@ mod script_test {
             Token::Command(OP_CHECKSIG),
         ];
 
-        let script = Script::from_representation("00 01 OP_CHECKSIG").unwrap();
-        let Script(tokens) = script;
+        let script = ScriptLang::from_representation("00 01 OP_CHECKSIG").unwrap();
+        let ScriptLang(tokens) = script;
 
         assert_eq!(expected, tokens);
     }
@@ -267,12 +262,16 @@ mod script_test {
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script = Script::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
+        let pubkey_script = ScriptLang::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_tokens(vec![Token::Element(signature)]);
-        let script = Script::combine(signature_script, pubkey_script);
+        let signature_script = ScriptLang::from_tokens(vec![Token::Element(signature)]);
+        let script = ScriptLang::combine(signature_script, pubkey_script);
 
-        let serialized = script.serialize().unwrap();
+        let mut serialized = script.serialize().unwrap();
+
+        let length = varint_encode(serialized.len() as u64);
+        serialized = [length, serialized].concat();
+
         let expected = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
         assert_eq!(serialized, expected);
@@ -283,9 +282,9 @@ mod script_test {
         let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
         let var_int = varint_decode(&data, 0).unwrap();
-        let script = Script::deserialize(&data, var_int.value, var_int.length).unwrap();
+        let script = ScriptLang::deserialize(&data, var_int.value, var_int.length).unwrap();
 
-        let Script(tokens) = script;
+        let ScriptLang(tokens) = script;
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0], Token::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
@@ -299,10 +298,10 @@ mod script_test {
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
-        let pubkey_script = Script::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
+        let pubkey_script = ScriptLang::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
-        let signature_script = Script::from_tokens(vec![Token::Element(signature)]);
-        let script = Script::combine(signature_script, pubkey_script);
+        let signature_script = ScriptLang::from_tokens(vec![Token::Element(signature)]);
+        let script = ScriptLang::combine(signature_script, pubkey_script);
 
         let tokens = script.tokens();
         let mut context = Context::new(tokens, z);
@@ -317,7 +316,7 @@ mod script_test {
         ($n:literal, $f:ident, $r:literal) => {
             #[test]
             fn $f() {
-                let script = Script::from_representation($n).unwrap();
+                let script = ScriptLang::from_representation($n).unwrap();
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let _valid = script.evaluate(&mut context).unwrap();
 
@@ -347,7 +346,7 @@ mod script_test {
 
     #[test]
     fn evaluate_0() {
-        let script = Script::from_tokens(vec![Token::Command(OP_0)]);
+        let script = ScriptLang::from_tokens(vec![Token::Command(OP_0)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -358,7 +357,7 @@ mod script_test {
 
     #[test]
     fn evaluate_negate() {
-        let script = Script::from_tokens(vec![Token::Command(OP_1NEGATE)]);
+        let script = ScriptLang::from_tokens(vec![Token::Command(OP_1NEGATE)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -369,7 +368,7 @@ mod script_test {
 
     #[test]
     fn evaluate_nop() {
-        let script = Script::from_tokens(vec![Token::Command(OP_NOP)]);
+        let script = ScriptLang::from_tokens(vec![Token::Command(OP_NOP)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -378,7 +377,7 @@ mod script_test {
 
     #[test]
     fn evaluate_add() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
             Token::Element(vec![0x02]),
             Token::Command(OP_ADD),
@@ -393,7 +392,7 @@ mod script_test {
 
     #[test]
     fn evaluate_mul() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x02]),
             Token::Element(vec![0x02]),
             Token::Command(OP_MUL),
@@ -408,7 +407,7 @@ mod script_test {
 
     #[test]
     fn evaluate_equal_true() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
             Token::Element(vec![0x01]),
             Token::Command(OP_EQUAL),
@@ -423,7 +422,7 @@ mod script_test {
 
     #[test]
     fn evaluate_equal_false() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
             Token::Element(vec![0x02]),
             Token::Command(OP_EQUAL),
@@ -438,7 +437,7 @@ mod script_test {
 
     #[test]
     fn evaluate_if_true() {
-        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_IF)]);
+        let script = ScriptLang::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_IF)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -448,7 +447,7 @@ mod script_test {
 
     #[test]
     fn evaluate_if_false() {
-        let script = Script::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_IF)]);
+        let script = ScriptLang::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_IF)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -458,7 +457,7 @@ mod script_test {
 
     #[test]
     fn evaluate_notif() {
-        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_NOTIF)]);
+        let script = ScriptLang::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_NOTIF)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -468,7 +467,7 @@ mod script_test {
 
     #[test]
     fn evaluate_notif_false() {
-        let script = Script::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_NOTIF)]);
+        let script = ScriptLang::from_tokens(vec![Token::Element(vec![0x00]), Token::Command(OP_NOTIF)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -478,7 +477,7 @@ mod script_test {
 
     #[test]
     fn evaluate_return() {
-        let script = Script::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_RETURN)]);
+        let script = ScriptLang::from_tokens(vec![Token::Element(vec![0x01]), Token::Command(OP_RETURN)]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
@@ -487,7 +486,7 @@ mod script_test {
 
     #[test]
     fn evaluate_if_endif() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
             Token::Command(OP_IF),
             Token::Command(OP_ENDIF),
@@ -501,7 +500,7 @@ mod script_test {
 
     #[test]
     fn evaluate_if_else_endif() {
-        let script = Script::from_tokens(vec![
+        let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
             Token::Command(OP_IF),
             Token::Command(OP_ELSE),
@@ -516,7 +515,7 @@ mod script_test {
 
     #[test]
     fn evaluate_conditional_script_1() {
-        let script = Script::from_representation("01 00 OP_IF 02 OP_ENDIF").unwrap();
+        let script = ScriptLang::from_representation("01 00 OP_IF 02 OP_ENDIF").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -528,7 +527,7 @@ mod script_test {
 
     #[test]
     fn evaluate_conditional_script_2() {
-        let script = Script::from_representation("01 01 OP_IF 02 OP_ENDIF").unwrap();
+        let script = ScriptLang::from_representation("01 01 OP_IF 02 OP_ENDIF").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -540,7 +539,7 @@ mod script_test {
 
     #[test]
     fn evaluate_conditional_script_3() {
-        let script = Script::from_representation("00 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
+        let script = ScriptLang::from_representation("00 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -552,7 +551,7 @@ mod script_test {
 
     #[test]
     fn evaluate_conditional_script_4() {
-        let script = Script::from_representation("01 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
+        let script = ScriptLang::from_representation("01 OP_IF 01 OP_ELSE 00 OP_ENDIF").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -564,7 +563,7 @@ mod script_test {
 
     #[test]
     fn evaluate_script_nested_if_1() {
-        let script = Script::from_representation("00 OP_IF 01 OP_IF OP_RETURN OP_ELSE OP_RETURN OP_ELSE OP_RETURN OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE OP_RETURN OP_ENDIF OP_ADD 02 OP_EQUAL").unwrap();
+        let script = ScriptLang::from_representation("00 OP_IF 01 OP_IF OP_RETURN OP_ELSE OP_RETURN OP_ELSE OP_RETURN OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE OP_RETURN OP_ENDIF OP_ADD 02 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -573,7 +572,7 @@ mod script_test {
 
     #[test]
     fn evaluate_script_nested_if_2() {
-        let script = Script::from_representation("20 OP_IF 00 OP_IF OP_RETURN OP_ELSE 10 OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE 30 OP_ENDIF OP_ADD 40 OP_EQUAL").unwrap();
+        let script = ScriptLang::from_representation("20 OP_IF 00 OP_IF OP_RETURN OP_ELSE 10 OP_ENDIF OP_ELSE 01 OP_IF 01 OP_ELSE OP_RETURN OP_ELSE 01 OP_ENDIF OP_ELSE 30 OP_ENDIF OP_ADD 40 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -582,7 +581,7 @@ mod script_test {
 
     #[test]
     fn evaluate_dup() {
-        let script = Script::from_representation("09 OP_DUP").unwrap();
+        let script = ScriptLang::from_representation("09 OP_DUP").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -597,7 +596,7 @@ mod script_test {
 
     #[test]
     fn evaluate_2dup() {
-        let script = Script::from_representation("0A 0B OP_2DUP").unwrap();
+        let script = ScriptLang::from_representation("0A 0B OP_2DUP").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -618,7 +617,7 @@ mod script_test {
 
     #[test]
     fn evaluate_hash160() {
-        let script = Script::from_representation("09 OP_HASH160").unwrap();
+        let script = ScriptLang::from_representation("09 OP_HASH160").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -632,7 +631,7 @@ mod script_test {
 
     #[test]
     fn evaluate_hash256() {
-        let script = Script::from_representation("09 OP_HASH256").unwrap();
+        let script = ScriptLang::from_representation("09 OP_HASH256").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -646,7 +645,7 @@ mod script_test {
 
     #[test]
     fn evaluate_sha256() {
-        let script = Script::from_representation("09 OP_SHA256").unwrap();
+        let script = ScriptLang::from_representation("09 OP_SHA256").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -660,7 +659,7 @@ mod script_test {
 
     #[test]
     fn evaluate_sha1() {
-        let script = Script::from_representation("09 OP_SHA1").unwrap();
+        let script = ScriptLang::from_representation("09 OP_SHA1").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -674,7 +673,7 @@ mod script_test {
 
     #[test]
     fn evaluate_verify_true() {
-        let script = Script::from_representation("09 OP_VERIFY 01").unwrap();
+        let script = ScriptLang::from_representation("09 OP_VERIFY 01").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -684,7 +683,7 @@ mod script_test {
 
     #[test]
     fn evaluate_verify_false() {
-        let script = Script::from_representation("00 OP_VERIFY").unwrap();
+        let script = ScriptLang::from_representation("00 OP_VERIFY").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
@@ -693,7 +692,7 @@ mod script_test {
 
     #[test]
     fn evaluate_equalverify_true() {
-        let script = Script::from_representation("09 09 OP_EQUALVERIFY 01").unwrap();
+        let script = ScriptLang::from_representation("09 09 OP_EQUALVERIFY 01").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -703,7 +702,7 @@ mod script_test {
 
     #[test]
     fn evaluate_equalverify_false() {
-        let script = Script::from_representation("09 08 OP_EQUALVERIFY 01").unwrap();
+        let script = ScriptLang::from_representation("09 08 OP_EQUALVERIFY 01").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
@@ -712,7 +711,7 @@ mod script_test {
 
     #[test]
     fn evaluate_not_1() {
-        let script = Script::from_representation("00 OP_NOT").unwrap();
+        let script = ScriptLang::from_representation("00 OP_NOT").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -725,7 +724,7 @@ mod script_test {
 
     #[test]
     fn evaluate_not_2() {
-        let script = Script::from_representation("01 OP_NOT").unwrap();
+        let script = ScriptLang::from_representation("01 OP_NOT").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -738,7 +737,7 @@ mod script_test {
 
     #[test]
     fn evaluate_not_3() {
-        let script = Script::from_representation("AA OP_NOT").unwrap();
+        let script = ScriptLang::from_representation("AA OP_NOT").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -751,7 +750,7 @@ mod script_test {
 
     #[test]
     fn evaluate_toaltstack() {
-        let script = Script::from_representation("AA OP_TOALTSTACK").unwrap();
+        let script = ScriptLang::from_representation("AA OP_TOALTSTACK").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -764,7 +763,7 @@ mod script_test {
 
     #[test]
     fn evaluate_fromaltstack() {
-        let script = Script::from_representation("OP_FROMALTSTACK").unwrap();
+        let script = ScriptLang::from_representation("OP_FROMALTSTACK").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         context.alt_stack_push(Token::Element(vec![0xAA]));
         let _valid = script.evaluate(&mut context).unwrap();
@@ -778,7 +777,7 @@ mod script_test {
 
     #[test]
     fn evaluate_swap() {
-        let script = Script::from_representation("01 02 OP_SWAP").unwrap();
+        let script = ScriptLang::from_representation("01 02 OP_SWAP").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -794,7 +793,7 @@ mod script_test {
 
     #[test]
     fn evaluate_generic_script_1() {
-        let script = Script::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
+        let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -811,7 +810,7 @@ mod script_test {
             "{} {} OP_2DUP OP_EQUAL OP_NOT OP_VERIFY OP_SHA1 OP_SWAP OP_SHA1 OP_EQUAL",
             c1, c2
         );
-        let script = Script::from_representation(&s).unwrap();
+        let script = ScriptLang::from_representation(&s).unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context).unwrap();
 
@@ -826,7 +825,7 @@ mod script_test {
         ($n:literal, $f:ident) => {
             #[test]
             fn $f() {
-                let script = Script::from_representation($n).unwrap();
+                let script = ScriptLang::from_representation($n).unwrap();
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let _valid = script.evaluate(&mut context).unwrap();
 
@@ -851,7 +850,7 @@ mod script_test {
         ($n:literal, $f:ident) => {
             #[test]
             fn $f() {
-                let script = Script::from_representation($n).unwrap();
+                let script = ScriptLang::from_representation($n).unwrap();
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
@@ -874,7 +873,7 @@ mod script_test {
         ($n:literal, $f:ident) => {
             #[test]
             fn $f() {
-                let script = Script::from_representation($n).unwrap();
+                let script = ScriptLang::from_representation($n).unwrap();
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
@@ -907,7 +906,7 @@ mod script_test {
         let signature = "3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601";
         let pubkey = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
 
-        let script = Script::from_representation(&format!("{} {} OP_CHECKSIG", signature, pubkey)).unwrap();
+        let script = ScriptLang::from_representation(&format!("{} {} OP_CHECKSIG", signature, pubkey)).unwrap();
         let z: Integer = Integer::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
 
         let mut context = Context::new(script.tokens(), z);
@@ -925,7 +924,7 @@ mod script_test {
         let pubkey = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
         let hash = "fb6c931433c83e8bb5a4c6588c7fc24c08dac6e3";
 
-        let script = Script::from_representation(&format!(
+        let script = ScriptLang::from_representation(&format!(
             "{} {} OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG",
             signature, pubkey, hash
         ))

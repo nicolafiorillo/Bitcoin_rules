@@ -1,16 +1,14 @@
 use rug::Integer;
 
 use crate::{
-    chain::tx::get_transaction,
     flags::network::Network,
     transaction::{
-        script_sig::ScriptSig,
+        script::Script,
         tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes},
     },
 };
 
 use super::{
-    script_pub_key::ScriptPubKey,
     tx_error::TxError,
     tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32},
 };
@@ -19,8 +17,9 @@ use super::{
 pub struct TxIn {
     pub previous_transaction_id: Integer, // will be u256
     pub previous_transaction_index: u32,
-    pub script_sig: ScriptSig,
+    pub script_sig: Script,
     pub sequence: u32,
+    pub witnesses: Vec<Vec<u8>>,
     pub network: Network, // TODO: to be removed when we can retreive transaction from real network
 }
 
@@ -30,7 +29,7 @@ impl TxIn {
     pub fn new(
         previous_transaction_id: Integer,
         previous_transaction_index: u32,
-        script_sig: ScriptSig,
+        script_sig: Script,
         sequence: u32,
         network: Network,
     ) -> TxIn {
@@ -39,16 +38,36 @@ impl TxIn {
             previous_transaction_index,
             script_sig,
             sequence,
+            witnesses: vec![],
+            network,
+        }
+    }
+
+    pub fn new_with_empty_script(
+        previous_transaction_id: Integer,
+        previous_transaction_index: u32,
+        network: Network,
+    ) -> TxIn {
+        let script_sig = Script::new_empty();
+        let sequence = 0xFFFFFFFF; // TODO: why? Parametrizing? (start with https://en.bitcoin.it/wiki/Transaction#Input)
+        let witnesses = Vec::<Vec<u8>>::new();
+
+        TxIn {
+            previous_transaction_id,
+            previous_transaction_index,
+            script_sig,
+            sequence,
+            witnesses,
             network,
         }
     }
 
     pub fn remove_script(&mut self) {
-        self.script_sig = ScriptSig::new(vec![0x00]);
+        self.script_sig = Script::new_empty();
     }
 
-    pub fn substitute_script(&mut self, script_pub_key: ScriptPubKey) {
-        self.script_sig = ScriptSig::new(script_pub_key.raw);
+    pub fn substitute_script(&mut self, script_pub_key: Script) {
+        self.script_sig = Script::new_from_raw(script_pub_key.raw);
     }
 
     pub fn from_serialized(serialized: &[u8], cursor: usize, network: Network) -> Result<(Self, usize), TxError> {
@@ -60,7 +79,7 @@ impl TxIn {
         let tx_in_previous_transaction_index = le_bytes_to_u32(serialized, cur)?;
         cur += 4;
 
-        let (script_sig, c) = ScriptSig::from_serialized(serialized, cur)?;
+        let (script_sig, c) = Script::deserialize(serialized, cur)?;
         cur = c;
 
         let tx_in_sequence = le_bytes_to_u32(serialized, cur)?;
@@ -101,7 +120,7 @@ mod tx_in_test {
         flags::network::Network,
         std_lib::integer_extended::IntegerExtended,
         std_lib::vector::string_to_bytes,
-        transaction::{script_sig::ScriptSig, tx_in::TxIn},
+        transaction::{script::Script, tx_in::TxIn},
     };
 
     #[test]
@@ -110,7 +129,7 @@ mod tx_in_test {
             Integer::from_hex_str("9E067AEDC661FCA148E13953DF75F8CA6EADA9CE3B3D8D68631769AC60999156");
         let previous_transaction_index: u32 = 1;
         let script_sig_content = string_to_bytes("47304402204585BCDEF85E6B1C6AF5C2669D4830FF86E42DD205C0E089BC2A821657E951C002201024A10366077F87D6BCE1F7100AD8CFA8A064B39D4E8FE4EA13A7B71AA8180F012102F0DA57E85EEC2934A82A585EA337CE2F4998B50AE699DD79F5880E253DAFAFB7").unwrap();
-        let script_sig = ScriptSig::new(script_sig_content);
+        let script_sig = Script::new_from_raw(script_sig_content);
         let sequence: u32 = 4294967294;
 
         let tx_in = TxIn::new(

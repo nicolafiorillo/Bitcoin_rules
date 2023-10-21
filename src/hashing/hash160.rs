@@ -22,7 +22,7 @@ mod hashing_test {
 
     #[test]
     fn verify_a_hash160() {
-        let hashed = hash160(&"A SECRET".to_string().as_bytes().to_vec());
+        let hashed = hash160(&"A SECRET".to_string().as_bytes());
         let hashed_integer = Integer::from_digits(&hashed, Order::Msf);
 
         let expected = Integer::from_hex_str("BFE26C5C796D44B7091CF33E7A2FECC55C7C0278");
@@ -32,7 +32,7 @@ mod hashing_test {
 
     #[test]
     fn verify_empty_string_hash160() {
-        let hashed = hash160(&"".to_string().as_bytes().to_vec());
+        let hashed = hash160(&"".to_string().as_bytes());
         let hashed_integer = Integer::from_digits(&hashed, Order::Msf);
 
         let expected = Integer::from_hex_str("B472A266D0BD89C13706A4132CCFB16F7C3B9FCB");

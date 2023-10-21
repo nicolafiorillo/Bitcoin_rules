@@ -1,4 +1,4 @@
-pub enum SIGHASH {
+pub enum SigHash {
     All = 0x01,
     // None = 0x02,
     // Single = 0x03,

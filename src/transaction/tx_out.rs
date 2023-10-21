@@ -1,17 +1,17 @@
 use std::fmt::{Display, Formatter};
 
-use crate::transaction::script_pub_key::ScriptPubKey;
+use crate::transaction::script::Script;
 
 use super::{tx_error::TxError, tx_lib::u64_le_bytes};
 
 #[derive(Debug, Clone)]
 pub struct TxOut {
     pub amount: u64,
-    pub script_pub_key: ScriptPubKey,
+    pub script_pub_key: Script,
 }
 
 impl TxOut {
-    pub fn new(amount: u64, script_pub_key: ScriptPubKey) -> TxOut {
+    pub fn new(amount: u64, script_pub_key: Script) -> TxOut {
         TxOut { amount, script_pub_key }
     }
 
@@ -21,7 +21,7 @@ impl TxOut {
         let amount = u64_le_bytes(serialized, cur)?;
         cur += 8;
 
-        let (script_pub_key, c) = ScriptPubKey::from_serialized(serialized, cur)?;
+        let (script_pub_key, c) = Script::deserialize(serialized, cur)?;
         cur = c;
 
         let tx_out = TxOut::new(amount, script_pub_key);
@@ -44,7 +44,7 @@ impl Display for TxOut {
 
 #[cfg(test)]
 mod tx_out {
-    use crate::{std_lib::vector::string_to_bytes, transaction::script_pub_key::ScriptPubKey};
+    use crate::{std_lib::vector::string_to_bytes, transaction::script::Script};
 
     use super::TxOut;
 
@@ -52,7 +52,7 @@ mod tx_out {
     fn test_tx_out_serialize() {
         let script_pub_key_content = string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
 
-        let script_pub_key = ScriptPubKey::new(script_pub_key_content);
+        let script_pub_key = Script::new_from_raw(script_pub_key_content);
         let tx_out = TxOut::new(40000000, script_pub_key);
 
         let tx_out_serialized = tx_out.serialize();

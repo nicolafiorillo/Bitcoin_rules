@@ -3,7 +3,7 @@ use std::{
     ops::Index,
 };
 
-use super::{script_pub_key::ScriptPubKey, tx_in::TxIn};
+use super::{script::Script, tx_in::TxIn};
 
 #[derive(Debug, Clone)]
 pub struct TxIns(Vec<TxIn>);
@@ -27,7 +27,8 @@ impl TxIns {
         }
     }
 
-    pub fn substitute_script(&mut self, input_index: usize, script_pub_key: ScriptPubKey) {
+    pub fn substitute_script(&mut self, input_index: usize, script_pub_key: Script) {
+        // TODO: check if out of bounds
         self.0[input_index].substitute_script(script_pub_key);
     }
 }
@@ -44,10 +45,11 @@ impl Index<usize> for TxIns {
 impl Display for TxIns {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for tx_in in &self.0 {
+            // TODO: move in tx_in.rs
             write!(
                 f,
-                "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   script_sig: {:}   sequence: {:}\n   network: {:}\n   --\n",
-                tx_in.previous_transaction_id, tx_in.previous_transaction_index, tx_in.script_sig, tx_in.sequence, tx_in.network
+                "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   script_sig: {:}\n   sequence: {:}\n   witnesses: {:?}\n   network: {:}\n   --\n",
+                tx_in.previous_transaction_id, tx_in.previous_transaction_index, tx_in.script_sig, tx_in.sequence, tx_in.witnesses, tx_in.network
             )?;
         }
         write!(f, "")

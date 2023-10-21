@@ -2,13 +2,13 @@ use rug::{integer::Order, Integer};
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    flags::{network::Network, sighash::SIGHASH},
+    flags::{network::Network, sighash::SigHash},
     hashing::hash256::hash256,
     std_lib::varint::varint_encode,
 };
 
 use super::{
-    script_pub_key::ScriptPubKey,
+    script::Script,
     tx_error::TxError,
     tx_in::TxIn,
     tx_ins::TxIns,
@@ -47,6 +47,23 @@ impl Display for Tx {
 }
 
 impl Tx {
+    pub fn new(ins: &[TxIn], outs: &[TxOut], network: Network) -> Tx {
+        let inputs = TxIns::new(ins.to_vec());
+        let outputs = TxOuts::new(outs.to_vec());
+
+        Tx {
+            version: 1,
+            inputs,
+            outputs,
+            locktime: 0,
+            network,
+        }
+    }
+
+    pub fn substitute_script(&mut self, index: usize, script: Script) {
+        self.inputs.substitute_script(index, script);
+    }
+
     pub fn id(&self) -> String {
         format!("{:02X}", Self::hash(&self.serialize()))
     }
@@ -60,6 +77,7 @@ impl Tx {
         Integer::from_digits(&serialized, Order::Lsf)
     }
 
+    // TODO renaming
     pub fn get_input(&self, index: usize) -> Result<&TxIn, TxError> {
         if self.inputs.len() <= index {
             return Err(TxError::InputIndexOutOfBounds);
@@ -68,6 +86,7 @@ impl Tx {
         Ok(&self.inputs[index])
     }
 
+    // TODO renaming
     pub fn get_output(&self, index: usize) -> Result<&TxOut, TxError> {
         if self.outputs.len() <= index {
             return Err(TxError::OutputIndexOutOfBounds);
@@ -100,6 +119,12 @@ impl Tx {
         let version = le_bytes_to_u32(serialized, cursor)?;
         cursor += 4;
 
+        // Ref: https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure
+        let has_witness = serialized[cursor] == 0x00 && serialized[cursor + 1] == 0x01;
+        if has_witness {
+            cursor += 2;
+        }
+
         // Inputs
         let tx_in_count = varint_decode(serialized, cursor)?;
         cursor += tx_in_count.length;
@@ -124,6 +149,24 @@ impl Tx {
             cursor = c;
 
             txs_out.push(tx_out);
+        }
+
+        // TODO: refactor when implementing SegWit
+        if has_witness {
+            for tx_in in txs_in.iter_mut() {
+                let witness_count = varint_decode(serialized, cursor)?;
+                cursor += witness_count.length;
+
+                for _ in 0..witness_count.value {
+                    let witness_length = varint_decode(serialized, cursor)?;
+                    cursor += witness_length.length;
+
+                    let witness = &serialized[cursor..cursor + witness_length.value as usize];
+                    cursor += witness_length.value as usize;
+
+                    tx_in.witnesses.push(witness.to_vec());
+                }
+            }
         }
 
         // Locktime
@@ -153,7 +196,7 @@ impl Tx {
         })
     }
 
-    fn serialize(&self) -> Vec<u8> {
+    pub fn serialize(&self) -> Vec<u8> {
         let version_serialized = self.version.to_le_bytes();
         let inputs_length = varint_encode(self.inputs.len() as u64);
         let inputs_serialized: Vec<u8> = self.inputs.serialize();
@@ -184,7 +227,7 @@ impl Tx {
         And we have the transaction signature for input i.
        This signature, if correct, "unlocks" via OP_CHECKSIG the ScriptPubKey of the output that input i is pointing to.
     */
-    pub fn hash_signature(&self, input_index: usize, script_pub_key: ScriptPubKey) -> Integer {
+    pub fn hash_signature(&self, input_index: usize, script_pub_key: Script) -> Integer {
         // 1. take the transaction
         let mut tx: Tx = self.clone();
 
@@ -198,7 +241,7 @@ impl Tx {
         let mut tx_serialized = tx.serialize();
 
         // 5. append the hash type
-        let hash_type = (SIGHASH::All as u32).to_le_bytes().to_vec(); //TODO parametrize SIGHASH
+        let hash_type = (SigHash::All as u32).to_le_bytes().to_vec(); //TODO parametrize SIGHASH
         tx_serialized = [tx_serialized, hash_type].concat();
 
         // 6. hash (hash256) the entire transaction

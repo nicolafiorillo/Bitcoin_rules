@@ -22,7 +22,7 @@ impl TxOuts {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        self.0.iter().flat_map(|i| i.serialize()).collect()
+        self.0.iter().flat_map(|o| o.serialize()).collect()
     }
 }
 

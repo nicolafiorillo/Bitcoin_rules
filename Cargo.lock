@@ -19,7 +19,7 @@ checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
 
 [[package]]
 name = "bitcoin_rules"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "env_logger",
  "hmac",

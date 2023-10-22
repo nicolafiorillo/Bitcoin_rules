@@ -93,3 +93,17 @@ fn a_testnet_transaction() {
     println!("Testnet transaction");
     println!("{:}", tx);
 }
+
+fn get_seed_from_sys_time() -> u32 {
+    let s = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+    s.subsec_nanos()
+}
+
+fn get_seed_from_system() -> u32 {
+    let mut rnd = File::open("/dev/random").unwrap();
+
+    let mut buffer = [0u8; 4];
+    rnd.read_exact(&mut buffer).unwrap();
+
+    u32::from_le_bytes(buffer)
+}

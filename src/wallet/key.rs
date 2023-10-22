@@ -3,7 +3,6 @@ use rug::{
     rand::{ThreadRandGen, ThreadRandState},
     Integer,
 };
-use std::time::SystemTime;
 
 use crate::{
     flags::{compression::Compression, network::Network},
@@ -13,8 +12,16 @@ use crate::{
 struct Seed(*const ());
 impl ThreadRandGen for Seed {
     fn gen(&mut self) -> u32 {
-        get_sys_time()
+        generate_seed()
     }
+}
+
+// Some other ideas at https://blog.orhun.dev/zero-deps-random-in-rust/
+fn generate_seed() -> u32 {
+    use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasher, Hasher};
+
+    RandomState::new().build_hasher().finish() as u32
 }
 
 // Usage:
@@ -23,16 +30,11 @@ pub fn new(network: Network) -> (Integer, String) {
     let mut seed = Seed(&());
     let mut rand = ThreadRandState::new_custom(&mut seed);
 
-    let i = Integer::from(2).pow(256);
-    let secret = i.random_below(&mut rand);
+    let max_value = Integer::from(2).pow(256);
+    let secret = max_value.random_below(&mut rand);
 
     let private_key = Key::new(secret.clone());
     let addr = private_key.address(Compression::Compressed, network);
 
     (secret, addr)
-}
-
-fn get_sys_time() -> u32 {
-    let s = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
-    s.subsec_nanos() & 0xFFFF
 }

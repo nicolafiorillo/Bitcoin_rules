@@ -9,6 +9,9 @@ use super::{
     token::*,
 };
 
+/*
+   Ref: https://en.bitcoin.it/wiki/Script
+*/
 macro_rules! op_n {
     ($n:tt, $f:ident) => {
         pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
@@ -310,6 +313,62 @@ pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_2swap(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(4) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+    let op3 = context.stack_pop();
+    let op4 = context.stack_pop();
+
+    context.stack_push(op2);
+    context.stack_push(op1);
+    context.stack_push(op4);
+    context.stack_push(op3);
+
+    Ok(true)
+}
+
+pub fn op_rot(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(3) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+    let op3 = context.stack_pop();
+
+    context.stack_push(op2);
+    context.stack_push(op1);
+    context.stack_push(op3);
+
+    Ok(true)
+}
+
+pub fn op_2rot(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(6) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+    let op3 = context.stack_pop();
+    let op4 = context.stack_pop();
+    let op5 = context.stack_pop();
+    let op6 = context.stack_pop();
+
+    context.stack_push(op4);
+    context.stack_push(op3);
+    context.stack_push(op2);
+    context.stack_push(op1);
+    context.stack_push(op6);
+    context.stack_push(op5);
+
+    Ok(true)
+}
+
 pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -434,6 +493,16 @@ pub fn op_fromaltstack(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_drop(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    context.stack_pop();
+
+    Ok(true)
+}
+
 pub fn op_2drop(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -441,6 +510,19 @@ pub fn op_2drop(context: &mut Context) -> Result<bool, ContextError> {
 
     context.stack_pop();
     context.stack_pop();
+
+    Ok(true)
+}
+
+pub fn op_nip(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    context.stack_pop();
+
+    context.stack_push(op1);
 
     Ok(true)
 }

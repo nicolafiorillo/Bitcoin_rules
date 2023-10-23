@@ -527,6 +527,84 @@ pub fn op_nip(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_ifdup(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op = context.top_stack();
+
+    if (op.is_element() && op.as_bool()) || (op.is_command() && !op.is_op_0()) {
+        context.stack_push(op.clone());
+    }
+
+    Ok(true)
+}
+
+pub fn op_depth(context: &mut Context) -> Result<bool, ContextError> {
+    let len = context.stack_len();
+    context.stack_push(Token::Element(element_encode(len as i64)));
+
+    Ok(true)
+}
+
+pub fn op_over(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+
+    context.stack_push(op2.clone());
+    context.stack_push(op1);
+    context.stack_push(op2);
+
+    Ok(true)
+}
+
+pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let e = context.stack_pop_as_element()?;
+    if let Token::Element(v) = e {
+        let n = element_decode(v);
+        let un = n as usize;
+
+        if !context.stack_has_enough_items(un + 1) {
+            return Err(ContextError::NotEnoughItemsInStack);
+        }
+
+        let elem = context.stack_get_at(un);
+        context.stack_push(elem.clone());
+    }
+
+    Ok(true)
+}
+
+pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let e = context.stack_pop_as_element()?;
+    if let Token::Element(v) = e {
+        let n = element_decode(v);
+        let un = n as usize;
+
+        if !context.stack_has_enough_items(un + 1) {
+            return Err(ContextError::NotEnoughItemsInStack);
+        }
+
+        let elem = context.stack_remove_at(un);
+        context.stack_push(elem);
+    }
+
+    Ok(true)
+}
+
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
     unimplemented!("command not implemented")
 }

@@ -152,7 +152,7 @@ impl ScriptLang {
             let token = context.next_token();
             log::debug!("Token (exec: {}): {:}", executing, token);
 
-            if !executing && !token.is_op_condition() {
+            if !executing && !token.is_op_branch_condition() {
                 continue;
             }
 
@@ -946,6 +946,330 @@ mod script_test {
         let _valid = script.evaluate(&mut context).unwrap();
 
         assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_ifdup_non_zero() {
+        let script = ScriptLang::from_representation("01 OP_IFDUP").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(2));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x01]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x01]));
+    }
+
+    #[test]
+    fn evaluate_ifdup_non_zero_1() {
+        let script = ScriptLang::from_representation("OP_1 OP_IFDUP").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(2));
+
+        let op = context.stack_pop();
+        assert_eq!(op, Token::Element(vec![0x01]));
+
+        let op = context.stack_pop();
+        assert_eq!(op, Token::Element(vec![0x01]));
+    }
+
+    #[test]
+    fn evaluate_ifdup_zero() {
+        let script = ScriptLang::from_representation("00 OP_IFDUP").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x00]));
+    }
+
+    #[test]
+    fn evaluate_depth() {
+        let script = ScriptLang::from_representation("0A 0B 0C OP_DEPTH").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(4));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x03]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_over() {
+        let script = ScriptLang::from_representation("0A 0B 0C OP_OVER").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(4));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_1() {
+        let script = ScriptLang::from_representation("0A 00 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(2));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_2() {
+        let script = ScriptLang::from_representation("0A 0B 01 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(3));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_3() {
+        let script = ScriptLang::from_representation("0A 0B 0C 01 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(4));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_4() {
+        let script = ScriptLang::from_representation("0A 0B 0C 02 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(4));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_5() {
+        let script = ScriptLang::from_representation("0A 0B 0C 0D 03 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(5));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0D]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_pick_6() {
+        let script = ScriptLang::from_representation("0A 0B 0C 0D 0E 0F 03 OP_PICK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(7));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0F]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0E]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0D]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_roll_1() {
+        let script = ScriptLang::from_representation("0A 00 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_roll_2() {
+        let script = ScriptLang::from_representation("0A 0B 01 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(2));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+    }
+
+    #[test]
+    fn evaluate_roll_3() {
+        let script = ScriptLang::from_representation("0A 0B 0C 01 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(3));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+    }
+
+    #[test]
+    fn evaluate_roll_4() {
+        let script = ScriptLang::from_representation("0A 0B 0C 02 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(3));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+    }
+
+    #[test]
+    fn evaluate_roll_5() {
+        let script = ScriptLang::from_representation("0A 0B 0C 0D 03 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(4));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0D]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+    }
+
+    #[test]
+    fn evaluate_roll_6() {
+        let script = ScriptLang::from_representation("0A 0B 0C 0D 0E 0F 03 OP_ROLL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(6));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0C]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0F]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0E]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0D]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
 
         let op = context.stack_pop_as_element().unwrap();
         assert_eq!(op, Token::Element(vec![0x0A]));

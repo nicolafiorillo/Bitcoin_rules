@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
+    scripting::opcode,
     scripting::opcode::OP_TO_FN,
     std_lib::vector::{padding_left, trim_right, vect_to_hex_string},
 };
@@ -33,9 +34,7 @@ impl Token {
         }
     }
 
-    pub fn is_op_condition(&self) -> bool {
-        use crate::scripting::opcode;
-
+    pub fn is_op_branch_condition(&self) -> bool {
         matches!(
             self,
             Token::Command(opcode::OP_IF)
@@ -43,6 +42,18 @@ impl Token {
                 | Token::Command(opcode::OP_ELSE)
                 | Token::Command(opcode::OP_ENDIF)
         )
+    }
+
+    pub fn is_op_0(&self) -> bool {
+        matches!(self, Token::Command(opcode::OP_0))
+    }
+
+    pub fn is_command(&self) -> bool {
+        matches!(self, Token::Command(_))
+    }
+
+    pub fn is_element(&self) -> bool {
+        matches!(self, Token::Element(_))
     }
 }
 

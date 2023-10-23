@@ -73,10 +73,26 @@ impl Context {
         self.stack.front().unwrap()
     }
 
+    pub fn stack_get_at(&self, n: usize) -> &Token {
+        assert!(self.stack.len() > n);
+
+        self.stack.get(n).unwrap()
+    }
+
+    pub fn stack_remove_at(&mut self, n: usize) -> Token {
+        assert!(self.stack.len() > n);
+
+        self.stack.remove(n).unwrap()
+    }
+
     pub fn stack_pop(&mut self) -> Token {
         assert!(!self.stack.is_empty());
 
         self.stack.pop_front().unwrap()
+    }
+
+    pub fn stack_len(&mut self) -> usize {
+        self.stack.len()
     }
 
     pub fn stack_pop_as_element(&mut self) -> Result<Token, ContextError> {

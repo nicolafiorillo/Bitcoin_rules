@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::transaction::script::Script;
+use crate::{flags::network::Network, keys::key::Key, scripting::standard, transaction::script::Script};
 
 use super::{tx_error::TxError, tx_lib::u64_le_bytes};
 
@@ -13,6 +13,18 @@ pub struct TxOut {
 impl TxOut {
     pub fn new(amount: u64, script_pub_key: Script) -> TxOut {
         TxOut { amount, script_pub_key }
+    }
+
+    pub fn new_for_tx(amount: u64, address: &str, network: Network) -> Result<TxOut, TxError> {
+        let address = match Key::address_to_hash160(address, network) {
+            Ok(address) => address,
+            Err(_) => return Err(TxError::InvalidAddress),
+        };
+
+        let script = standard::p2pkh_script(address);
+        let tx_out = TxOut::new(amount, Script::new_from_script_lang(&script));
+
+        Ok(tx_out)
     }
 
     pub fn from_serialized(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {

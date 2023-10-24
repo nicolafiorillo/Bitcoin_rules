@@ -10,7 +10,7 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
         return Err(TxError::InputIndexOutOfBounds);
     }
 
-    let input_transaction = tx.get_input(input_index)?;
+    let input_transaction = tx.input(input_index)?;
     let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
         Ok(tx) => tx,
         Err(_e) => return Err(TxError::TransactionNotFoundInChain),
@@ -23,7 +23,7 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
         return Err(TxError::OutputIndexOutOfBounds);
     }
 
-    let output_transaction = previous_transaction.get_output(output_index)?;
+    let output_transaction = previous_transaction.output(output_index)?;
 
     let script_pub_key = &output_transaction.script_pub_key.script_lang;
 
@@ -98,7 +98,7 @@ pub fn fee(tx: &Tx) -> Result<i128, TxError> {
     let mut input_amount: i128 = 0;
 
     for i in 0..tx.input_len() {
-        let input_transaction = tx.get_input(i)?;
+        let input_transaction = tx.input(i)?;
         let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
             Ok(tx) => tx,
             Err(_e) => return Err(TxError::TransactionNotFoundInChain),
@@ -109,14 +109,14 @@ pub fn fee(tx: &Tx) -> Result<i128, TxError> {
             return Err(TxError::OutputIndexOutOfBounds);
         }
 
-        let output_transaction = previous_transaction.get_output(output_index)?;
+        let output_transaction = previous_transaction.output(output_index)?;
         input_amount += output_transaction.amount as i128;
     }
 
     let mut output_amount: i128 = 0;
 
     for i in 0..tx.output_len() {
-        let output_transaction = tx.get_output(i)?;
+        let output_transaction = tx.output(i)?;
         output_amount += output_transaction.amount as i128;
     }
 

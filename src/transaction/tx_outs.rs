@@ -14,15 +14,23 @@ impl TxOuts {
     }
 
     pub fn amount(&self) -> u64 {
-        self.0.iter().fold(0u64, |acc, i: &TxOut| acc + i.amount)
+        let Self(outputs) = self;
+        outputs.iter().fold(0u64, |acc, i: &TxOut| acc + i.amount)
     }
 
     pub fn len(&self) -> usize {
-        self.0.len()
+        let Self(outputs) = self;
+        outputs.len()
+    }
+
+    pub fn push(&mut self, o: TxOut) {
+        let Self(outputs) = self;
+        outputs.push(o);
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        self.0.iter().flat_map(|o| o.serialize()).collect()
+        let Self(outputs) = self;
+        outputs.iter().flat_map(|o| o.serialize()).collect()
     }
 }
 

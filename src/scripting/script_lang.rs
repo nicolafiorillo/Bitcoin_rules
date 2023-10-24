@@ -293,6 +293,17 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_odd_number() {
+        let script = ScriptLang::from_representation("F").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        let op = context.stack_pop_as_element().unwrap();
+
+        assert_eq!(op, Token::Element(string_to_bytes("0F").unwrap()));
+    }
+
+    #[test]
     fn evaluate_checksig() {
         let z: Integer = Integer::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
         let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
@@ -388,6 +399,15 @@ mod script_test {
         let op = context.stack_pop_as_element().unwrap();
 
         assert_eq!(op, Token::Element(vec![0x03]));
+    }
+
+    #[test]
+    fn evaluate_add_with_overflow() {
+        let script = ScriptLang::from_representation("7FFFFFFFFFFFFFFF 7FFFFFFFFFFFFFFF OP_ADD").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::Overflow, valid.expect_err("Err"));
     }
 
     #[test]

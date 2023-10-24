@@ -18,6 +18,11 @@ impl TxIns {
         inputs.len()
     }
 
+    pub fn push(&mut self, i: TxIn) {
+        let Self(inputs) = self;
+        inputs.push(i);
+    }
+
     pub fn serialize(&self) -> Vec<u8> {
         let Self(inputs) = self;
         inputs.iter().flat_map(|i| i.serialize()).collect()

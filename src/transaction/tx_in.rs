@@ -2,6 +2,7 @@ use rug::Integer;
 
 use crate::{
     flags::network::Network,
+    std_lib::integer_extended::IntegerExtended,
     transaction::{
         script::Script,
         tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes},
@@ -43,11 +44,13 @@ impl TxIn {
         }
     }
 
-    pub fn new_with_empty_script(
-        previous_transaction_id: Integer,
+    pub fn new_with_previous_transaction(
+        previous_transaction_id_str: &str,
         previous_transaction_index: u32,
         network: Network,
     ) -> TxIn {
+        let previous_transaction_id = Integer::from_hex_str(previous_transaction_id_str);
+
         let script_sig = Script::new_empty();
         let sequence = 0xFFFFFFFF; // TODO: why? Parametrizing? (start with https://en.bitcoin.it/wiki/Transaction#Input)
         let witnesses = Vec::<Vec<u8>>::new();

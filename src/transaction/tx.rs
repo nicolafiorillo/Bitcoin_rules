@@ -47,9 +47,9 @@ impl Display for Tx {
 }
 
 impl Tx {
-    pub fn new(ins: &[TxIn], outs: &[TxOut], network: Network) -> Tx {
-        let inputs = TxIns::new(ins.to_vec());
-        let outputs = TxOuts::new(outs.to_vec());
+    pub fn new(network: Network) -> Tx {
+        let inputs = TxIns::new(Vec::new());
+        let outputs = TxOuts::new(Vec::new());
 
         Tx {
             version: 1,
@@ -58,6 +58,14 @@ impl Tx {
             locktime: 0,
             network,
         }
+    }
+
+    pub fn add_input(&mut self, i: TxIn) {
+        self.inputs.push(i);
+    }
+
+    pub fn add_output(&mut self, o: TxOut) {
+        self.outputs.push(o);
     }
 
     pub fn substitute_script(&mut self, index: usize, script: Script) {
@@ -77,8 +85,7 @@ impl Tx {
         Integer::from_digits(&serialized, Order::Lsf)
     }
 
-    // TODO renaming
-    pub fn get_input(&self, index: usize) -> Result<&TxIn, TxError> {
+    pub fn input(&self, index: usize) -> Result<&TxIn, TxError> {
         if self.inputs.len() <= index {
             return Err(TxError::InputIndexOutOfBounds);
         }
@@ -86,8 +93,7 @@ impl Tx {
         Ok(&self.inputs[index])
     }
 
-    // TODO renaming
-    pub fn get_output(&self, index: usize) -> Result<&TxOut, TxError> {
+    pub fn output(&self, index: usize) -> Result<&TxOut, TxError> {
         if self.outputs.len() <= index {
             return Err(TxError::OutputIndexOutOfBounds);
         }
@@ -254,10 +260,15 @@ impl Tx {
 #[cfg(test)]
 mod tx_test {
 
+    use rug::Integer;
+
     use crate::{
+        chain,
         flags::network::Network,
         std_lib::vector::string_to_bytes,
-        transaction::{tx::Tx, verification::fee},
+        std_lib::{integer_extended::IntegerExtended, vector},
+        transaction::verification::fee,
+        transaction::{signing, tx::Tx, tx_in::TxIn, tx_out::TxOut, verification},
     };
 
     pub const SERIALIZED_TRANSACTION: &str = "010000000456919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e010000006a47304402204585bcdef85e6b1c6af5c2669d4830ff86e42dd205c0e089bc2a821657e951c002201024a10366077f87d6bce1f7100ad8cfa8a064b39d4e8fe4ea13a7b71aa8180f012102f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7feffffffeb8f51f4038dc17e6313cf831d4f02281c2a468bde0fafd37f1bf882729e7fd3000000006a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937feffffff567bf40595119d1bb8a3037c356efd56170b64cbcc160fb028fa10704b45d775000000006a47304402204c7c7818424c7f7911da6cddc59655a70af1cb5eaf17c69dadbfc74ffa0b662f02207599e08bc8023693ad4e9527dc42c34210f7a7d1d1ddfc8492b654a11e7620a0012102158b46fbdff65d0172b7989aec8850aa0dae49abfb84c81ae6e5b251a58ace5cfeffffffd63a5e6c16e620f86f375925b21cabaf736c779f88fd04dcad51d26690f7f345010000006a47304402200633ea0d3314bea0d95b3cd8dadb2ef79ea8331ffe1e61f762c0f6daea0fabde022029f23b3e9c30f080446150b23852028751635dcee2be669c2a1686a4b5edf304012103ffd6f4a67e94aba353a00882e563ff2722eb4cff0ad6006e86ee20dfe7520d55feffffff0251430f00000000001976a914ab0c0b2e98b1ab6dbf67d4750b0a56244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac46430600";
@@ -342,5 +353,133 @@ mod tx_test {
         let transaction = tx.unwrap();
 
         assert_eq!(fee(&transaction).unwrap(), 140500);
+    }
+    #[test]
+    fn create_a_new_transaction() {
+        let network = Network::Testnet;
+
+        let previous_transaction_id =
+            Integer::from_hex_str("d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849");
+        let previous_tx_index: usize = 0;
+        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
+        let script_pub_key = output_transaction.script_pub_key.clone();
+
+        let private_key =
+            Integer::from_dec_str("275665454735547573090156431398001801704654402004664009535475985449755313");
+
+        let mut tx = Tx::new(network);
+
+        let tx_in = TxIn::new_with_previous_transaction(
+            "d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849",
+            previous_tx_index as u32,
+            network,
+        );
+
+        tx.add_input(tx_in);
+
+        let tx_out1 = TxOut::new_for_tx(1000, "mty46U8fGsqxj7zaukWSJ2yzBZreuJoTRh", network).unwrap();
+        let tx_out2 = TxOut::new_for_tx(4000, "n4AoVe3S9ovRxDmGkm5mbZz8zCpyzT4Q9N", network).unwrap();
+
+        tx.add_output(tx_out1);
+        tx.add_output(tx_out2);
+
+        let script = signing::generate_input_signature(&tx, previous_tx_index, &private_key, script_pub_key).unwrap();
+        tx.substitute_script(previous_tx_index, script);
+
+        let res = vector::vect_to_hex_string(&tx.serialize());
+
+        assert_eq!(res, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006A473044022074494219882616A1922C3067C042F900451E01BF43C0258446B948D05D9DE6E002201F11ECF14A2EF846305BB0FAFB5D02C184A4C4FCABE584FE824CC807E7178A6501210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF02E8030000000000001976A91493894AC0A123F716291374F8BB414B3532EB872A88ACA00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
+    }
+
+    #[test]
+    fn a_new_transaction_one_input_two_outputs() {
+        let network = Network::Testnet;
+
+        let previous_transaction_id =
+            Integer::from_hex_str("d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849");
+        let previous_tx_index: usize = 0;
+        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
+        let script_pub_key = output_transaction.script_pub_key.clone();
+
+        let private_key =
+            Integer::from_dec_str("275665454735547573090156431398001801704654402004664009535475985449755313");
+
+        let mut tx = Tx::new(network);
+
+        let tx_in = TxIn::new_with_previous_transaction(
+            "d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849",
+            previous_tx_index as u32,
+            network,
+        );
+
+        tx.add_input(tx_in);
+
+        let tx_out1 = TxOut::new_for_tx(1000, "mty46U8fGsqxj7zaukWSJ2yzBZreuJoTRh", network).unwrap();
+        let tx_out2 = TxOut::new_for_tx(4000, "n4AoVe3S9ovRxDmGkm5mbZz8zCpyzT4Q9N", network).unwrap();
+
+        tx.add_output(tx_out1);
+        tx.add_output(tx_out2);
+
+        let script = signing::generate_input_signature(&tx, previous_tx_index, &private_key, script_pub_key).unwrap();
+        tx.substitute_script(previous_tx_index, script);
+
+        let serialized = vector::vect_to_hex_string(&tx.serialize());
+        assert_eq!(serialized, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006A473044022074494219882616A1922C3067C042F900451E01BF43C0258446B948D05D9DE6E002201F11ECF14A2EF846305BB0FAFB5D02C184A4C4FCABE584FE824CC807E7178A6501210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF02E8030000000000001976A91493894AC0A123F716291374F8BB414B3532EB872A88ACA00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
+
+        assert!(verification::validate(&tx).is_ok());
+    }
+
+    #[test]
+    fn a_new_transaction_two_inputs_one_output() {
+        let network = Network::Testnet;
+
+        let previous_transaction_id =
+            Integer::from_hex_str("66142ec32e651f7f5dc0c23cfc4e7a43bc4ba2971196f88ad5ff27477cf57d8c");
+        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+
+        let output_transaction_0 = previous_transaction.output(0).unwrap();
+        let script_pub_key_0 = output_transaction_0.script_pub_key.clone();
+
+        let output_transaction_1 = previous_transaction.output(1).unwrap();
+        let script_pub_key_1 = output_transaction_1.script_pub_key.clone();
+
+        let private_key_0 =
+            Integer::from_dec_str("421788365705557317699661811707659433049257527084948635109995507081033905");
+        let private_key_1 =
+            Integer::from_dec_str("1029357723937880961141771287078141638280703752019825886047717249989513591");
+
+        let mut tx = Tx::new(network);
+
+        let tx_in_0 = TxIn::new_with_previous_transaction(
+            "66142ec32e651f7f5dc0c23cfc4e7a43bc4ba2971196f88ad5ff27477cf57d8c",
+            0,
+            network,
+        );
+
+        let tx_in_1 = TxIn::new_with_previous_transaction(
+            "66142ec32e651f7f5dc0c23cfc4e7a43bc4ba2971196f88ad5ff27477cf57d8c",
+            1,
+            network,
+        );
+
+        tx.add_input(tx_in_0);
+        tx.add_input(tx_in_1);
+
+        let tx_out = TxOut::new_for_tx(4661, "muekgXwwwbFJTVq1JTbi7Lrwi7fyWY8PEZ", network).unwrap();
+
+        tx.add_output(tx_out);
+
+        let script_0 = signing::generate_input_signature(&tx, 0, &private_key_0, script_pub_key_0).unwrap();
+        tx.substitute_script(0, script_0);
+
+        let script_1 = signing::generate_input_signature(&tx, 1, &private_key_1, script_pub_key_1).unwrap();
+        tx.substitute_script(1, script_1);
+
+        let serialized = vector::vect_to_hex_string(&tx.serialize());
+        assert_eq!(serialized, "01000000028C7DF57C4727FFD58AF8961197A24BBC437A4EFC3CC2C05D7F1F652EC32E1466000000006A473044022065AB7F50AA5E4A2FF0B1FEE463F55E6D51A5D8427D1205B1FA281E8E873C8E3902202B5D0B5451BB1AAC17B7C007BEA84F18104BB7205395998F278E6651B0B23DB70121031620D8DD422DC901A3B62973F8E9C0E10087DEA8D29B676DB432431053F20A1CFFFFFFFF8C7DF57C4727FFD58AF8961197A24BBC437A4EFC3CC2C05D7F1F652EC32E1466010000006B483045022100CD7A262042988F765FC11EE2C111BDFBBA24C2DAEDB2BE4149546D0558528BDE0220539A56666D147DBE5491B31BB370B044AC873EA0627B12BBEFD7EA7EA10EA05B012103EF5EDA9D7D4898493D6E49F853504C57B05FD94C920A937202FFD28DEACE1F45FFFFFFFF0135120000000000001976A9149B0B65266E7938E4EB5148CD90F3479126EE76F888AC00000000");
+
+        assert!(verification::validate(&tx).is_ok());
     }
 }

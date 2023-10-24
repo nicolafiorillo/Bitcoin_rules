@@ -153,7 +153,7 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
         let left = element_decode(a);
         let right = element_decode(b);
 
-        let sum = left + right; // TODO: check overflow
+        let sum = left.checked_add(right).ok_or(ContextError::Overflow)?;
         context.stack_push(Token::Element(element_encode(sum)));
 
         return Ok(true);

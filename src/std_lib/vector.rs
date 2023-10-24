@@ -11,10 +11,15 @@ pub fn vect_to_array_32(v: &[u8]) -> [u8; 32] {
 
 /// u8 byte array from hex string (two chars for single byte).
 pub fn string_to_bytes(s: &str) -> Result<Vec<u8>, ParseIntError> {
-    let mut res: Vec<u8> = Vec::with_capacity(s.len() / 2);
+    let mut input: String = s.to_string();
+    if s.len() % 2 != 0 {
+        input = format!("0{}", s);
+    }
 
-    for i in (0..s.len()).step_by(2) {
-        let byte = u8::from_str_radix(&s[i..i + 2], 16)?;
+    let mut res: Vec<u8> = Vec::with_capacity(input.len() / 2);
+
+    for i in (0..input.len()).step_by(2) {
+        let byte = u8::from_str_radix(&input[i..i + 2], 16)?;
         res.push(byte);
     }
 
@@ -234,5 +239,49 @@ mod helper_test {
         let v = padding_right(&vec![0], 3, 1);
         let expected: Vec<u8> = vec![0, 1, 1];
         assert_eq!(v, expected)
+    }
+
+    #[test]
+    fn string_to_bytes_0() {
+        assert_eq!(string_to_bytes("").unwrap(), Vec::<u8>::new());
+    }
+
+    #[test]
+    fn string_to_bytes_1() {
+        assert_eq!(string_to_bytes("0").unwrap(), vec![0]);
+    }
+
+    #[test]
+    fn string_to_bytes_2() {
+        assert_eq!(string_to_bytes("00").unwrap(), vec![0]);
+    }
+
+    #[test]
+    fn string_to_bytes_3() {
+        assert_eq!(string_to_bytes("0101").unwrap(), vec![1, 1]);
+    }
+
+    #[test]
+    fn string_to_bytes_4() {
+        assert_eq!(string_to_bytes("101").unwrap(), vec![1, 1]);
+    }
+
+    #[test]
+    fn string_to_bytes_5() {
+        assert_eq!(string_to_bytes("101").unwrap(), vec![1, 1]);
+    }
+
+    #[test]
+    fn string_to_bytes_6() {
+        assert_eq!(string_to_bytes("FFFF").unwrap(), vec![0xFF, 0xFF]);
+    }
+
+    #[test]
+    fn string_to_bytes_7() {
+        assert_eq!(string_to_bytes("FFF").unwrap(), vec![0xF, 0xFF]);
+    }
+    #[test]
+    fn string_to_bytes_8() {
+        assert_eq!(string_to_bytes("0FFF").unwrap(), vec![0xF, 0xFF]);
     }
 }

@@ -28,6 +28,7 @@ pub enum ContextError {
     ExitByFailedVerify,
     DeprecatedOpCode,
     ExitByReserved,
+    Overflow,
 }
 
 impl Context {

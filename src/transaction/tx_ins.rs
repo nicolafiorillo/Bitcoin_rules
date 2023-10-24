@@ -14,22 +14,32 @@ impl TxIns {
     }
 
     pub fn len(&self) -> usize {
-        self.0.len()
+        let Self(inputs) = self;
+        inputs.len()
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        self.0.iter().flat_map(|i| i.serialize()).collect()
+        let Self(inputs) = self;
+        inputs.iter().flat_map(|i| i.serialize()).collect()
     }
 
     pub fn remove_script(&mut self) {
-        for i in 0..self.0.len() {
+        let Self(inputs) = self;
+
+        for i in 0..inputs.len() {
             self.0[i].remove_script();
         }
     }
 
-    pub fn substitute_script(&mut self, input_index: usize, script_pub_key: Script) {
-        // TODO: check if out of bounds
-        self.0[input_index].substitute_script(script_pub_key);
+    pub fn substitute_script(&mut self, index: usize, script_pub_key: Script) {
+        let Self(inputs) = self;
+
+        if index > inputs.len() {
+            log::error!("input_index out of bounds");
+            return;
+        }
+
+        inputs[index].substitute_script(script_pub_key);
     }
 }
 
@@ -37,14 +47,16 @@ impl Index<usize> for TxIns {
     type Output = TxIn;
 
     fn index(&self, index: usize) -> &TxIn {
-        &self.0[index]
-        // TODO: exit with Result<TxIn, TxError>
+        let Self(inputs) = self;
+        &inputs[index]
     }
 }
 
 impl Display for TxIns {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for tx_in in &self.0 {
+        let Self(inputs) = self;
+
+        for tx_in in inputs {
             // TODO: move in tx_in.rs
             write!(
                 f,

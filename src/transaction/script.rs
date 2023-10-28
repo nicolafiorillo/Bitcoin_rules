@@ -53,6 +53,6 @@ impl Script {
 impl Display for Script {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = self.script_lang.representation();
-        writeln!(f, "{:}", s)
+        write!(f, "{:}", s)
     }
 }

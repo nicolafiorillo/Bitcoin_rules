@@ -1,4 +1,4 @@
-//! Private key management
+//! Private key management and verification
 
 use rug::{integer::Order, Integer};
 use std::fmt::{Display, Formatter};
@@ -16,7 +16,7 @@ use crate::{
     std_lib::vector::{padding_left, vect_to_array_32},
 };
 
-use super::{key_error::KeyError, verification::verify};
+use super::key_error::KeyError;
 
 /// Key structure.
 pub struct Key {
@@ -37,7 +37,7 @@ impl Key {
     }
 
     pub fn verify(&self, z: &Integer, sig: &Signature) -> bool {
-        verify(&self.public_key, z, sig)
+        Self::verify_signature(&self.public_key, z, sig)
     }
 
     pub fn from_wif(_wif: &str) -> Key {
@@ -168,6 +168,23 @@ impl Key {
             Compression::Uncompressed => vec![],
             Compression::Compressed => vec![0x01],
         }
+    }
+
+    /// Verify `z` versus a `Signature`.
+    /// `z`: the hashed message
+    /// `sig`: the public signature
+    pub fn verify_signature(point: &Point, z: &Integer, signature: &Signature) -> bool {
+        let s_inv = signature.s.invert_by_modulo(&N);
+
+        let mu = z * &s_inv;
+        let (_q, u) = Integer::from(mu).div_rem_euc((*N).clone());
+
+        let mv = &signature.r * &s_inv;
+        let (_q, v) = Integer::from(mv).div_rem_euc((*N).clone());
+
+        let total = (&(*G).clone() * u) + &(point * v);
+
+        total.x_as_num() == signature.r
     }
 }
 

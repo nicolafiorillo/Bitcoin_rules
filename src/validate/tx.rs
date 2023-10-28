@@ -1,9 +1,8 @@
 use crate::{
     chain::tx::get_transaction,
     scripting::{context::Context, script_lang::ScriptLang},
+    transaction::{tx::Tx, tx_error::TxError},
 };
-
-use super::{tx::Tx, tx_error::TxError};
 
 fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
     if tx.input_len() <= input_index {
@@ -39,6 +38,35 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
         }
         Ok(val) => Ok(val),
     }
+}
+
+pub fn fee(tx: &Tx) -> Result<i128, TxError> {
+    let mut input_amount: i128 = 0;
+
+    for i in 0..tx.input_len() {
+        let input_transaction = tx.input(i)?;
+        let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
+            Ok(tx) => tx,
+            Err(_e) => return Err(TxError::TransactionNotFoundInChain),
+        };
+
+        let output_index = input_transaction.previous_transaction_index as usize;
+        if previous_transaction.output_len() <= output_index {
+            return Err(TxError::OutputIndexOutOfBounds);
+        }
+
+        let output_transaction = previous_transaction.output(output_index)?;
+        input_amount += output_transaction.amount as i128;
+    }
+
+    let mut output_amount: i128 = 0;
+
+    for i in 0..tx.output_len() {
+        let output_transaction = tx.output(i)?;
+        output_amount += output_transaction.amount as i128;
+    }
+
+    Ok(input_amount - output_amount)
 }
 
 /*
@@ -94,44 +122,13 @@ pub fn validate(tx: &Tx) -> Result<bool, TxError> {
     Ok(true)
 }
 
-pub fn fee(tx: &Tx) -> Result<i128, TxError> {
-    let mut input_amount: i128 = 0;
-
-    for i in 0..tx.input_len() {
-        let input_transaction = tx.input(i)?;
-        let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
-            Ok(tx) => tx,
-            Err(_e) => return Err(TxError::TransactionNotFoundInChain),
-        };
-
-        let output_index = input_transaction.previous_transaction_index as usize;
-        if previous_transaction.output_len() <= output_index {
-            return Err(TxError::OutputIndexOutOfBounds);
-        }
-
-        let output_transaction = previous_transaction.output(output_index)?;
-        input_amount += output_transaction.amount as i128;
-    }
-
-    let mut output_amount: i128 = 0;
-
-    for i in 0..tx.output_len() {
-        let output_transaction = tx.output(i)?;
-        output_amount += output_transaction.amount as i128;
-    }
-
-    Ok(input_amount - output_amount)
-}
-
 #[cfg(test)]
 mod verification_test {
     use rug::Integer;
 
     use crate::{
-        chain::tx::get_transaction,
-        flags::network::Network,
-        std_lib::integer_extended::IntegerExtended,
-        transaction::{tx_error::TxError, verification::verify_input},
+        chain::tx::get_transaction, flags::network::Network, std_lib::integer_extended::IntegerExtended,
+        transaction::tx_error::TxError,
     };
 
     use super::*;

@@ -44,12 +44,10 @@ impl Index<usize> for TxOuts {
 
 impl Display for TxOuts {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for tx_out in &self.0 {
-            writeln!(
-                f,
-                "   amount: {:}\n   script_pub_key: {:}",
-                tx_out.amount, tx_out.script_pub_key,
-            )?
+        let Self(outputs) = self;
+
+        for tx_out in outputs {
+            writeln!(f, "{:}", tx_out)?;
         }
         writeln!(f)
     }

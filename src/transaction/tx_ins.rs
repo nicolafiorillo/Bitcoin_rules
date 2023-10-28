@@ -62,12 +62,7 @@ impl Display for TxIns {
         let Self(inputs) = self;
 
         for tx_in in inputs {
-            // TODO: move in tx_in.rs
-            write!(
-                f,
-                "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   script_sig: {:}\n   sequence: {:}\n   witnesses: {:?}\n   network: {:}\n   --\n",
-                tx_in.previous_transaction_id, tx_in.previous_transaction_index, tx_in.script_sig, tx_in.sequence, tx_in.witnesses, tx_in.network
-            )?;
+            writeln!(f, "{:}", tx_in)?;
         }
         write!(f, "")
     }

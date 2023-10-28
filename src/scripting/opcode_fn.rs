@@ -1,7 +1,7 @@
 use crate::{
     ecdsa::point::Point,
     hashing::{hash160::hash160, hash256::hash256, sha1::sha1, sha256::sha256},
-    keys::{signature::Signature, verification::verify},
+    keys::{key::Key, signature::Signature},
 };
 
 use super::{
@@ -223,7 +223,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
                 }
             };
 
-            let res = verify(&point, &context.z, &signature);
+            let res = Key::verify_signature(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);
             context.stack_push(Token::Element(element_value));

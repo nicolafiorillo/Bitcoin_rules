@@ -50,7 +50,11 @@ impl TxOut {
 
 impl Display for TxOut {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "amount: {:}\nScriptPubKey: {:}", self.amount, self.script_pub_key,)
+        write!(
+            f,
+            "    amount: {:}\n    ScriptPubKey: {:}",
+            self.amount, self.script_pub_key,
+        )
     }
 }
 

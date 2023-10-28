@@ -321,7 +321,7 @@ mod point_test {
     use super::*;
     use crate::{
         bitcoin::ecdsa::G,
-        keys::{signature::Signature, verification::verify},
+        keys::{key::Key, signature::Signature},
         std_lib::integer_extended::IntegerExtended,
     };
 
@@ -626,7 +626,7 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(verify(&point, &z, &sig));
+        assert!(Key::verify_signature(&point, &z, &sig));
     }
 
     #[test]
@@ -667,6 +667,6 @@ mod point_test {
         let point = Point::new_in_secp256k1(Some(ppx), Some(ppy));
         let sig = Signature::new(r, s);
 
-        assert!(verify(&point, &z, &sig));
+        assert!(Key::verify_signature(&point, &z, &sig));
     }
 }

@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use rug::Integer;
 
 use crate::{
@@ -112,6 +114,16 @@ impl TxIn {
             sequence_serialized.as_slice(),
         ]
         .concat()
+    }
+}
+
+impl Display for TxIn {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "   previous_transaction_id: {:02X}\n   previous_transaction_index: {:}\n   script_sig: {:}\n   sequence: {:}\n   witnesses: {:?}\n   network: {:}",
+            self.previous_transaction_id, self.previous_transaction_index, self.script_sig, self.sequence, self.witnesses, self.network
+        )
     }
 }
 

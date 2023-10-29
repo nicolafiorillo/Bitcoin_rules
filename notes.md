@@ -1,3 +1,5 @@
+# Napkin notes
+
 https://blockchain.info/rawtx/ee51510d7bbabe28052038d1deb10c03ec74f06a79e21913c6fcf48d56217c87?cors=true&format=hex
 https://blockchain.info/rawtx/d37f9e7282f81b7fd3af0fde8b462a1c28024f1d83cf13637ec18d03f4518feb?cors=true&format=hex
 
@@ -14,9 +16,22 @@ https://blockstream.info/api/tx/f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91
 
 https://blockstream.info/testnet/api/tx/2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646/hex
 
+----
+
+bitcoin-cli getwalletinfo
+bitcoin-cli listwallets
 
 ----
 
+https://worldwithouteng.com/articles/make-your-rust-code-unit-testable-with-dependency-inversion/
+https://www.youtube.com/watch?v=jf_ddGnum_4
+https://docs.rs/syn/2.0.38/syn/struct.File.html
+https://fettblog.eu/rust-enums-wrapping-errors/
+https://google.github.io/comprehensive-rust/error-handling/converting-error-types-example.html
+https://blog.orhun.dev/automated-rust-releases/
+https://willcrichton.net/notes/k-corrset/
+
+----
 
 fn a_new_key() {
     let (secret, address) = wallet::key::new(flags::network::Network::Testnet);

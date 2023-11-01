@@ -9,10 +9,6 @@ Entry point
 //     clippy::missing_panics_doc
 // )]
 
-use rug::Integer;
-
-use crate::{flags::network::Network, std_lib::integer_extended::IntegerExtended, validate::tx};
-
 mod bitcoin;
 mod chain;
 mod ecdsa;
@@ -31,13 +27,6 @@ fn main() {
     println!("A Bitcoin node written in Rust for educational purposes.");
     println!();
     println!("This is a work in progress: please do not use it in production.");
-
-    let tx_id: Integer = Integer::from_hex_str("c9a7d3bd4c39b43d410fc55e8a586ccd4d690086ffb070a69eea4b5612c44c4d");
-
-    let tx = chain::tx::get_transaction(&tx_id, Network::Mainnet).unwrap();
-
-    println!("{:}", tx);
-    println!(" is valid: {:?}", tx::validate(tx));
 }
 
 fn version() -> &'static str {

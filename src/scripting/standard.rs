@@ -10,7 +10,7 @@ pub fn p2pkh_script(h160: Vec<u8>) -> ScriptLang {
 }
 
 pub fn data_script(data: &[u8]) -> ScriptLang {
-    let hash_str = vect_to_hex_string(&data);
+    let hash_str = vect_to_hex_string(data);
     let script_repr = format!("OP_RETURN {} ", hash_str);
 
     ScriptLang::from_representation(&script_repr).unwrap()

@@ -18,8 +18,33 @@ https://blockstream.info/testnet/api/tx/2ad00c8e79a0c62c613d51e4669a14a4a94302e4
 
 ----
 
-bitcoin-cli getwalletinfo
-bitcoin-cli listwallets
+# bitcoin-cli commands
+
+loadwallet <name>
+listwallets
+getwalletinfo
+getbalance
+listtransactions
+listunspent
+gettransaction <txid>
+decoderawtransaction <hex_tx>
+getblockchaininfo
+getblockcount
+getnewaddress
+validateaddress <hex_address>
+sendrawtransaction <hex_tx>
+getaddressinfo <hex_address>
+
+generate <num_blocks>
+settxfee 0.001
+getmininginfo
+
+sendtoaddress <hex_address> <amount>
+
+----
+
+# print op_return data
+echo <hex_data> | xxd -p -r
 
 ----
 

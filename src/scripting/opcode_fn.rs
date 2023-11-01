@@ -214,7 +214,6 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             // Removing last byte, that is the signature hash (SIGHASH): https://learn.saylor.org/mod/book/view.php?id=36341&chapterid=18919
             der.pop();
 
-            let point = Point::deserialize(public_key);
             let signature = match Signature::new_from_der(der) {
                 Ok(signature) => signature,
                 Err(_) => {
@@ -223,6 +222,7 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
                 }
             };
 
+            let point = Point::deserialize(public_key);
             let res = Key::verify_signature(&point, &context.z, &signature);
 
             let element_value = element_value_by_result(res);

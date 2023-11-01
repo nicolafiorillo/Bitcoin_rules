@@ -1,10 +1,10 @@
 use rug::{
-    ops::Pow,
     rand::{ThreadRandGen, ThreadRandState},
     Integer,
 };
 
 use crate::{
+    bitcoin::ecdsa::P,
     flags::{compression::Compression, network::Network},
     keys::key::Key,
 };
@@ -25,12 +25,12 @@ fn generate_seed() -> u32 {
 }
 
 // Usage:
-//  let (secret, address) = generate_key(Network::Testnet);
+//  let (secret, address) = new(Network::Testnet);
 pub fn new(network: Network) -> (Integer, String) {
     let mut seed = Seed(&());
     let mut rand = ThreadRandState::new_custom(&mut seed);
 
-    let max_value = Integer::from(2).pow(256);
+    let max_value = (*P).clone();
     let secret = max_value.random_below(&mut rand);
 
     let private_key = Key::new(secret.clone());

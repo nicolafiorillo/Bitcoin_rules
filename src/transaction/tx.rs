@@ -500,30 +500,30 @@ mod tx_test {
         let network = Network::Testnet;
 
         let previous_transaction_id =
-            Integer::from_hex_str("d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849");
+            Integer::from_hex_str("c843441a5e6d6a3b47a686cafa862951d649fea242f016d486dc20d74fa9f61c");
         let previous_tx_index: usize = 0;
         let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
         let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
         let script_pub_key = output_transaction.script_pub_key.clone();
 
         let private_key =
-            Integer::from_dec_str("275665454735547573090156431398001801704654402004664009535475985449755313");
+            Integer::from_dec_str("1051734479676813432409430359100974956366171456908644401343499951103054813");
 
         let mut tx = Tx::new(network);
 
         let tx_in = TxIn::new_with_previous_transaction(
-            "d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849",
+            "c843441a5e6d6a3b47a686cafa862951d649fea242f016d486dc20d74fa9f61c",
             previous_tx_index as u32,
             network,
         );
 
         tx.add_input(tx_in);
 
-        let data = "Hello World!".as_bytes();
+        let data = "Hello Bitcoin_rules!".as_bytes();
         let script1 = standard::data_script(data);
         let tx_out1 = TxOut::new(0, Script::new_from_script_lang(&script1));
 
-        let address2 = Key::address_to_hash160("n4AoVe3S9ovRxDmGkm5mbZz8zCpyzT4Q9N", network).unwrap();
+        let address2 = Key::address_to_hash160("mqi7KkHZEHJAzoRvamrziHVLZPSVkxLmPZ", network).unwrap();
         let script2 = standard::p2pkh_script(address2);
         let tx_out2 = TxOut::new(4000, Script::new_from_script_lang(&script2));
 
@@ -535,10 +535,8 @@ mod tx_test {
 
         let res = vector::vect_to_hex_string(&tx.serialize());
 
-        assert_eq!(res, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006B483045022100BBE9A6F666AABDDCA38435E56A4BABE908FBB90A78E4B6E1C874AD5BBDF6E70602207CF3802B961C0171AB562FD49828369B0C2A0CB82E2606A35EADFEA29753ED4801210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF0200000000000000000E6A0C48656C6C6F20576F726C6421A00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
+        assert_eq!(res, "01000000011CF6A94FD720DC86D416F042A2FE49D6512986FACA86A6473B6A6D5E1A4443C80000000069463043021F4F5D3404C0E0E949F54150747FAE09C5D6D01482C9055AB2D51B4436336B8702201D679F8885A3E894DC68E1A85B1B84EB7AE445F5733CE4C512DDE34E18B1F06B012102B32BDD5A9F0DFF17AC7E92A920666081BDAD54356FCAB3CF7343963ABDB16195FFFFFFFF020000000000000000166A1448656C6C6F20426974636F696E5F72756C657321A00F0000000000001976A9146FCD5EE01651D668A50B5529ACF57FB0A28C948488AC00000000");
 
         assert!(validate(&tx).is_ok());
-
-        // TODO: da provare in TESTNET
     }
 }

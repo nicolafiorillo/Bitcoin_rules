@@ -581,6 +581,36 @@ pub fn op_over(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_tuck(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let op1 = context.stack_pop();
+    let op2 = context.stack_pop();
+
+    context.stack_push(op1.clone());
+    context.stack_push(op2);
+    context.stack_push(op1);
+
+    Ok(true)
+}
+
+pub fn op_size(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    context.stack_push(elem.clone());
+
+    if let Token::Element(v) = elem {
+        context.stack_push(Token::Element(element_encode(v.len() as i64)));
+    }
+
+    Ok(true)
+}
+
 pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);

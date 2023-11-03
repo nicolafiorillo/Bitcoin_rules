@@ -4,9 +4,9 @@ use super::script_lang::ScriptLang;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum StandardType {
-    UNKNOWN,
-    P2PKH,
-    DATA,
+    Unknown,
+    P2pkh,
+    Data,
 }
 
 pub fn p2pkh_script(h160: Vec<u8>) -> ScriptLang {

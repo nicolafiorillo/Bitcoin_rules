@@ -1320,6 +1320,39 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_tuck() {
+        let script = ScriptLang::from_representation("0A 0B OP_TUCK").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(3));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0A]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x0B]));
+    }
+
+    #[test]
+    fn evaluate_size() {
+        let script = ScriptLang::from_representation("FFFFFF OP_SIZE").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(2));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0x03]));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(vec![0xFF, 0xFF, 0xFF]));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));

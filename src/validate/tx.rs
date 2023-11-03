@@ -91,10 +91,10 @@ fn analize_output(output: &TxOut) -> Output {
     let mut context = Context::new(tokens, Integer::from(0));
     let _res = script_pub_key.script_lang.evaluate(&mut context);
 
-    let mut standard: StandardType = StandardType::UNKNOWN;
+    let mut standard: StandardType = StandardType::Unknown;
 
     if context.data().is_some() {
-        standard = StandardType::DATA;
+        standard = StandardType::Data;
     }
 
     Output {
@@ -226,10 +226,10 @@ mod verification_test {
         assert_eq!(res.fee, 661);
         assert_eq!(res.outputs.len(), 2);
 
-        assert_eq!(res.outputs[0].standard, StandardType::DATA);
+        assert_eq!(res.outputs[0].standard, StandardType::Data);
         let data = res.outputs[0].clone().data.unwrap();
         assert_eq!("Hello Bitcoin_rules!", String::from_utf8(data).unwrap());
 
-        assert_eq!(res.outputs[1].standard, StandardType::UNKNOWN);
+        assert_eq!(res.outputs[1].standard, StandardType::Unknown);
     }
 }

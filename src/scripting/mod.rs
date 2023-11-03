@@ -1,4 +1,5 @@
 pub mod condition_stack;
+pub mod constants;
 pub mod context;
 pub mod opcode;
 pub mod opcode_fn;

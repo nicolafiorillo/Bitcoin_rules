@@ -505,6 +505,30 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_return_with_data() {
+        let script = ScriptLang::from_representation("OP_RETURN FFFF").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        let res = context.data().clone();
+
+        assert_eq!(vec![0xFF, 0xFF], res.unwrap());
+        assert_eq!(ContextError::ExitByReturn, valid.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_return_with_too_long_data() {
+        let script = ScriptLang::from_representation("OP_RETURN FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF01").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        let res = context.data().clone();
+
+        assert_eq!(Vec::<u8>::new(), res.unwrap());
+        assert_eq!(ContextError::ReturnDataTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_if_endif() {
         let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),

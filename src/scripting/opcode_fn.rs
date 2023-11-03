@@ -5,6 +5,7 @@ use crate::{
 };
 
 use super::{
+    constants::MAX_RETURN_DATA_LENGTH,
     context::{Context, ContextError},
     token::*,
 };
@@ -85,7 +86,24 @@ pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
 /// https://blockchain.info/tx/728e24b2e7dd137e574c433a8db08ac2aa0bf0588ad7716e4c5a7da45dbb5933
 /// https://blockchain.info/tx/52dd20f60d6e14e5a783e7668cf410efdea40cd9a92479b0f2423d0bc63575fa
 ///
-pub fn op_return(_context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_return(context: &mut Context) -> Result<bool, ContextError> {
+    context.set_data(Vec::new());
+
+    if !context.tokens_are_over() {
+        let token = context.next_token();
+
+        if let Token::Element(data) = token {
+            let d = data.clone();
+
+            if d.len() > MAX_RETURN_DATA_LENGTH {
+                return Err(ContextError::ReturnDataTooLong);
+            }
+
+            context.set_data(d);
+        }
+    }
+    log::debug!("Token for OP_RETURN: {:?}", context.data());
+
     Err(ContextError::ExitByReturn)
 }
 

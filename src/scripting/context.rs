@@ -14,6 +14,7 @@ pub struct Context {
     alt_stack: VecDeque<Token>,
 
     condition_stack: ConditionStack,
+    data: Option<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -29,6 +30,7 @@ pub enum ContextError {
     DeprecatedOpCode,
     ExitByReserved,
     Overflow,
+    ReturnDataTooLong,
 }
 
 impl Context {
@@ -48,6 +50,7 @@ impl Context {
             stack,
             alt_stack: alternative_stack,
             condition_stack,
+            data: None,
         }
     }
 
@@ -172,5 +175,13 @@ impl Context {
 
     pub fn in_condition(&self) -> bool {
         self.condition_stack.in_condition()
+    }
+
+    pub fn set_data(&mut self, data: Vec<u8>) {
+        self.data = Some(data);
+    }
+
+    pub fn data(&self) -> &Option<Vec<u8>> {
+        &self.data
     }
 }

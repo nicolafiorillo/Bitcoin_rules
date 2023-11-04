@@ -681,6 +681,34 @@ pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    if let Token::Element(bytes) = elem {
+        let n = element_decode(bytes);
+        context.stack_push(Token::Element(element_encode(-n)));
+    }
+
+    Ok(true)
+}
+
+pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    if let Token::Element(bytes) = elem {
+        let n = element_decode(bytes);
+        context.stack_push(Token::Element(element_encode(n.abs())));
+    }
+
+    Ok(true)
+}
+
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
     unimplemented!("command not implemented")
 }

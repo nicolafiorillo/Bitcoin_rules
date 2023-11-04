@@ -31,6 +31,7 @@ pub enum ContextError {
     ExitByReserved,
     Overflow,
     ReturnDataTooLong,
+    InputLengthTooLong,
 }
 
 impl Context {

@@ -387,6 +387,24 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_add_too_long_1() {
+        let script = ScriptLang::from_representation("FF FFFFFFFFFF OP_ADD").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_add_too_long_2() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF FF OP_ADD").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_add() {
         let script = ScriptLang::from_tokens(vec![
             Token::Element(vec![0x01]),
@@ -402,12 +420,21 @@ mod script_test {
     }
 
     #[test]
-    fn evaluate_add_with_overflow() {
-        let script = ScriptLang::from_representation("7FFFFFFFFFFFFFFF 7FFFFFFFFFFFFFFF OP_ADD").unwrap();
+    fn evaluate_sub_too_long_1() {
+        let script = ScriptLang::from_representation("FF FFFFFFFFFF OP_SUB").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::Overflow, valid.expect_err("Err"));
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_sub_too_long_2() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF FF OP_SUB").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
     }
 
     #[test]
@@ -442,7 +469,7 @@ mod script_test {
 
     #[test]
     fn evaluate_sub_zero() {
-        let script = ScriptLang::from_representation("7FFFFFFFFFFFFFFF 7FFFFFFFFFFFFFFF OP_SUB").unwrap();
+        let script = ScriptLang::from_representation("7FFFFFFF 7FFFFFFF OP_SUB").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context);
 
@@ -911,6 +938,15 @@ mod script_test {
         let valid = script.evaluate(&mut context);
 
         assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_not_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_NOT").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
     }
 
     #[test]
@@ -1414,6 +1450,15 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_1add_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_1ADD").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_1add_0() {
         let script = ScriptLang::from_representation("00 OP_1ADD").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -1483,6 +1528,15 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
         assert_eq!(op, Token::Element(vec![]));
+    }
+
+    #[test]
+    fn evaluate_1sub_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_1SUB").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
     }
 
     #[test]
@@ -1558,6 +1612,15 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_negate_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_NEGATE").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_negate_0() {
         let script = ScriptLang::from_representation("00 OP_NEGATE").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -1627,6 +1690,15 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
         assert_eq!(op, Token::Element(vec![0xFF, 0x7F]));
+    }
+
+    #[test]
+    fn evaluate_abs_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_ABS").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
     }
 
     #[test]
@@ -1711,6 +1783,15 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
         assert_eq!(op, Token::Element(vec![0xFF, 0x7F]));
+    }
+
+    #[test]
+    fn evaluate_0notequal_too_long() {
+        let script = ScriptLang::from_representation("FFFFFFFFFF OP_0NOTEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
     }
 
     #[test]

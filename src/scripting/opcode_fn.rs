@@ -168,10 +168,14 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
     let b = context.stack_pop_as_element()?;
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
+        if a.len() > 4 || b.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let left = element_decode(a);
         let right = element_decode(b);
 
-        let sum = left.checked_add(right).ok_or(ContextError::Overflow)?;
+        let sum = left + right;
         context.stack_push(Token::Element(element_encode(sum)));
 
         return Ok(true);
@@ -189,6 +193,10 @@ pub fn op_sub(context: &mut Context) -> Result<bool, ContextError> {
     let b = context.stack_pop_as_element()?;
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
+        if a.len() > 4 || b.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let left = element_decode(a);
         let right = element_decode(b);
 
@@ -498,8 +506,12 @@ pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
 
     let e = context.stack_pop();
 
-    if let Token::Element(value) = e {
-        if value == ELEMENT_ZERO {
+    if let Token::Element(bytes) = e {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        if bytes == ELEMENT_ZERO {
             context.stack_push(Token::Element(ELEMENT_ONE.to_vec()));
             return Ok(true);
         }
@@ -681,6 +693,10 @@ pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n + 1)));
     }
@@ -695,6 +711,10 @@ pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n - 1)));
     }
@@ -709,6 +729,10 @@ pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(-n)));
     }
@@ -723,6 +747,10 @@ pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n.abs())));
     }
@@ -737,6 +765,10 @@ pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
+        if bytes.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
         let n = element_decode(bytes);
         let val = if n != 0 { ELEMENT_ONE } else { ELEMENT_ZERO };
 

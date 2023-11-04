@@ -25,6 +25,10 @@ pub enum DerError {
 const DER_MARKER: u8 = 0x30;
 const DER_INTEGER: u8 = 0x02;
 
+/*
+    https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
+    https://github.com/libbitcoin/libbitcoin-system/wiki/ECDSA-and-DER-Signatures
+*/
 impl Signature {
     pub fn new(r: Integer, s: Integer) -> Signature {
         Signature { r, s }

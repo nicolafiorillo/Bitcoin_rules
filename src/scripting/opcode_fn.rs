@@ -638,8 +638,8 @@ pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
     }
 
     let e = context.stack_pop_as_element()?;
-    if let Token::Element(v) = e {
-        let n = element_decode(v);
+    if let Token::Element(bytes) = e {
+        let n = element_decode(bytes);
         let un = n as usize;
 
         if !context.stack_has_enough_items(un + 1) {
@@ -648,6 +648,34 @@ pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
 
         let elem = context.stack_remove_at(un);
         context.stack_push(elem);
+    }
+
+    Ok(true)
+}
+
+pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    if let Token::Element(bytes) = elem {
+        let n = element_decode(bytes);
+        context.stack_push(Token::Element(element_encode(n + 1)));
+    }
+
+    Ok(true)
+}
+
+pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    if let Token::Element(bytes) = elem {
+        let n = element_decode(bytes);
+        context.stack_push(Token::Element(element_encode(n - 1)));
     }
 
     Ok(true)

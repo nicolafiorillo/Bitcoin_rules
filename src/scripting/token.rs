@@ -262,6 +262,24 @@ mod token_test {
     }
 
     #[test]
+    fn test_127() {
+        let encoded: Vec<u8> = element_encode(127);
+        assert_eq!(encoded, [0x7F]);
+
+        let decoded = element_decode(encoded);
+        assert_eq!(decoded, 127);
+    }
+
+    #[test]
+    fn test_127_neg() {
+        let encoded: Vec<u8> = element_encode(-127);
+        assert_eq!(encoded, [0xFF]);
+
+        let decoded = element_decode(encoded);
+        assert_eq!(decoded, -127);
+    }
+
+    #[test]
     fn test_128() {
         let encoded: Vec<u8> = element_encode(128);
         assert_eq!(encoded, [0x80, 0x00]);

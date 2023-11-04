@@ -180,6 +180,27 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::NotAnElement)
 }
 
+pub fn op_sub(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let a = context.stack_pop_as_element()?;
+    let b = context.stack_pop_as_element()?;
+
+    if let (Token::Element(a), Token::Element(b)) = (a, b) {
+        let left = element_decode(a);
+        let right = element_decode(b);
+
+        let sub = left.checked_sub(right).ok_or(ContextError::Overflow)?;
+        context.stack_push(Token::Element(element_encode(sub)));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
 pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -704,6 +725,22 @@ pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
     if let Token::Element(bytes) = elem {
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n.abs())));
+    }
+
+    Ok(true)
+}
+
+pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem = context.stack_pop_as_element()?;
+    if let Token::Element(bytes) = elem {
+        let n = element_decode(bytes);
+        let val = if n != 0 { ELEMENT_ONE } else { ELEMENT_ZERO };
+
+        context.stack_push(Token::Element(val.to_vec()));
     }
 
     Ok(true)

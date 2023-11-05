@@ -14,8 +14,7 @@ pub enum StandardType {
 /*
    Despite being deprecated, the P2PK script is also implemented here because it was used in the first Bitcoin transactions.
    The P2PK script contemplates the presence of the recipient's public key in the `ScriptPubKey` and, if spent, the sender's signature in the `ScriptSig`.
-   This scenario could allow, thanks to a specific [implementation of a Shor algorithm](https://eprint.iacr.org/2016/1128.pdf
-   ) capable of solving the [Discrete Logarithm problem](https://sefiks.com/2018/02/28/attacking-elliptic-curve-discrete-logarithm-problem/) in polynomial time, to determine the private key corresponding to the public key. However, we are talking about the need for quantum computers capable of performing an enormous number of operations in short time.
+   This scenario could allow, thanks to a specific [implementation of a Shor algorithm](https://eprint.iacr.org/2016/1128.pdf) capable of solving the [Discrete Logarithm problem](https://sefiks.com/2018/02/28/attacking-elliptic-curve-discrete-logarithm-problem/) in polynomial time, to determine the private key corresponding to the public key. However, we are talking about the need for quantum computers capable of performing an enormous number of operations in short time.
    As already indicated, this type of script has been deprecated in favour of the P2PKH script that uses its `hash160` instead of the public key in plain text.
    The application of the hash means that the public key is not visible, adding an additional layer of security and considerably mitigating the risk of it being compromised and the corresponding private key being calculated.
 

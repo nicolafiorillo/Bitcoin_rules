@@ -145,6 +145,10 @@ impl Key {
         self.public_key.serialize(Compression::Compressed)
     }
 
+    pub fn private_key(&self) -> Integer {
+        self.private_key.clone()
+    }
+
     pub fn to_wif(&self, compression: Compression, network: Network) -> String {
         let secret_bytes = self.private_key.to_digits::<u8>(Order::Msf);
         let secret_bytes_padded = padding_left(&secret_bytes, 32, 0);

@@ -18,7 +18,7 @@ https://blockstream.info/testnet/api/tx/2ad00c8e79a0c62c613d51e4669a14a4a94302e4
 
 ----
 
-# bitcoin-cli commands
+## bitcoin-cli commands
 
 loadwallet <name>
 listwallets
@@ -43,7 +43,7 @@ sendtoaddress <hex_address> <amount>
 
 ----
 
-# print op_return data
+## print op_return data
 echo <hex_data> | xxd -p -r
 
 ----
@@ -67,8 +67,6 @@ fn a_new_key() {
 fn a_satoshi_transaction() {
     let satoshi_transaction_id: Integer =
         Integer::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
-    // let satoshi_transaction_id: Integer =
-    //     Integer::from_hex_str("0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9");
 
     let satoshi_transaction = chain::tx::get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
 
@@ -104,3 +102,16 @@ fn get_seed_from_system() -> u32 {
 
     u32::from_le_bytes(buffer)
 }
+
+OP_BOOLAND 	154 	0x9a 	a b 	out 	If both a and b are not 0, the output is 1. Otherwise 0.
+OP_BOOLOR 	155 	0x9b 	a b 	out 	If a or b is not 0, the output is 1. Otherwise 0.
+OP_NUMEQUAL 	156 	0x9c 	a b 	out 	Returns 1 if the numbers are equal, 0 otherwise.
+OP_NUMEQUALVERIFY 	157 	0x9d 	a b 	Nothing / fail 	Same as OP_NUMEQUAL, but runs OP_VERIFY afterward.
+OP_NUMNOTEQUAL 	158 	0x9e 	a b 	out 	Returns 1 if the numbers are not equal, 0 otherwise.
+OP_LESSTHAN 	159 	0x9f 	a b 	out 	Returns 1 if a is less than b, 0 otherwise.
+OP_GREATERTHAN 	160 	0xa0 	a b 	out 	Returns 1 if a is greater than b, 0 otherwise.
+OP_LESSTHANOREQUAL 	161 	0xa1 	a b 	out 	Returns 1 if a is less than or equal to b, 0 otherwise.
+OP_GREATERTHANOREQUAL 	162 	0xa2 	a b 	out 	Returns 1 if a is greater than or equal to b, 0 otherwise.
+OP_MIN 	163 	0xa3 	a b 	out 	Returns the smaller of a and b.
+OP_MAX 	164 	0xa4 	a b 	out 	Returns the larger of a and b.
+OP_WITHIN 	165 	0xa5 	x min max 	out 	Returns 1 if x is within the specified range (left-inclusive), 0 otherwise. 

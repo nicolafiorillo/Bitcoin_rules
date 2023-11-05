@@ -36,6 +36,8 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Pay-to-Public-Key-Hash (P2PKH)
   - [ ] Pay-to-Script-Hash (P2SH)
   - [X] Custom data (OP_RETURN)
+- Fees
+  - [ ] Fee estimation (from external source)
 - [ ] Block structures and serialization
   - [ ] Proof-of-work
 - [ ] Peer-to-peer network
@@ -61,7 +63,9 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Messages (via queues)
 - [ ] Wallet
   - [ ] Key management
+  - [ ] Fee estimation (from local chain data)
   - [ ] Generate paper wallet (png QRCode)
+  - [ ] Generate/send new transaction
 - [ ] Hierarchical Deterministic (HD) key derivation
   - [ ] [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
   - [ ] [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)

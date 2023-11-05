@@ -24,17 +24,31 @@ See [references](REFERENCES.md) for documentations, references, and articles use
 
 > **Do not use this code in production stuff. Completeness, stability, and expecially security are not guaranteed.**
 
-## Building
+## Getting started
 
-At time `main()` is almost empty but tests can be executed with:
+At time `main()` is almost empty. We are working on structures and algorithms.
+For the moment, you can build:
+
+```
+cargo build
+```
+_This produces warnings about unused code: this is normal at this stage because most of the code is not referrenced yet in `main`._
+
+Run the tests:
 
 ```
 cargo test
 ```
 
+And run console app:
+
+```
+cargo run
+```
+
 ## Feedback
 
-Feedback are welcome! Please open an issue or PR.
+Feedback are welcome! Please open an [issue](https://github.com/nicolafiorillo/Bitcoin_rules/issues) or [PR](https://github.com/nicolafiorillo/Bitcoin_rules/pulls).
 
 ## Support
 

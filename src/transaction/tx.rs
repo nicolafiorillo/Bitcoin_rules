@@ -355,7 +355,7 @@ mod tx_test {
     }
 
     #[test]
-    fn a_new_p2pkh_transaction() {
+    fn new_p2pkh_transaction_one_input_two_outputs_1() {
         let network = Network::Testnet;
 
         let previous_transaction_id =
@@ -389,8 +389,8 @@ mod tx_test {
         tx.add_output(tx_out1);
         tx.add_output(tx_out2);
 
-        let script = signing::generate_input_signature(&tx, previous_tx_index, &private_key, script_pub_key).unwrap();
-        tx.substitute_script(previous_tx_index, script);
+        let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
+        tx.substitute_script(0, script);
 
         let res = vector::vect_to_hex_string(&tx.serialize());
 
@@ -398,7 +398,7 @@ mod tx_test {
     }
 
     #[test]
-    fn a_new_p2pkh_transaction_one_input_two_outputs() {
+    fn new_p2pkh_transaction_one_input_two_outputs_2() {
         let network = Network::Testnet;
 
         let previous_transaction_id =
@@ -432,8 +432,8 @@ mod tx_test {
         tx.add_output(tx_out1);
         tx.add_output(tx_out2);
 
-        let script = signing::generate_input_signature(&tx, previous_tx_index, &private_key, script_pub_key).unwrap();
-        tx.substitute_script(previous_tx_index, script);
+        let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
+        tx.substitute_script(0, script);
 
         let serialized = vector::vect_to_hex_string(&tx.serialize());
         assert_eq!(serialized, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006A473044022074494219882616A1922C3067C042F900451E01BF43C0258446B948D05D9DE6E002201F11ECF14A2EF846305BB0FAFB5D02C184A4C4FCABE584FE824CC807E7178A6501210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF02E8030000000000001976A91493894AC0A123F716291374F8BB414B3532EB872A88ACA00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
@@ -442,7 +442,7 @@ mod tx_test {
     }
 
     #[test]
-    fn a_new_p2pkh_transaction_two_inputs_one_output() {
+    fn new_p2pkh_transaction_two_inputs_one_output() {
         let network = Network::Testnet;
 
         let previous_transaction_id =
@@ -496,7 +496,7 @@ mod tx_test {
     }
 
     #[test]
-    fn a_new_data_transaction() {
+    fn new_data_transaction_one_input_two_outputs() {
         let network = Network::Testnet;
 
         let previous_transaction_id =
@@ -530,12 +530,51 @@ mod tx_test {
         tx.add_output(tx_out1);
         tx.add_output(tx_out2);
 
-        let script = signing::generate_input_signature(&tx, previous_tx_index, &private_key, script_pub_key).unwrap();
-        tx.substitute_script(previous_tx_index, script);
+        let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
+        tx.substitute_script(0, script);
 
         let res = vector::vect_to_hex_string(&tx.serialize());
 
         assert_eq!(res, "01000000011CF6A94FD720DC86D416F042A2FE49D6512986FACA86A6473B6A6D5E1A4443C80000000069463043021F4F5D3404C0E0E949F54150747FAE09C5D6D01482C9055AB2D51B4436336B8702201D679F8885A3E894DC68E1A85B1B84EB7AE445F5733CE4C512DDE34E18B1F06B012102B32BDD5A9F0DFF17AC7E92A920666081BDAD54356FCAB3CF7343963ABDB16195FFFFFFFF020000000000000000166A1448656C6C6F20426974636F696E5F72756C657321A00F0000000000001976A9146FCD5EE01651D668A50B5529ACF57FB0A28C948488AC00000000");
+
+        assert!(analyze(&tx).is_ok());
+    }
+
+    #[test]
+    fn new_p2pk_transaction_one_input_one_output() {
+        let network = Network::Testnet;
+
+        let previous_transaction_id =
+            Integer::from_hex_str("b3da0e148a202833a4dca8a3f5d0cc336c26e0cd4e213b9cc8c6b6bce69423ce");
+        let previous_tx_index: usize = 1;
+        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
+        let script_pub_key = output_transaction.script_pub_key.clone();
+
+        let private_key =
+            Integer::from_dec_str("111462511462181760351805850201853994070745575482638197696888757036583703592764");
+        let key = crate::keys::key::Key::new(private_key);
+
+        let mut tx = Tx::new(network);
+
+        let tx_in = TxIn::new_with_previous_transaction(
+            "b3da0e148a202833a4dca8a3f5d0cc336c26e0cd4e213b9cc8c6b6bce69423ce",
+            previous_tx_index as u32,
+            network,
+        );
+
+        tx.add_input(tx_in);
+
+        let script = standard::p2pk_script(key.public_key_sec());
+        let tx_out = TxOut::new(14483, Script::new_from_script_lang(&script));
+
+        tx.add_output(tx_out);
+
+        let script = signing::generate_input_signature(&tx, 0, &key.private_key(), script_pub_key).unwrap();
+        tx.substitute_script(0, script);
+
+        let res = vector::vect_to_hex_string(&tx.serialize());
+        assert_eq!(res, "0100000001CE2394E6BCB6C6C89C3B214ECDE0266C33CCD0F5A3A8DCA43328208A140EDAB3010000006A473044022020867C3596C2CC01AB8E04EEF81B7B965E353BF95D9667AFF6A86DDA07AC8A0A022014C5EFF1C54E95084C660CE545D639EBB10DA670F8228C1E9963E30E683894190121030C4FE97C6E5397A7E7BE16D89D02627F248C5CB3ED1EFD1B517304EC844EFAFBFFFFFFFF0193380000000000002321030C4FE97C6E5397A7E7BE16D89D02627F248C5CB3ED1EFD1B517304EC844EFAFBAC00000000");
 
         assert!(analyze(&tx).is_ok());
     }

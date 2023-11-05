@@ -2,7 +2,11 @@ use rug::Integer;
 
 use crate::{
     chain::tx::get_transaction,
-    scripting::{context::Context, script_lang::ScriptLang, standard::StandardType},
+    scripting::{
+        context::Context,
+        script_lang::ScriptLang,
+        standard::{standard_type, StandardType},
+    },
     transaction::{tx::Tx, tx_error::TxError, tx_out::TxOut},
 };
 
@@ -84,18 +88,14 @@ pub fn fee(tx: &Tx) -> Result<i128, TxError> {
     Ok(input_amount - output_amount)
 }
 
-fn analize_output(output: &TxOut) -> Output {
+fn analyze_output(output: &TxOut) -> Output {
     let script_pub_key = output.script_pub_key.clone();
     let tokens = script_pub_key.script_lang.tokens();
 
     let mut context = Context::new(tokens, Integer::from(0));
     let _res = script_pub_key.script_lang.evaluate(&mut context);
 
-    let mut standard: StandardType = StandardType::Unknown;
-
-    if context.data().is_some() {
-        standard = StandardType::Data;
-    }
+    let standard: StandardType = standard_type(&script_pub_key.script_lang);
 
     Output {
         standard,
@@ -135,7 +135,7 @@ pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
 
     for index in 0..tx.output_len() {
         let output = tx.outputs(index);
-        let res = analize_output(output);
+        let res = analyze_output(output);
         outputs.push(res);
     }
 
@@ -212,6 +212,10 @@ mod verification_test {
 
         assert!(res.valid);
         assert_eq!(res.fee, 0);
+
+        assert_eq!(res.outputs.len(), 2);
+        assert_eq!(res.outputs[0].standard, StandardType::P2pk);
+        assert_eq!(res.outputs[1].standard, StandardType::P2pk);
     }
 
     #[test]
@@ -230,6 +234,21 @@ mod verification_test {
         let data = res.outputs[0].clone().data.unwrap();
         assert_eq!("Hello Bitcoin_rules!", String::from_utf8(data).unwrap());
 
-        assert_eq!(res.outputs[1].standard, StandardType::Unknown);
+        assert_eq!(res.outputs[1].standard, StandardType::P2pkh);
+    }
+
+    #[test]
+    fn verify_transaction_p2pkh_type_script() {
+        let satoshi_transaction_id: Integer =
+            Integer::from_hex_str("c843441a5e6d6a3b47a686cafa862951d649fea242f016d486dc20d74fa9f61c");
+        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Testnet).unwrap();
+
+        let res = analyze(satoshi_transaction).unwrap();
+
+        assert!(res.valid);
+        assert_eq!(res.fee, 339);
+        assert_eq!(res.outputs.len(), 1);
+
+        assert_eq!(res.outputs[0].standard, StandardType::P2pkh);
     }
 }

@@ -1,3 +1,6 @@
+use once_cell::sync::Lazy;
+use regex::Regex;
+
 use crate::std_lib::vector::vect_to_hex_string;
 
 use super::script_lang::ScriptLang;
@@ -8,6 +11,32 @@ pub enum StandardType {
     P2pk,
     P2pkh,
     Data,
+}
+
+static P2PK_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-fA-F]+ OP_CHECKSIG$").unwrap());
+static P2PKH_SCRIPT_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^OP_DUP OP_HASH160 [0-9a-fA-F]{40} OP_EQUALVERIFY OP_CHECKSIG$").unwrap());
+static DATA_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^OP_RETURN [0-9a-fA-F]+$").unwrap());
+
+/*
+   TODO: ugly and not very efficient implementation of the standard type of a script.
+*/
+pub fn standard_type(script: &ScriptLang) -> StandardType {
+    let script_repr = script.representation();
+
+    if DATA_SCRIPT_REGEX.is_match(&script_repr) {
+        return StandardType::Data;
+    }
+
+    if P2PKH_SCRIPT_REGEX.is_match(&script_repr) {
+        return StandardType::P2pkh;
+    }
+
+    if P2PK_SCRIPT_REGEX.is_match(&script_repr) {
+        return StandardType::P2pk;
+    }
+
+    StandardType::Unknown
 }
 
 // ANCHOR: p2pk_script
@@ -24,21 +53,21 @@ pub enum StandardType {
 // ANCHOR_END: p2pk_script
 pub fn p2pk_script(address: Vec<u8>) -> ScriptLang {
     let addr_str = vect_to_hex_string(&address);
-    let script_repr = format!("{} OP_CHECKSIG", addr_str);
+    let script_repr = format!("{addr_str} OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
 pub fn p2pkh_script(h160: Vec<u8>) -> ScriptLang {
     let hash_str = vect_to_hex_string(&h160);
-    let script_repr = format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", hash_str);
+    let script_repr = format!("OP_DUP OP_HASH160 {hash_str} OP_EQUALVERIFY OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
 pub fn data_script(data: &[u8]) -> ScriptLang {
-    let hash_str = vect_to_hex_string(data);
-    let script_repr = format!("OP_RETURN {} ", hash_str);
+    let data_str = vect_to_hex_string(data);
+    let script_repr = format!("OP_RETURN {data_str}");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }

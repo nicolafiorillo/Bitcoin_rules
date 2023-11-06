@@ -1902,9 +1902,6 @@ mod script_test {
         assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
     }
 
-    // TODO: prepare tests when expected data is not an element
-    // TODO: prepare tests when expected element is longer than 4 bytes (arithmentic ops)
-
     #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
@@ -1931,6 +1928,37 @@ mod script_test {
         assert!(context.is_valid());
         assert!(context.stack_has_items(1));
     }
+
+    // TODO: prepare tests when expected data is not an element
+
+    //
+    // elem bigger than 4 bytes
+    //
+    macro_rules! evaluate_elem_bigger_than_4_bytes {
+        ($n:literal, $f:ident) => {
+            #[test]
+            fn $f() {
+                let script = ScriptLang::from_representation($n).unwrap();
+                let mut context = Context::new(script.tokens(), Integer::from(0));
+                let valid = script.evaluate(&mut context);
+
+                assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+            }
+        };
+    }
+
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_0NOTEQUAL", evaluate_op_0notequal_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_BOOLAND", evaluate_op_booland_bigger_than_4_bytes_1);
+    evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_BOOLAND", evaluate_op_booland_bigger_than_4_bytes_2);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_ABS", evaluate_op_abs_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_NEGATE", evaluate_op_negate_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_1SUB", evaluate_op_1sub_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_1ADD", evaluate_op_1add_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_NOT", evaluate_op_not_bigger_than_4_bytes);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_SUB", evaluate_op_sub_bigger_than_4_bytes_1);
+    evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_SUB", evaluate_op_sub_bigger_than_4_bytes_2);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_ADD", evaluate_op_add_bigger_than_4_bytes_1);
+    evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_ADD", evaluate_op_add_bigger_than_4_bytes_2);
 
     //
     // Ignored

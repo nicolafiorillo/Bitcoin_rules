@@ -102,7 +102,6 @@ pub fn op_return(context: &mut Context) -> Result<bool, ContextError> {
             context.set_data(d);
         }
     }
-    log::debug!("Token for OP_RETURN: {:?}", context.data());
 
     Err(ContextError::ExitByReturn)
 }
@@ -639,9 +638,11 @@ pub fn op_size(context: &mut Context) -> Result<bool, ContextError> {
 
     if let Token::Element(v) = elem {
         context.stack_push(Token::Element(element_encode(v.len() as i64)));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
@@ -660,9 +661,11 @@ pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
 
         let elem = context.stack_get_at(un);
         context.stack_push(elem.clone());
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
@@ -681,9 +684,11 @@ pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
 
         let elem = context.stack_remove_at(un);
         context.stack_push(elem);
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
@@ -699,9 +704,11 @@ pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
 
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n + 1)));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
@@ -717,9 +724,11 @@ pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
 
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n - 1)));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
@@ -735,9 +744,11 @@ pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
 
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(-n)));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
@@ -753,9 +764,40 @@ pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
 
         let n = element_decode(bytes);
         context.stack_push(Token::Element(element_encode(n.abs())));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    let elem1_bool = elem1.as_bool();
+    let elem2_bool = elem2.as_bool();
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let booland = if elem1_bool && elem2_bool {
+            ELEMENT_TRUE
+        } else {
+            ELEMENT_FALSE
+        };
+        context.stack_push(Token::Element(booland.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
 }
 
 pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
@@ -773,9 +815,11 @@ pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
         let val = if n != 0 { ELEMENT_ONE } else { ELEMENT_ZERO };
 
         context.stack_push(Token::Element(val.to_vec()));
+
+        return Ok(true);
     }
 
-    Ok(true)
+    Err(ContextError::NotAnElement)
 }
 
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {

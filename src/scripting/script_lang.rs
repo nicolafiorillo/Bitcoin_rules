@@ -1843,6 +1843,69 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_booland_1() {
+        let script = ScriptLang::from_representation("00 00 OP_BOOLAND").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_booland_2() {
+        let script = ScriptLang::from_representation("01 01 OP_BOOLAND").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_booland_3() {
+        let script = ScriptLang::from_representation("FF 00 OP_BOOLAND").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_booland_4() {
+        let script = ScriptLang::from_representation("00 FF OP_BOOLAND").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_booland_5() {
+        let script = ScriptLang::from_representation("FF FF OP_BOOLAND").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    // TODO: prepare tests when expected data is not an element
+    // TODO: prepare tests when expected element is longer than 4 bytes (arithmentic ops)
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));

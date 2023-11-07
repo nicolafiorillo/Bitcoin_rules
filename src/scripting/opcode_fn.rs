@@ -163,10 +163,10 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let a = context.stack_pop_as_element()?;
-    let b = context.stack_pop_as_element()?;
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
 
-    if let (Token::Element(a), Token::Element(b)) = (a, b) {
+    if let (Token::Element(a), Token::Element(b)) = (elem1, elem2) {
         if a.len() > 4 || b.len() > 4 {
             return Err(ContextError::InputLengthTooLong);
         }

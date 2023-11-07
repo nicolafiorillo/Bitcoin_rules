@@ -63,17 +63,20 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Messages (via queues)
 - [ ] Wallet
   - [ ] Key management
-  - [ ] Fee estimation (from local chain data)
+  - [ ] Vanity address
   - [ ] Generate paper wallet (png QRCode)
   - [ ] Generate/send new transaction
-- [ ] Hierarchical Deterministic (HD) key derivation
-  - [ ] [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
-  - [ ] [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
-  - [ ] Extended public key
-  - [ ] Private key derivation functions (KDF)
-  - [ ] Private key derivation from password
+  - [ ] Balance
+  - [ ] History
+  - [ ] Fee estimation (from local chain data)
+  - [ ] Hierarchical Deterministic (HD) key derivation
+    - [ ] [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
+    - [ ] [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
+    - [ ] Extended public key
+    - [ ] Private key derivation functions (KDF)
+    - [ ] Private key derivation from password
 - [ ] Private Key generation
-  - [ ] Random private key generation
+  - [X] Random private key generation
   - [ ] Private key generation from seed
 - [ ] Passphrase-protected/encrypted private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
   - [ ] Encrypted private key

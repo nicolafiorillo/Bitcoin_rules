@@ -1,3 +1,6 @@
+/*
+   Criticisms of Bitcoin’s raw txn format: https://web.archive.org/web/20140304092315/https://exiledbear.wordpress.com/2013/06/06/criticisms-of-bitcoins-raw-txn-format/
+*/
 use rug::{integer::Order, Integer};
 use std::fmt::{Display, Formatter};
 

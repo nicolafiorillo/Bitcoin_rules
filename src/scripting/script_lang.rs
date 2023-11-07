@@ -1903,6 +1903,66 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_boolor_1() {
+        let script = ScriptLang::from_representation("00 00 OP_BOOLOR").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_boolor_2() {
+        let script = ScriptLang::from_representation("01 01 OP_BOOLOR").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_boolor_3() {
+        let script = ScriptLang::from_representation("FF 00 OP_BOOLOR").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_boolor_4() {
+        let script = ScriptLang::from_representation("00 FF OP_BOOLOR").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_boolor_5() {
+        let script = ScriptLang::from_representation("FF FF OP_BOOLOR").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -1950,6 +2010,8 @@ mod script_test {
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_0NOTEQUAL", evaluate_op_0notequal_bigger_than_4_bytes);
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_BOOLAND", evaluate_op_booland_bigger_than_4_bytes_1);
     evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_BOOLAND", evaluate_op_booland_bigger_than_4_bytes_2);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_BOOLOR", evaluate_op_boolor_bigger_than_4_bytes_1);
+    evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_BOOLOR", evaluate_op_boolor_bigger_than_4_bytes_2);
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_ABS", evaluate_op_abs_bigger_than_4_bytes);
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_NEGATE", evaluate_op_negate_bigger_than_4_bytes);
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF OP_1SUB", evaluate_op_1sub_bigger_than_4_bytes);

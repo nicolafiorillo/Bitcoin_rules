@@ -247,6 +247,9 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::NotAnElement)
 }
 
+/*
+   https://en.bitcoin.it/wiki/OP_CHECKSIG
+*/
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -793,6 +796,35 @@ pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
             ELEMENT_FALSE
         };
         context.stack_push(Token::Element(booland.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    let elem1_bool = elem1.as_bool();
+    let elem2_bool = elem2.as_bool();
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if elem1_bool || elem2_bool {
+            ELEMENT_TRUE
+        } else {
+            ELEMENT_FALSE
+        };
+        context.stack_push(Token::Element(boolor.to_vec()));
 
         return Ok(true);
     }

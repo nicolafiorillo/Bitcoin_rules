@@ -876,6 +876,11 @@ pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::NotAnElement)
 }
 
+pub fn op_numequalverify(context: &mut Context) -> Result<bool, ContextError> {
+    op_numequal(context)?;
+    op_verify(context)
+}
+
 pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(1) {
         return Err(ContextError::NotEnoughItemsInStack);

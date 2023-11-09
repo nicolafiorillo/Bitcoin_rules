@@ -2047,6 +2047,25 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_numequalverify_true() {
+        let script = ScriptLang::from_representation("09 09 OP_NUMEQUALVERIFY 01").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.is_valid());
+        assert!(context.stack_has_items(1));
+    }
+
+    #[test]
+    fn evaluate_numequalverify_false() {
+        let script = ScriptLang::from_representation("09 08 OP_NUMEQUALVERIFY 01").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let valid = script.evaluate(&mut context);
+
+        assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));

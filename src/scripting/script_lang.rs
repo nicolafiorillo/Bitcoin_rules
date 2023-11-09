@@ -1963,6 +1963,90 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_numequal_true() {
+        let script = ScriptLang::from_representation("01 01 OP_NUMEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numequal_false_1() {
+        let script = ScriptLang::from_representation("01 00 OP_NUMEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numequal_false_2() {
+        let script = ScriptLang::from_representation("00 01 OP_NUMEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numnotequal_true_1() {
+        let script = ScriptLang::from_representation("01 00 OP_NUMNOTEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numnotequal_true_2() {
+        let script = ScriptLang::from_representation("00 01 OP_NUMNOTEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numnotequal_false_1() {
+        let script = ScriptLang::from_representation("01 01 OP_NUMNOTEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_numnotequal_false_2() {
+        let script = ScriptLang::from_representation("00 00 OP_NUMNOTEQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
     fn evaluate_generic_script_1() {
         let script = ScriptLang::from_representation("02 OP_DUP OP_DUP OP_MUL OP_ADD OP_6 OP_EQUAL").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -2021,6 +2105,16 @@ mod script_test {
     evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_SUB", evaluate_op_sub_bigger_than_4_bytes_2);
     evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_ADD", evaluate_op_add_bigger_than_4_bytes_1);
     evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_ADD", evaluate_op_add_bigger_than_4_bytes_2);
+    evaluate_elem_bigger_than_4_bytes!("FFFFFFFFFF 00 OP_NUMEQUAL", evaluate_op_numequal_bigger_than_4_bytes_1);
+    evaluate_elem_bigger_than_4_bytes!("00 FFFFFFFFFF OP_NUMEQUAL", evaluate_op_numequal_bigger_than_4_bytes_2);
+    evaluate_elem_bigger_than_4_bytes!(
+        "FFFFFFFFFF 00 OP_NUMNOTEQUAL",
+        evaluate_op_numnotequal_bigger_than_4_bytes_1
+    );
+    evaluate_elem_bigger_than_4_bytes!(
+        "00 FFFFFFFFFF OP_NUMNOTEQUAL",
+        evaluate_op_numnotequal_bigger_than_4_bytes_2
+    );
 
     //
     // Ignored

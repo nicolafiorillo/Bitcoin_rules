@@ -775,7 +775,7 @@ pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.stack_has_enough_items(1) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
@@ -804,7 +804,7 @@ pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.stack_has_enough_items(1) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
@@ -847,6 +847,50 @@ pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
         let val = if n != 0 { ELEMENT_ONE } else { ELEMENT_ZERO };
 
         context.stack_push(Token::Element(val.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left != right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
 
         return Ok(true);
     }

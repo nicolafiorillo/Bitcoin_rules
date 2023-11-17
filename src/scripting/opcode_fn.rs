@@ -1,3 +1,5 @@
+use rug::Integer;
+
 use crate::{
     ecdsa::point::Point,
     hashing::{hash160::hash160, hash256::hash256, sha1::sha1, sha256::sha256},
@@ -249,6 +251,8 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 
 /*
    https://en.bitcoin.it/wiki/OP_CHECKSIG
+
+   TODO: consider OP_CODESEPARATOR
 */
 pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
     if !context.stack_has_enough_items(2) {
@@ -263,23 +267,117 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
             // Removing last byte, that is the signature hash (SIGHASH): https://learn.saylor.org/mod/book/view.php?id=36341&chapterid=18919
             der.pop();
 
-            let signature = match Signature::new_from_der(der) {
-                Ok(signature) => signature,
-                Err(_) => {
-                    log::debug!("Invalid DER signature during OP_CHECKSIG");
-                    return Err(ContextError::DerError);
-                }
-            };
-
-            let point = Point::deserialize(public_key);
-            let res = Key::verify_signature(&point, &context.z, &signature);
+            let res = signature_is_valid(&der, &public_key, &context.z);
 
             let element_value = element_value_by_result(res);
             context.stack_push(Token::Element(element_value));
         }
     }
 
-    Ok(false)
+    Ok(true)
+}
+
+/*
+   https://en.bitcoin.it/wiki/OP_CHECKMULTISIG
+*/
+pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
+    log::debug!("MS: Multisignature check start");
+
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    /*
+       n
+    */
+    let elem_n = context.stack_pop_as_element()?;
+    let n = elem_n.as_number() as usize;
+
+    if !context.stack_has_enough_items(n) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let mut sec_pub_keys = Vec::new();
+    for _ in 0..n {
+        let elem = context.stack_pop_as_element()?;
+        let pub_key = elem.as_bytes();
+        sec_pub_keys.push(pub_key);
+    }
+
+    log::debug!("MS: n: {}", n);
+
+    /*
+       m
+    */
+    let elem_m = context.stack_pop_as_element()?;
+    let m = elem_m.as_number() as usize;
+
+    if !context.stack_has_enough_items(m) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let mut der_signatures = Vec::new();
+    for _ in 0..m {
+        let elem = context.stack_pop_as_element()?;
+        let mut der_signature = elem.as_bytes();
+        // Removing last byte, that is the signature hash (SIGHASH): https://learn.saylor.org/mod/book/view.php?id=36341&chapterid=18919
+        der_signature.pop();
+
+        der_signatures.push(der_signature);
+    }
+
+    log::debug!("MS: m: {}", m);
+
+    /*
+       one-of-error
+    */
+    let token = context.stack_pop();
+
+    if token.is_zero() {
+        return Err(ContextError::ExpectedOp0ForMultisig);
+    }
+
+    /*
+       checking
+    */
+    let mut pk_index: usize = 0;
+    let mut valid_signatures: usize = 0;
+
+    for der in der_signatures {
+        while pk_index < sec_pub_keys.len() {
+            let public_key = &sec_pub_keys[pk_index];
+            let res = signature_is_valid(&der, &public_key, &context.z);
+
+            if res {
+                valid_signatures += 1;
+                break;
+            }
+
+            pk_index += 1;
+        }
+    }
+
+    log::debug!("MS: valid signature: {} (should match with m)", valid_signatures);
+
+    let element_value = element_value_by_result(valid_signatures == m);
+    context.stack_push(Token::Element(element_value));
+
+    log::debug!("MS: Multisignature check end");
+
+    Ok(true)
+}
+
+fn signature_is_valid(der: &[u8], public_key: &[u8], z: &Integer) -> bool {
+    let signature = match Signature::new_from_der(der.to_vec()) {
+        Ok(signature) => signature,
+        Err(_) => {
+            log::debug!("Invalid DER signature during OP_ checking");
+            return false;
+        }
+    };
+
+    let point = Point::deserialize(public_key.to_vec());
+    Key::verify_signature(&point, z, &signature)
 }
 
 pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {

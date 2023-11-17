@@ -250,7 +250,7 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op2fn!(OP_CODESEPARATOR, not_implemented);
     op2fn!(OP_CHECKSIG, op_checksig);
     op2fn!(OP_CHECKSIGVERIFY, not_implemented);
-    op2fn!(OP_CHECKMULTISIG, not_implemented);
+    op2fn!(OP_CHECKMULTISIG, op_checkmultisig);
     op2fn!(OP_CHECKMULTISIGVERIFY, not_implemented);
     op2fn!(OP_NOP1, ignored);
     op2fn!(OP_CHECKLOCKTIMEVERIFY, not_implemented);

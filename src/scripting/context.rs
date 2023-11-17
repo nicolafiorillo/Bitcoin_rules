@@ -21,6 +21,7 @@ pub struct Context {
 pub enum ContextError {
     InvalidOpCode,
     NotAnElement,
+    NotACommand,
     NotEnoughItemsInStack,
     DerError,
     UnexpectedEndIf,
@@ -32,6 +33,7 @@ pub enum ContextError {
     Overflow,
     ReturnDataTooLong,
     InputLengthTooLong,
+    ExpectedOp0ForMultisig,
 }
 
 impl Context {
@@ -108,6 +110,18 @@ impl Context {
             op => {
                 log::error!("Expected element, found {:?}", op);
                 Err(ContextError::NotAnElement)
+            }
+        }
+    }
+
+    pub fn stack_pop_as_command(&mut self) -> Result<Token, ContextError> {
+        assert!(!self.stack.is_empty());
+
+        match self.stack.pop_front().unwrap() {
+            Token::Command(command) => Ok(Token::Command(command)),
+            elem => {
+                log::error!("Expected command, found {:?}", elem);
+                Err(ContextError::NotACommand)
             }
         }
     }

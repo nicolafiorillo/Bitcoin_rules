@@ -111,9 +111,13 @@ impl Signature {
 
         let bytes = der[content_start..content_end].to_vec();
 
-        if (bytes[0] & 0x80) == 0x80 {
-            return Err(DerError::NegativeRS);
-        }
+        /*
+            Removing checking on negative r/s for DER values.
+
+            if (bytes[0] & 0x80) == 0x80 {
+                return Err(DerError::NegativeRS);
+            }
+        */
 
         Ok((Integer::from_digits(&bytes, Order::Msf), content_end))
     }
@@ -242,6 +246,9 @@ mod signature_test {
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::InvalidRSLenght);
     }
 
+    /*
+       Removing test on negative r/s for DER values.
+
     #[test]
     fn deserialize_a_der_signature_invalid_negative_r() {
         let der =
@@ -255,6 +262,7 @@ mod signature_test {
             string_to_bytes("3024021077777777777777777777777777777777021087777777777777777777777777777777").unwrap();
         assert_eq!(Signature::new_from_der(der).err().unwrap(), DerError::NegativeRS);
     }
+    */
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_start() {

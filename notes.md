@@ -42,6 +42,9 @@ getmininginfo
 sendtoaddress <hex_address> <amount>
 
 ----
+openssl rand -hex 32
+
+----
 
 ## print op_return data
 echo <hex_data> | xxd -p -r

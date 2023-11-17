@@ -161,6 +161,9 @@ pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
         to spend it in a typical input. That’s currently 546 satoshis for a P2PKH or P2SH output on a Bitcoin Core node
         with the default relay fee. Exception: standard null data outputs must receive zero satoshis.
 
+        * A transaction can only include one NULL DATA locking script for it to be considered a standard transaction (meaning that it will be relayed by nodes).
+        This is because a transaction with multiple NULL DATA outputs is considered a non-standard transaction, and will not be relayed by most nodes.
+
         * Max sigops: https://github.com/bitcoin/bitcoin/blob/d2b8c5e1234cdaff84bd1f60aea598d219cdac5e/src/policy/policy.h#L33
     */
 
@@ -194,21 +197,21 @@ mod verification_test {
 
     #[test]
     fn verify_transaction_invalid_input_index() {
-        let satoshi_transaction_id: Integer =
+        let transaction_id: Integer =
             Integer::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
-        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
+        let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
 
-        let res = verify_input(satoshi_transaction, 1);
+        let res = verify_input(transaction, 1);
         assert_eq!(TxError::InputIndexOutOfBounds, res.expect_err("Err"));
     }
 
     #[test]
     fn verify_first_transaction_ever() {
-        let satoshi_transaction_id: Integer =
+        let transaction_id: Integer =
             Integer::from_hex_str("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16");
-        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Mainnet).unwrap();
+        let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
 
-        let res = analyze(satoshi_transaction).unwrap();
+        let res = analyze(transaction).unwrap();
 
         assert!(res.valid);
         assert_eq!(res.fee, 0);
@@ -220,11 +223,11 @@ mod verification_test {
 
     #[test]
     fn verify_transaction_with_return_data() {
-        let satoshi_transaction_id: Integer =
+        let transaction_id: Integer =
             Integer::from_hex_str("98ca9c4cae0b444c31c73b3fc0b6c6f897c1667ebd521a046ca4c3ade3e36153");
-        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Testnet).unwrap();
+        let transaction = get_transaction(&transaction_id, Network::Testnet).unwrap();
 
-        let res = analyze(satoshi_transaction).unwrap();
+        let res = analyze(transaction).unwrap();
 
         assert!(res.valid);
         assert_eq!(res.fee, 661);
@@ -239,14 +242,29 @@ mod verification_test {
 
     #[test]
     fn verify_transaction_p2pkh_type_script() {
-        let satoshi_transaction_id: Integer =
+        let transaction_id: Integer =
             Integer::from_hex_str("c843441a5e6d6a3b47a686cafa862951d649fea242f016d486dc20d74fa9f61c");
-        let satoshi_transaction = get_transaction(&satoshi_transaction_id, Network::Testnet).unwrap();
+        let transaction = get_transaction(&transaction_id, Network::Testnet).unwrap();
 
-        let res = analyze(satoshi_transaction).unwrap();
+        let res = analyze(transaction).unwrap();
 
         assert!(res.valid);
         assert_eq!(res.fee, 339);
+        assert_eq!(res.outputs.len(), 1);
+
+        assert_eq!(res.outputs[0].standard, StandardType::P2pkh);
+    }
+
+    #[test]
+    fn verify_transaction_checking_p2ms_type_script() {
+        let transaction_id: Integer =
+            Integer::from_hex_str("23b397edccd3740a74adb603c9756370fafcde9bcc4483eb271ecad09a94dd63");
+        let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
+
+        let res = analyze(transaction).unwrap();
+
+        assert!(res.valid);
+        assert_eq!(res.fee, 0);
         assert_eq!(res.outputs.len(), 1);
 
         assert_eq!(res.outputs[0].standard, StandardType::P2pkh);

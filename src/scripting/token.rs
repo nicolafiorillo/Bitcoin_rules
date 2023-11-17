@@ -34,6 +34,39 @@ impl Token {
         }
     }
 
+    pub fn as_number(&self) -> i64 {
+        match self {
+            Token::Element(value) => {
+                if value.is_empty() {
+                    return 0;
+                }
+                element_decode(value.to_vec())
+            }
+            Token::Command(cmd) => *cmd as i64,
+        }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        match self {
+            Token::Element(value) => value == &ELEMENT_ZERO,
+            Token::Command(cmd) => cmd == &opcode::OP_0,
+        }
+    }
+
+    pub fn as_bytes(&self) -> Vec<u8> {
+        match self {
+            Token::Element(value) => value.to_vec(),
+            Token::Command(_cmd) => vec![], // TODO: better throw an error
+        }
+    }
+
+    pub fn as_op(&self) -> OpCode {
+        match self {
+            Token::Element(_value) => opcode::OP_1, // TODO: better throw an error
+            Token::Command(cmd) => *cmd,
+        }
+    }
+
     pub fn is_op_branch_condition(&self) -> bool {
         matches!(
             self,

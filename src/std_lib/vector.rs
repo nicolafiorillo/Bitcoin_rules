@@ -26,7 +26,7 @@ pub fn string_to_bytes(s: &str) -> Result<Vec<u8>, ParseIntError> {
     Ok(res)
 }
 
-pub fn vect_to_hex_string(bytes: &[u8]) -> String {
+pub fn bytes_to_string(bytes: &[u8]) -> String {
     let strs: Vec<String> = bytes.iter().map(|b| format!("{:02X}", b)).collect();
     strs.join("")
 }

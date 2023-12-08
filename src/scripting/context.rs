@@ -34,6 +34,8 @@ pub enum ContextError {
     ReturnDataTooLong,
     InputLengthTooLong,
     ExpectedOp0ForMultisig,
+    ExpectedNForMultisig,
+    ExpectedMForMultisig,
 }
 
 impl Context {

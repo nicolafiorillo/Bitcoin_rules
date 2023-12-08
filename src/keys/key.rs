@@ -19,6 +19,7 @@ use crate::{
 use super::key_error::KeyError;
 
 /// Key structure.
+#[derive(Debug, Clone)]
 pub struct Key {
     /// real private key (k)
     private_key: Integer,
@@ -209,7 +210,7 @@ mod private_key_test {
         keys::key::Key,
         std_lib::{
             integer_extended::IntegerExtended,
-            vector::{string_to_bytes, vect_to_hex_string},
+            vector::{bytes_to_string, string_to_bytes},
         },
     };
 
@@ -233,21 +234,21 @@ mod private_key_test {
     fn serialize_a_public_key_1() {
         let private_key = Key::new(Integer::from(5000));
         let sec = private_key.public_key.serialize(Compression::Uncompressed);
-        assert_eq!(vect_to_hex_string(&sec), "04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10");
+        assert_eq!(bytes_to_string(&sec), "04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10");
     }
 
     #[test]
     fn serialize_a_public_key_2() {
         let private_key = Key::new(Integer::from(2018).pow(5));
         let sec = private_key.public_key.serialize(Compression::Uncompressed);
-        assert_eq!(vect_to_hex_string(&sec), "04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06");
+        assert_eq!(bytes_to_string(&sec), "04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06");
     }
 
     #[test]
     fn serialize_a_public_key_3() {
         let private_key = Key::new(Integer::from_hex_str("DEADBEEF12345"));
         let sec = private_key.public_key.serialize(Compression::Uncompressed);
-        assert_eq!(vect_to_hex_string(&sec), "04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121");
+        assert_eq!(bytes_to_string(&sec), "04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121");
     }
 
     #[test]
@@ -255,7 +256,7 @@ mod private_key_test {
         let private_key = Key::new(Integer::from(5001));
         let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
-            vect_to_hex_string(&sec),
+            bytes_to_string(&sec),
             "0357A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1"
         );
     }
@@ -265,7 +266,7 @@ mod private_key_test {
         let private_key = Key::new(Integer::from(2019).pow(5));
         let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
-            vect_to_hex_string(&sec),
+            bytes_to_string(&sec),
             "02933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701"
         );
     }
@@ -275,7 +276,7 @@ mod private_key_test {
         let private_key = Key::new(Integer::from_hex_str("DEADBEEF54321"));
         let sec = private_key.public_key.serialize(Compression::Compressed);
         assert_eq!(
-            vect_to_hex_string(&sec),
+            bytes_to_string(&sec),
             "0296BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690"
         );
     }

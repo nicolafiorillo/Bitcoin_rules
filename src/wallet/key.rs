@@ -1,3 +1,7 @@
+// To create a more deterministic tests, See also
+// https://en.wikipedia.org/wiki/Linear_congruential_generator to generate
+// a deterministic seed within a sequence of pseudo-randomized numbers
+
 use std::fmt::{Display, Formatter};
 
 use rug::{
@@ -9,7 +13,7 @@ use crate::{
     bitcoin::ecdsa::P,
     flags::{compression::Compression, network::Network},
     keys::key::Key,
-    std_lib::vector::vect_to_hex_string,
+    std_lib::vector::bytes_to_string,
 };
 
 struct Seed(*const ());
@@ -24,6 +28,7 @@ pub struct UserKey {
     pub secret: Integer,
     pub pubkey: Vec<u8>,
     pub address: String,
+    pub key: Key,
 }
 
 impl Display for UserKey {
@@ -32,7 +37,7 @@ impl Display for UserKey {
             f,
             "privkey: {:}\npubkey:  {:} (len: {:})\naddress: {:}",
             self.secret,
-            vect_to_hex_string(&self.pubkey),
+            bytes_to_string(&self.pubkey),
             self.pubkey.len(),
             self.address,
         )
@@ -45,6 +50,20 @@ fn generate_seed() -> u32 {
     use std::hash::{BuildHasher, Hasher};
 
     RandomState::new().build_hasher().finish() as u32
+}
+
+// Deep investigate using /dev/urandom
+// see also https://github.com/trezor/trezor-firmware/blob/main/core/embed/trezorhal/unix/rng.c#L26
+#[allow(dead_code)]
+fn get_seed_from_system() -> u32 {
+    use std::{fs::File, io::Read};
+
+    let mut rnd = File::open("/dev/urandom").unwrap();
+
+    let mut buffer = [0u8; 4];
+    rnd.read_exact(&mut buffer).unwrap();
+
+    u32::from_le_bytes(buffer)
 }
 
 // Usage:
@@ -64,5 +83,6 @@ pub fn new(network: Network) -> UserKey {
         secret,
         pubkey,
         address,
+        key,
     }
 }

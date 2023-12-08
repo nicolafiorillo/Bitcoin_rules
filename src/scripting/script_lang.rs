@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::std_lib::vector::{string_to_bytes, vect_to_hex_string};
+use crate::std_lib::vector::{bytes_to_string, string_to_bytes};
 
 use super::{
     context::{Context, ContextError},
@@ -98,6 +98,14 @@ impl ScriptLang {
         tokens.to_vec()
     }
 
+    pub fn prepend(self, tokens: Vec<Token>) -> Self {
+        let Self(old_tokens) = self;
+        let mut new_tokens = tokens;
+        new_tokens.extend(old_tokens);
+
+        ScriptLang(new_tokens)
+    }
+
     pub fn from_representation(repr: &str) -> Result<Self, ScriptLangError> {
         let trimmed_repr = repr.trim();
         let mut items: Vec<Token> = vec![];
@@ -125,7 +133,7 @@ impl ScriptLang {
         for item in items {
             match item {
                 Token::Element(bytes) => {
-                    let e = vect_to_hex_string(bytes);
+                    let e = bytes_to_string(bytes);
                     repr.push_str(&e);
                 }
                 Token::Command(op_code) => {
@@ -223,12 +231,15 @@ impl Display for ScriptLang {
 #[cfg(test)]
 mod script_test {
     use crate::{
-        scripting::{opcode::*, token::*},
+        flags::{network::Network, sighash::SigHash},
+        hashing::hash160::hash160,
+        scripting::{opcode::*, standard, token::*},
         std_lib::varint::{varint_decode, varint_encode},
         std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
+        wallet::key::new,
     };
 
-    use rug::Integer;
+    use rug::{integer::Order, Integer};
 
     use super::*;
 
@@ -313,6 +324,28 @@ mod script_test {
 
         let signature_script = ScriptLang::from_tokens(vec![Token::Element(signature)]);
         let script = ScriptLang::combine(signature_script, pubkey_script);
+
+        let tokens = script.tokens();
+        let mut context = Context::new(tokens, z);
+
+        assert!(script.evaluate(&mut context).unwrap());
+    }
+
+    #[test]
+    fn evaluate_checkmultisig_1_to_1() {
+        let z: Integer = Integer::from_hex_str("6CD7818C2ED773A1B19348FEACA92AD664B45CD0");
+        let pubkey = string_to_bytes("02a130c1e1ffa137cf50824ece45fb648ce88cb5570870dc10cfdc8c5f30946861").unwrap();
+        let signature = string_to_bytes("3045022100bebe0c00a59a6c01231790fe8034508c06904289de0e3ddccb897d9cf5794b0202205e1ff2d6f060524bd7da2a598f5205759ef0911a695407999965527ba9629a2501").unwrap();
+
+        let script_sig = ScriptLang::from_tokens(vec![Token::Command(OP_0), Token::Element(signature)]);
+        let script_multisig = ScriptLang::from_tokens(vec![
+            Token::Command(OP_1),
+            Token::Element(pubkey),
+            Token::Command(OP_1),
+            Token::Command(OP_CHECKMULTISIG),
+        ]);
+
+        let script = ScriptLang::combine(script_sig, script_multisig);
 
         let tokens = script.tokens();
         let mut context = Context::new(tokens, z);
@@ -2236,7 +2269,7 @@ mod script_test {
     // P2PKH
     //
     #[test]
-    fn evaluate_p2pkh() {
+    fn evaluate_p2pkh_1() {
         let signature = "3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601";
         let pubkey = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
         let hash = "fb6c931433c83e8bb5a4c6588c7fc24c08dac6e3";
@@ -2252,5 +2285,169 @@ mod script_test {
 
         assert!(script.evaluate(&mut context).unwrap());
         assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_p2pkh_2() {
+        // generate a key
+        let key = new(Network::Testnet);
+        let pub_key = key.pubkey;
+        let pub_key_hash = hash160(&pub_key);
+
+        let message_bytes = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]; //  this represents the serialized transaction
+        let message_hash = hash160(&message_bytes);
+        let z = Integer::from_digits(&message_hash, Order::Msf);
+
+        // with the key, sign the message
+        let signature = key.key.sign(z.clone());
+        let mut signature_der = signature.der();
+        signature_der.push(SigHash::All as u8);
+
+        // prepare the script (ScriptSig + CheckSig script)
+        let mut script = standard::p2pkh_script(&pub_key_hash);
+        let script_sig = vec![Token::Element(signature_der), Token::Element(pub_key)];
+        script = script.prepend(script_sig);
+
+        // evaluate
+        let mut context = Context::new(script.tokens(), z);
+
+        assert!(script.evaluate(&mut context).unwrap());
+        assert!(context.is_valid());
+    }
+
+    //
+    // P2MS
+    //
+    #[test]
+    fn evaluate_p2ms_1_to_1() {
+        // generate a key
+        let key = new(Network::Testnet);
+        let pub_key = key.pubkey;
+
+        let message_bytes = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]; //  this represents the serialized transaction
+        let message_hash = hash160(&message_bytes);
+        let z = Integer::from_digits(&message_hash, Order::Msf);
+
+        // with the key, sign the message
+        let signature = key.key.sign(z.clone());
+        let mut signature_der = signature.der();
+        signature_der.push(SigHash::All as u8);
+
+        // prepare the script (ScriptSig + CheckSig script)
+        let mut script = standard::p2ms_script(1, &vec![pub_key.as_slice()]);
+        let script_sig = vec![Token::Command(OP_0), Token::Element(signature_der)];
+        script = script.prepend(script_sig);
+
+        // evaluate
+        let mut context = Context::new(script.tokens(), z);
+
+        assert!(script.evaluate(&mut context).unwrap());
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_p2ms_1_to_2() {
+        // generate two keys
+        let key1 = new(Network::Testnet);
+        let pub_key1 = key1.pubkey;
+
+        let key2 = new(Network::Testnet);
+        let pub_key2 = key2.pubkey;
+
+        let message_bytes = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]; //  this represents the serialized transaction
+        let message_hash = hash160(&message_bytes);
+        let z = Integer::from_digits(&message_hash, Order::Msf);
+
+        // with the key, sign the message
+        let signature = key1.key.sign(z.clone());
+        let mut signature_der = signature.der();
+        signature_der.push(SigHash::All as u8);
+
+        // prepare the script (ScriptSig + CheckSig script)
+        let mut script = standard::p2ms_script(1, &vec![pub_key1.as_slice(), pub_key2.as_slice()]);
+        let script_sig = vec![Token::Command(OP_0), Token::Element(signature_der)];
+        script = script.prepend(script_sig);
+
+        // evaluate
+        let mut context = Context::new(script.tokens(), z);
+
+        assert!(script.evaluate(&mut context).unwrap());
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_p2ms_2_to_2() {
+        // generate two keys
+        let key1 = new(Network::Testnet);
+        let pub_key1 = key1.pubkey;
+
+        let key2 = new(Network::Testnet);
+        let pub_key2 = key2.pubkey;
+
+        let message_bytes = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]; //  this represents the serialized transaction
+        let message_hash = hash160(&message_bytes);
+        let z = Integer::from_digits(&message_hash, Order::Msf);
+
+        // with the keys, sign the message
+        let signature1 = key1.key.sign(z.clone());
+        let mut signature1_der = signature1.der();
+        signature1_der.push(SigHash::All as u8);
+
+        let signature2 = key2.key.sign(z.clone());
+        let mut signature2_der = signature2.der();
+        signature2_der.push(SigHash::All as u8);
+
+        // prepare the script (ScriptSig + CheckSig script)
+        let mut script = standard::p2ms_script(2, &vec![pub_key1.as_slice(), pub_key2.as_slice()]);
+        let script_sig = vec![
+            Token::Command(OP_0),
+            Token::Element(signature1_der),
+            Token::Element(signature2_der),
+        ];
+        script = script.prepend(script_sig);
+
+        // evaluate
+        let mut context = Context::new(script.tokens(), z);
+
+        assert!(script.evaluate(&mut context).unwrap());
+        assert!(context.is_valid());
+    }
+
+    #[test]
+    fn evaluate_p2ms_2_to_2_but_inverted_pubkeys() {
+        // generate two keys
+        let key1 = new(Network::Testnet);
+        let pub_key1 = key1.pubkey;
+
+        let key2 = new(Network::Testnet);
+        let pub_key2 = key2.pubkey;
+
+        let message_bytes = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]; //  this represents the serialized transaction
+        let message_hash = hash160(&message_bytes);
+        let z = Integer::from_digits(&message_hash, Order::Msf);
+
+        // with the keys, sign the message
+        let signature1 = key1.key.sign(z.clone());
+        let mut signature1_der = signature1.der();
+        signature1_der.push(SigHash::All as u8);
+
+        let signature2 = key2.key.sign(z.clone());
+        let mut signature2_der = signature2.der();
+        signature2_der.push(SigHash::All as u8);
+
+        // prepare the script (ScriptSig + CheckSig script) but with (invalid) inverted pubkeys
+        let mut script = standard::p2ms_script(2, &vec![pub_key2.as_slice(), pub_key1.as_slice()]);
+        let script_sig = vec![
+            Token::Command(OP_0),
+            Token::Element(signature1_der),
+            Token::Element(signature2_der),
+        ];
+        script = script.prepend(script_sig);
+
+        // evaluate
+        let mut context = Context::new(script.tokens(), z);
+
+        assert!(!script.evaluate(&mut context).unwrap());
+        assert!(!context.is_valid());
     }
 }

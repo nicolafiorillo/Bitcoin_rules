@@ -1,3 +1,16 @@
+/*
+    TODO:
+    All these function are used to validate
+        1) old transactions (txs already in the chain)
+        2) new transactions (txs in pool wating for validation)
+    In the first case validation should be more flexible in order to accept old transactions already
+    in chain but not compliant with the new rules, in the second case validation should be more strict in order
+    to reject new transactions that are not compliant with the new rules.
+
+    CURRENTLY WE ARE USING THE SAME VALIDATION RULES FOR BOTH CASES BUT, AT THE END OF THE DAY, WE SHOULD
+    SPLIT VALIDATION IN TWO DIFFERENT VERIFICATION APPROACHES.
+*/
+
 use rug::Integer;
 
 use crate::{
@@ -293,6 +306,10 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     let elem_n = context.stack_pop_as_element()?;
     let n = elem_n.as_number() as usize;
 
+    if n == 0 {
+        return Err(ContextError::ExpectedNForMultisig);
+    }
+
     if !context.stack_has_enough_items(n) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
@@ -311,6 +328,10 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     */
     let elem_m = context.stack_pop_as_element()?;
     let m = elem_m.as_number() as usize;
+
+    if n == 0 {
+        return Err(ContextError::ExpectedMForMultisig);
+    }
 
     if !context.stack_has_enough_items(m) {
         return Err(ContextError::NotEnoughItemsInStack);
@@ -333,7 +354,7 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     */
     let token = context.stack_pop();
 
-    if token.is_zero() {
+    if !token.is_zero_or_empy() {
         return Err(ContextError::ExpectedOp0ForMultisig);
     }
 
@@ -346,7 +367,7 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     for der in der_signatures {
         while pk_index < sec_pub_keys.len() {
             let public_key = &sec_pub_keys[pk_index];
-            let res = signature_is_valid(&der, &public_key, &context.z);
+            let res = signature_is_valid(&der, public_key, &context.z);
 
             if res {
                 valid_signatures += 1;
@@ -359,6 +380,7 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
 
     log::debug!("MS: valid signature: {} (should match with m)", valid_signatures);
 
+    // In other words, all provided signatures must match at least one of the public keys in the redeem script.
     let element_value = element_value_by_result(valid_signatures == m);
     context.stack_push(Token::Element(element_value));
 

@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::std_lib::vector::vect_to_hex_string;
+use crate::std_lib::vector::bytes_to_string;
 
 use super::script_lang::ScriptLang;
 
@@ -11,12 +11,14 @@ pub enum StandardType {
     P2pk,
     P2pkh,
     Data,
+    P2ms,
 }
 
 static P2PK_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-fA-F]+ OP_CHECKSIG$").unwrap());
 static P2PKH_SCRIPT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^OP_DUP OP_HASH160 [0-9a-fA-F]{40} OP_EQUALVERIFY OP_CHECKSIG$").unwrap());
 static DATA_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^OP_RETURN [0-9a-fA-F]+$").unwrap());
+static P2MS_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"OP_CHECKMULTISIG$").unwrap());
 
 /*
    TODO: ugly and not very efficient implementation of the standard type of a script.
@@ -36,6 +38,10 @@ pub fn standard_type(script: &ScriptLang) -> StandardType {
         return StandardType::P2pk;
     }
 
+    if P2MS_SCRIPT_REGEX.is_match(&script_repr) {
+        return StandardType::P2ms;
+    }
+
     StandardType::Unknown
 }
 
@@ -51,23 +57,88 @@ pub fn standard_type(script: &ScriptLang) -> StandardType {
    This is a problem for the chain because it increases the size of the transactions and therefore the cost of the fees.
 */
 // ANCHOR_END: p2pk_script
-pub fn p2pk_script(address: Vec<u8>) -> ScriptLang {
-    let addr_str = vect_to_hex_string(&address);
+pub fn p2pk_script(address: &[u8]) -> ScriptLang {
+    let addr_str = bytes_to_string(address);
     let script_repr = format!("{addr_str} OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
-pub fn p2pkh_script(h160: Vec<u8>) -> ScriptLang {
-    let hash_str = vect_to_hex_string(&h160);
+pub fn p2pkh_script(h160: &[u8]) -> ScriptLang {
+    let hash_str = bytes_to_string(h160);
     let script_repr = format!("OP_DUP OP_HASH160 {hash_str} OP_EQUALVERIFY OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
 pub fn data_script(data: &[u8]) -> ScriptLang {
-    let data_str = vect_to_hex_string(data);
+    let data_str = bytes_to_string(data);
     let script_repr = format!("OP_RETURN {data_str}");
 
     ScriptLang::from_representation(&script_repr).unwrap()
+}
+
+pub fn p2ms_script(m: usize, pub_keys: &[&[u8]]) -> ScriptLang {
+    let mut keys = String::new();
+
+    for pub_key in pub_keys {
+        let pub_key_str = bytes_to_string(pub_key);
+        keys.push_str(&pub_key_str);
+
+        keys.push(' ');
+    }
+    let keys_str = keys.trim_end();
+
+    let n = pub_keys.len();
+
+    let script_repr = format!("OP_{m} {keys_str} OP_{n} OP_CHECKMULTISIG");
+
+    ScriptLang::from_representation(&script_repr).unwrap()
+}
+
+#[cfg(test)]
+mod standard_test {
+    use super::*;
+
+    #[test]
+    fn test_p2pk_standard_type() {
+        let script = p2pk_script(&vec![0x02, 0x00, 0x00, 0x00]);
+        assert_eq!(script.representation(), "02000000 OP_CHECKSIG");
+
+        let script_type = standard_type(&script);
+        assert_eq!(script_type, StandardType::P2pk)
+    }
+
+    #[test]
+    fn test_p2pkh_standard_type() {
+        let script = p2pkh_script(&vec![
+            0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xAA, 0xBB, 0xCC,
+            0xDD, 0xEE,
+        ]);
+        assert_eq!(
+            script.representation(),
+            "OP_DUP OP_HASH160 AABBCCDDEEAABBCCDDEEAABBCCDDEEAABBCCDDEE OP_EQUALVERIFY OP_CHECKSIG"
+        );
+
+        let script_type = standard_type(&script);
+        assert_eq!(script_type, StandardType::P2pkh)
+    }
+
+    #[test]
+    fn test_data_standard_type() {
+        let script = data_script(&vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE]);
+        assert_eq!(script.representation(), "OP_RETURN AABBCCDDEE");
+
+        let script_type = standard_type(&script);
+        assert_eq!(script_type, StandardType::Data)
+    }
+
+    #[test]
+    fn test_p2ms_standard_type() {
+        let script = p2ms_script(1, &vec![vec![0xAA, 0xBB].as_slice(), vec![0xCC, 0xDD].as_slice()]);
+        assert_eq!(script.representation(), "OP_1 AABB CCDD OP_2 OP_CHECKMULTISIG");
+
+        let script_type = standard_type(&script);
+        assert_eq!(script_type, StandardType::P2ms)
+    }
 }

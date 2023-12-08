@@ -66,7 +66,7 @@ impl Point {
         Point::new(None, None, a.clone(), b.clone())
     }
 
-    /// `true` if `Point` is infinite..
+    /// `true` if `Point` is infinite.
     pub fn is_infinite(&self) -> bool {
         self.x.is_none() && self.y.is_none()
     }

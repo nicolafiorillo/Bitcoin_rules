@@ -36,7 +36,9 @@ impl FieldElement {
     pub fn new_in_secp256k1(num: Integer) -> FieldElement {
         use crate::bitcoin::ecdsa::P;
 
-        // TODO: verify that `num` is less than `P`? (there is a verification in Point...)
+        // TODO: verify that `num` is less than `P` (there is a verification in Point...)
+        //  but it is not enough to apply a sort of "if num < *P { error... }"
+        //  because it can generate flaky tests
 
         FieldElement {
             num,

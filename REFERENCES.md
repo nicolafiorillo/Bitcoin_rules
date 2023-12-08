@@ -25,14 +25,17 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Bitcoinedge initiative](https://bitcoinedge.org/presentations) presentations.
 - [Number Theory in Python](https://github.com/Robert-Campbell-256/Number-Theory-Python)
 - [learn me a bitcoin](https://learnmeabitcoin.com/) by [Greg Walker](https://twitter.com/in3rsha)
+- [Intel® Digital Random Number Generator (DRNG)](https://www.intel.com/content/dam/develop/external/us/en/documents/drng-software-implementation-guide-2-1-185467.pdf)
+- [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
+- [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
+- [Bitcoins the hard way: Using the raw Bitcoin protocol](http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html)
 
 ### Books
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
 
-### Articles
-- [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
-- [(Some of) the math behind Bech32 addresses](https://medium.com/@meshcollider/some-of-the-math-behind-bech32-addresses-cf03c7496285)
+### BIPs
+- [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)
 
 ### Literature
 - ["_Bitcoin was not forged in a vacuum_"](https://nakamotoinstitute.org/literature/)
@@ -49,6 +52,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 ### Interesting stuff
 - [REWARD offered for hash collisions for SHA1, SHA256, RIPEMD160 and other](https://bitcointalk.org/index.php?topic=293382.0) by [Peter Todd](https://twitter.com/peterktodd)
 - [Bitcoin's Academic Pedigree](https://queue.acm.org/detail.cfm?id=3136559) by [Arvind Narayanan](https://twitter.com/random_walker)
+- [BitBox02: Diceware lookup table ](https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf)
+- [Recovering Bitcoin private keys using weak signatures from the blockchain](https://web.archive.org/web/20160308014317/http://www.nilsschneider.net/2013/01/28/recovering-bitcoin-private-keys.html)
 
 ### People
 - [Peter Todd](https://petertodd.org/)

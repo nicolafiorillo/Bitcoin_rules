@@ -292,6 +292,18 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
 
 /*
    https://en.bitcoin.it/wiki/OP_CHECKMULTISIG
+
+   OP_CHECKMULTISIG is a Bitcoin standard script transaction.
+   It is request to provide N public keys that must match M signatures in ScriptPubKey to authorize a transaction.
+   In other words, all provided signatures must match at least one of the public keys in the redeem script.
+
+   The script is:
+   OP_0 <sig1> [sig2] [sig3] ... [sigM] <M> <pubkey1> [pubkey2] [pubkey3] ... [pubkeyN] <N> OP_CHECKMULTISIG
+
+   This script is rarely used directly but it is wrapped by a more user friendly script called P2SH (Pay To Script Hash).
+
+   Oh, I was forgetting: Bitcoin_rules! now supports OP_CHECKMULTISIG transaction scripts.
+
 */
 pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     log::debug!("MS: Multisignature check start");
@@ -329,8 +341,12 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     let elem_m = context.stack_pop_as_element()?;
     let m = elem_m.as_number() as usize;
 
-    if n == 0 {
+    if m == 0 {
         return Err(ContextError::ExpectedMForMultisig);
+    }
+
+    if m > n {
+        return Err(ContextError::MGreaterThanNForMultisig);
     }
 
     if !context.stack_has_enough_items(m) {
@@ -353,7 +369,6 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
        one-of-error
     */
     let token = context.stack_pop();
-
     if !token.is_zero_or_empy() {
         return Err(ContextError::ExpectedOp0ForMultisig);
     }

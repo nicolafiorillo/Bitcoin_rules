@@ -36,6 +36,7 @@ pub enum ContextError {
     ExpectedOp0ForMultisig,
     ExpectedNForMultisig,
     ExpectedMForMultisig,
+    MGreaterThanNForMultisig,
 }
 
 impl Context {

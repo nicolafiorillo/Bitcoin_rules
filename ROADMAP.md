@@ -32,10 +32,11 @@ The project is ramping up and the roadmap has not time references or milestones.
 - [X] Bitcoin scripting language (_*in progress now*_)
   - [ ] Implement all opcodes (_*in progress now*_)
 - [ ] Transaction validation
-  - [ ] Pay-to-Public-Key (P2PK)
+  - [X] Pay-to-Public-Key (P2PK)
   - [X] Pay-to-Public-Key-Hash (P2PKH)
-  - [ ] Pay-to-Script-Hash (P2SH)
+  - [X] Multisig (OP_CHECKMULTISIG)
   - [X] Custom data (OP_RETURN)
+  - [ ] Pay-to-Script-Hash (P2SH)
 - Fees
   - [ ] Fee estimation (from external source)
 - [ ] Block structures and serialization

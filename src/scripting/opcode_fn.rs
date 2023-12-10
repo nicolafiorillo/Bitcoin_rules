@@ -1176,6 +1176,33 @@ pub fn op_max(context: &mut Context) -> Result<bool, ContextError> {
     Err(ContextError::NotAnElement)
 }
 
+pub fn op_within(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(3) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem_min = context.stack_pop_as_element()?;
+    let elem_max = context.stack_pop_as_element()?;
+    let elem = context.stack_pop_as_element()?;
+
+    if let (Token::Element(min), Token::Element(max), Token::Element(e)) = (elem_min, elem_max, elem) {
+        if min.len() > 4 || max.len() > 4 || e.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolean = if e >= min && e < max {
+            ELEMENT_TRUE
+        } else {
+            ELEMENT_FALSE
+        };
+        context.stack_push(Token::Element(boolean.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
 pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
     unimplemented!("command not implemented")
 }

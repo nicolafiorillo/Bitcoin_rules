@@ -1,0 +1,117 @@
+# Script Operations Roadmap
+
+What is implemented so far and what is coming next.
+
+-[X] 0x00 - OP_0
+-[ ] 0x4C - OP_PUSHDATA1
+-[ ] 0x4D - OP_PUSHDATA2
+-[ ] 0x4E - OP_PUSHDATA4
+-[X] 0x4F - OP_1NEGATE
+-[X] 0x50 - OP_RESERVED (as reserved)
+-[X] 0x51 - OP_1
+-[X] 0x52 - OP_2
+-[X] 0x53 - OP_3
+-[X] 0x54 - OP_4
+-[X] 0x55 - OP_5
+-[X] 0x56 - OP_6
+-[X] 0x57 - OP_7
+-[X] 0x58 - OP_8
+-[X] 0x59 - OP_9
+-[X] 0x5A - OP_10
+-[X] 0x5B - OP_11
+-[X] 0x5C - OP_12
+-[X] 0x5D - OP_13
+-[X] 0x5E - OP_14
+-[X] 0x5F - OP_15
+-[X] 0x60 - OP_16
+-[X] 0x61 - OP_NOP
+-[X] 0x62 - OP_VER (as reserved)
+-[X] 0x63 - OP_IF
+-[X] 0x64 - OP_NOTIF
+-[X] 0x65 - OP_VERIF (as reserved)
+-[X] 0x66 - OP_VERNOTIF (as reserved)
+-[X] 0x67 - OP_ELSE
+-[X] 0x68 - OP_ENDIF
+-[X] 0x69 - OP_VERIFY
+-[X] 0x6A - OP_RETURN
+-[X] 0x6B - OP_TOALTSTACK
+-[X] 0x6C - OP_FROMALTSTACK
+-[X] 0x6D - OP_2DROP
+-[X] 0x6E - OP_2DUP
+-[X] 0x6F - OP_3DUP
+-[X] 0x70 - OP_2OVER
+-[X] 0x71 - OP_2ROT
+-[X] 0x72 - OP_2SWAP
+-[X] 0x73 - OP_IFDUP
+-[X] 0x74 - OP_DEPTH
+-[X] 0x75 - OP_DROP
+-[X] 0x76 - OP_DUP
+-[X] 0x77 - OP_NIP
+-[X] 0x78 - OP_OVER
+-[X] 0x79 - OP_PICK
+-[X] 0x7A - OP_ROLL
+-[X] 0x7B - OP_ROT
+-[X] 0x7C - OP_SWAP
+-[X] 0x7D - OP_TUCK
+-[X] 0x7E - OP_CAT (as deprecated)
+-[X] 0x7F - OP_SUBSTR (as deprecated)
+-[X] 0x80 - OP_LEFT (as deprecated)
+-[X] 0x81 - OP_RIGHT (as deprecated)
+-[X] 0x82 - OP_SIZE
+-[X] 0x83 - OP_INVERT (as deprecated)
+-[X] 0x84 - OP_AND (as deprecated)
+-[X] 0x85 - OP_OR (as deprecated)
+-[X] 0x86 - OP_XOR (as deprecated)
+-[X] 0x87 - OP_EQUAL
+-[X] 0x88 - OP_EQUALVERIFY
+-[X] 0x89 - OP_RESERVED1 (as reserved)
+-[X] 0x8A - OP_RESERVED2 (as reserved)
+-[X] 0x8B - OP_1ADD
+-[X] 0x8C - OP_1SUB
+-[X] 0x8D - OP_2MUL (as deprecated)
+-[X] 0x8E - OP_2DIV (as deprecated)
+-[X] 0x8F - OP_NEGATE
+-[X] 0x90 - OP_ABS
+-[X] 0x91 - OP_NOT
+-[X] 0x92 - OP_0NOTEQUAL
+-[X] 0x93 - OP_ADD
+-[X] 0x94 - OP_SUB
+-[X] 0x95 - OP_MUL (as deprecated)
+-[X] 0x96 - OP_DIV (as deprecated)
+-[X] 0x97 - OP_MOD (as deprecated)
+-[X] 0x98 - OP_LSHIFT (as deprecated)
+-[X] 0x99 - OP_RSHIFT (as deprecated)
+-[X] 0x9A - OP_BOOLAND
+-[X] 0x9B - OP_BOOLOR
+-[X] 0x9C - OP_NUMEQUAL
+-[X] 0x9D - OP_NUMEQUALVERIFY
+-[X] 0x9E - OP_NUMNOTEQUAL
+-[X] 0x9F - OP_LESSTHAN
+-[X] 0xA0 - OP_GREATERTHAN
+-[X] 0xA1 - OP_LESSTHANOREQUAL
+-[X] 0xA2 - OP_GREATERTHANOREQUAL
+-[ ] 0xA3 - OP_MIN
+-[ ] 0xA4 - OP_MAX
+-[ ] 0xA5 - OP_WITHIN
+-[X] 0xA6 - OP_RIPEMD160
+-[X] 0xA7 - OP_SHA1
+-[X] 0xA8 - OP_SHA256
+-[X] 0xA9 - OP_HASH160
+-[X] 0xAA - OP_HASH256
+-[ ] 0xAB - OP_CODESEPARATOR
+-[X] 0xAC - OP_CHECKSIG
+-[ ] 0xAD - OP_CHECKSIGVERIFY
+-[X] 0xAE - OP_CHECKMULTISIG
+-[ ] 0xAF - OP_CHECKMULTISIGVERIFY
+-[X] 0xB0 - OP_NOP1 (as ignored)
+-[ ] 0xB1 - OP_CHECKLOCKTIMEVERIFY
+-[ ] 0xB2 - OP_CHECKSEQUENCEVERIFY
+-[X] 0xB3 - OP_NOP4 (as ignored)
+-[X] 0xB4 - OP_NOP5 (as ignored)
+-[X] 0xB5 - OP_NOP6 (as ignored)
+-[X] 0xB6 - OP_NOP7 (as ignored)
+-[X] 0xB7 - OP_NOP8 (as ignored)
+-[X] 0xB8 - OP_NOP9 (as ignored)
+-[X] 0xB9 - OP_NOP10 (as ignored)
+-[ ] 0xBA - OP_CHECKSIGADD
+-[ ] 0xFF - OP_INVALIDOPCODE

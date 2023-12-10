@@ -235,10 +235,10 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op2fn!(OP_NUMEQUAL, op_numequal);
     op2fn!(OP_NUMEQUALVERIFY, op_numequalverify);
     op2fn!(OP_NUMNOTEQUAL, op_numnotequal);
-    op2fn!(OP_LESSTHAN, not_implemented);
-    op2fn!(OP_GREATERTHAN, not_implemented);
-    op2fn!(OP_LESSTHANOREQUAL, not_implemented);
-    op2fn!(OP_GREATERTHANOREQUAL, not_implemented);
+    op2fn!(OP_LESSTHAN, op_lessthan);
+    op2fn!(OP_GREATERTHAN, op_greaterthan);
+    op2fn!(OP_LESSTHANOREQUAL, op_lessthanorequal);
+    op2fn!(OP_GREATERTHANOREQUAL, op_greaterthanorequal);
     op2fn!(OP_MIN, not_implemented);
     op2fn!(OP_MAX, not_implemented);
     op2fn!(OP_WITHIN, not_implemented);

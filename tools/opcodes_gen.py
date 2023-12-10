@@ -4,7 +4,7 @@ import requests
 import re
 
 # Fetch the script.h file from GitHub
-url = "https://raw.githubusercontent.com/bitcoin/bitcoin/600c595b8d2f4bf049b9182d4a0aa88e4b34458d/src/script/script.h"
+url = "https://raw.githubusercontent.com/bitcoin/bitcoin/3e691258d8789a4a89cce42e7e71b130491594d7/src/script/script.h"
 response = requests.get(url)
 
 file_contents = response.text
@@ -19,8 +19,8 @@ for opcode, hex_value in opcodes:
 
 rust_enum += ""
 
-for opcode, hex_value in opcodes:
-    rust_enum += f"op_to_fn[OP_{opcode}] = not_implemented;\n"
+# for opcode, hex_value in opcodes:
+#     rust_enum += f"op_to_fn[OP_{opcode}] = not_implemented;\n"
 
 filename = "../src/scripting/opcode.txt"
 with open(filename, "w") as file:

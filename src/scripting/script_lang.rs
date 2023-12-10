@@ -473,8 +473,8 @@ mod script_test {
     #[test]
     fn evaluate_sub() {
         let script = ScriptLang::from_tokens(vec![
-            Token::Element(vec![0x01]),
             Token::Element(vec![0x02]),
+            Token::Element(vec![0x01]),
             Token::Command(OP_SUB),
         ]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -488,8 +488,8 @@ mod script_test {
     #[test]
     fn evaluate_sub_neg() {
         let script = ScriptLang::from_tokens(vec![
-            Token::Element(vec![0x02]),
             Token::Element(vec![0x01]),
+            Token::Element(vec![0x02]),
             Token::Command(OP_SUB),
         ]);
         let mut context = Context::new(script.tokens(), Integer::from(0));
@@ -512,8 +512,8 @@ mod script_test {
     }
 
     #[test]
-    fn evaluate_sub_81_ff() {
-        let script = ScriptLang::from_representation("81 FF OP_SUB").unwrap();
+    fn evaluate_sub_ff_81() {
+        let script = ScriptLang::from_representation("FF 81 OP_SUB").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let _valid = script.evaluate(&mut context);
 
@@ -2096,6 +2096,154 @@ mod script_test {
         let valid = script.evaluate(&mut context);
 
         assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+    }
+
+    #[test]
+    fn evaluate_lessthan() {
+        let script = ScriptLang::from_representation("08 09 OP_LESSTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.is_valid());
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_lessthan_fail() {
+        let script = ScriptLang::from_representation("09 08 OP_LESSTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_lessthan_equal() {
+        let script = ScriptLang::from_representation("08 08 OP_LESSTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthan() {
+        let script = ScriptLang::from_representation("09 08 OP_GREATERTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.is_valid());
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthan_fail() {
+        let script = ScriptLang::from_representation("08 09 OP_GREATERTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthan_equal() {
+        let script = ScriptLang::from_representation("08 08 OP_GREATERTHAN").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_lessthanorequal() {
+        let script = ScriptLang::from_representation("08 09 OP_LESSTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.is_valid());
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_lessthanorequal_fail() {
+        let script = ScriptLang::from_representation("09 08 OP_LESSTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_lessthanorequal_equal() {
+        let script = ScriptLang::from_representation("08 08 OP_LESSTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthanorequal() {
+        let script = ScriptLang::from_representation("09 08 OP_GREATERTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.is_valid());
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthanorequal_fail() {
+        let script = ScriptLang::from_representation("08 09 OP_GREATERTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ZERO.to_vec()));
+    }
+
+    #[test]
+    fn evaluate_greaterthanorequal_equal() {
+        let script = ScriptLang::from_representation("08 08 OP_GREATERTHANOREQUAL").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context);
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+        assert_eq!(op, Token::Element(ELEMENT_ONE.to_vec()));
     }
 
     #[test]

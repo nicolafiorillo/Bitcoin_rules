@@ -203,8 +203,8 @@ pub fn op_sub(context: &mut Context) -> Result<bool, ContextError> {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
-    let a = context.stack_pop_as_element()?;
     let b = context.stack_pop_as_element()?;
+    let a = context.stack_pop_as_element()?;
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
         if a.len() > 4 || b.len() > 4 {
@@ -990,7 +990,7 @@ pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.stack_has_enough_items(1) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
@@ -1017,7 +1017,7 @@ pub fn op_numequalverify(context: &mut Context) -> Result<bool, ContextError> {
 }
 
 pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
-    if !context.stack_has_enough_items(1) {
+    if !context.stack_has_enough_items(2) {
         return Err(ContextError::NotEnoughItemsInStack);
     }
 
@@ -1030,6 +1030,94 @@ pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
         }
 
         let boolor = if left != right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_lessthan(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left < right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_lessthanorequal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left <= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_greaterthan(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left > right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolor.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_greaterthanorequal(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        let boolor = if left >= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
         context.stack_push(Token::Element(boolor.to_vec()));
 
         return Ok(true);

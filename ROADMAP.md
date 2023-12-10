@@ -29,8 +29,8 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Transaction output
   - [X] Transaction serialization and deserialization
   - [X] Transaction fees
-- [X] Bitcoin scripting language (_*in progress now*_)
-  - [ ] Implement all opcodes (_*in progress now*_)
+- [ ] Bitcoin scripting language (_*in progress now*_)
+  - [ ] see [Opcodes](ROADMAP_OPS.md)
 - [ ] Transaction validation
   - [X] Pay-to-Public-Key (P2PK)
   - [X] Pay-to-Public-Key-Hash (P2PKH)

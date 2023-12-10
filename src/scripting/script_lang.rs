@@ -2551,6 +2551,26 @@ mod script_test {
     evaluate_op_deprecated!("OP_RSHIFT", evaluate_op_rshift);
 
     //
+    // Invalid
+    //
+    macro_rules! evaluate_op_invalid {
+        ($n:literal, $f:ident) => {
+            #[test]
+            fn $f() {
+                let script = ScriptLang::from_representation($n).unwrap();
+                let mut context = Context::new(script.tokens(), Integer::from(0));
+                let valid = script.evaluate(&mut context);
+
+                assert_eq!(ContextError::InvalidOpCode, valid.expect_err("Err"));
+            }
+        };
+    }
+
+    evaluate_op_invalid!("OP_PUBKEY", evaluate_op_pubkey);
+    evaluate_op_invalid!("OP_PUBKEYHASH", evaluate_op_pubkeyhash);
+    evaluate_op_invalid!("OP_INVALIDOPCODE", evaluate_op_invalidopcode);
+
+    //
     // P2PK
     //
     #[test]

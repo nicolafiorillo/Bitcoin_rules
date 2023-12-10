@@ -114,4 +114,6 @@ What is implemented so far and what is coming next.
 -[X] 0xB8 - OP_NOP9 (as ignored)
 -[X] 0xB9 - OP_NOP10 (as ignored)
 -[ ] 0xBA - OP_CHECKSIGADD
--[ ] 0xFF - OP_INVALIDOPCODE
+-[X] 0xFD - OP_PUBKEY
+-[X] 0xFE - OP_PUBKEYHASH
+-[X] 0xFF - OP_INVALIDOPCODE

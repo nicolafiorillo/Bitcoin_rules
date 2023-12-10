@@ -138,6 +138,8 @@ pub const OP_NOP8: OpCode = 0xB7;
 pub const OP_NOP9: OpCode = 0xB8;
 pub const OP_NOP10: OpCode = 0xB9;
 pub const OP_CHECKSIGADD: OpCode = 0xBA;
+pub const OP_PUBKEYHASH: OpCode = 0xFD;
+pub const OP_PUBKEY: OpCode = 0xFE;
 pub const OP_INVALIDOPCODE: OpCode = 0xFF;
 
 pub const OPS_LENGTH: usize = 256;
@@ -263,7 +265,9 @@ pub static OP_TO_FN: Lazy<[OpCodeInfo; OPS_LENGTH]> = Lazy::new(|| {
     op2fn!(OP_NOP9, ignored);
     op2fn!(OP_NOP10, ignored);
     op2fn!(OP_CHECKSIGADD, not_implemented);
-    op2fn!(OP_INVALIDOPCODE, not_implemented);
+    op2fn!(OP_PUBKEY, invalid);
+    op2fn!(OP_PUBKEYHASH, invalid);
+    op2fn!(OP_INVALIDOPCODE, invalid);
 
     // implement deprecated op codes for testing only
     // https://github.com/bitcoin/bitcoin/blob/d096743150fd35578b7ed71ef6bced2341927d43/src/script/interpreter.cpp#L456

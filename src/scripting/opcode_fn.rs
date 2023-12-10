@@ -1235,6 +1235,11 @@ pub fn ignored(_context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
+// invalid if used in script
+pub fn invalid(_context: &mut Context) -> Result<bool, ContextError> {
+    Err(ContextError::InvalidOpCode)
+}
+
 #[cfg(test)]
 mod opcode_fn_test {
     use rug::Integer;

@@ -936,6 +936,20 @@ mod script_test {
     }
 
     #[test]
+    fn evaluate_ripemd160() {
+        let script = ScriptLang::from_representation("09 OP_RIPEMD160").unwrap();
+        let mut context = Context::new(script.tokens(), Integer::from(0));
+        let _valid = script.evaluate(&mut context).unwrap();
+
+        assert!(context.stack_has_items(1));
+
+        let op = context.stack_pop_as_element().unwrap();
+
+        let expected = string_to_bytes("F9D4B6DA252769BB4DE563C1FF4EECADDBE937F6").unwrap();
+        assert_eq!(op, Token::Element(expected));
+    }
+
+    #[test]
     fn evaluate_verify_true() {
         let script = ScriptLang::from_representation("09 OP_VERIFY 01").unwrap();
         let mut context = Context::new(script.tokens(), Integer::from(0));

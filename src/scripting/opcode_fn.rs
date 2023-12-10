@@ -15,7 +15,7 @@ use rug::Integer;
 
 use crate::{
     ecdsa::point::Point,
-    hashing::{hash160::hash160, hash256::hash256, sha1::sha1, sha256::sha256},
+    hashing::{hash160::hash160, hash256::hash256, ripemd160::ripemd160, sha1::sha1, sha256::sha256},
     keys::{key::Key, signature::Signature},
 };
 
@@ -612,6 +612,22 @@ pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
     let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = sha256(&value);
+        context.stack_push(Token::Element(hash));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_ripemd160(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(1) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let e = context.stack_pop_as_element()?;
+    if let Token::Element(value) = e {
+        let hash = ripemd160(&value);
         context.stack_push(Token::Element(hash));
 
         return Ok(true);

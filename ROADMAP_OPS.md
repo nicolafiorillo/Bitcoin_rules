@@ -90,8 +90,8 @@ What is implemented so far and what is coming next.
 -[X] 0xA0 - OP_GREATERTHAN
 -[X] 0xA1 - OP_LESSTHANOREQUAL
 -[X] 0xA2 - OP_GREATERTHANOREQUAL
--[ ] 0xA3 - OP_MIN
--[ ] 0xA4 - OP_MAX
+-[X] 0xA3 - OP_MIN
+-[X] 0xA4 - OP_MAX
 -[ ] 0xA5 - OP_WITHIN
 -[X] 0xA6 - OP_RIPEMD160
 -[X] 0xA7 - OP_SHA1

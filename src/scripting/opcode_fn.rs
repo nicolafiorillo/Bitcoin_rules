@@ -954,12 +954,12 @@ pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if elem1_bool || elem2_bool {
+        let boolean = if elem1_bool || elem2_bool {
             ELEMENT_TRUE
         } else {
             ELEMENT_FALSE
         };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1002,8 +1002,8 @@ pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1029,8 +1029,8 @@ pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left != right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left != right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1051,8 +1051,8 @@ pub fn op_lessthan(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left < right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left < right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1073,8 +1073,8 @@ pub fn op_lessthanorequal(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left <= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left <= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1095,8 +1095,8 @@ pub fn op_greaterthan(context: &mut Context) -> Result<bool, ContextError> {
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left > right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left > right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
 
         return Ok(true);
     }
@@ -1117,8 +1117,58 @@ pub fn op_greaterthanorequal(context: &mut Context) -> Result<bool, ContextError
             return Err(ContextError::InputLengthTooLong);
         }
 
-        let boolor = if left >= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
-        context.stack_push(Token::Element(boolor.to_vec()));
+        let boolean = if left >= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
+        context.stack_push(Token::Element(boolean.to_vec()));
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_min(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        if left < right {
+            context.stack_push(Token::Element(left))
+        } else {
+            context.stack_push(Token::Element(right))
+        };
+
+        return Ok(true);
+    }
+
+    Err(ContextError::NotAnElement)
+}
+
+pub fn op_max(context: &mut Context) -> Result<bool, ContextError> {
+    if !context.stack_has_enough_items(2) {
+        return Err(ContextError::NotEnoughItemsInStack);
+    }
+
+    let elem1 = context.stack_pop_as_element()?;
+    let elem2 = context.stack_pop_as_element()?;
+
+    if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
+        if left.len() > 4 || right.len() > 4 {
+            return Err(ContextError::InputLengthTooLong);
+        }
+
+        if left > right {
+            context.stack_push(Token::Element(left))
+        } else {
+            context.stack_push(Token::Element(right))
+        };
 
         return Ok(true);
     }

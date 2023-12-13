@@ -14,6 +14,7 @@ pub enum StandardType {
     P2ms,
 }
 
+// TODO: modify regex to match addresses length
 static P2PK_SCRIPT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-fA-F]+ OP_CHECKSIG$").unwrap());
 static P2PKH_SCRIPT_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^OP_DUP OP_HASH160 [0-9a-fA-F]{40} OP_EQUALVERIFY OP_CHECKSIG$").unwrap());

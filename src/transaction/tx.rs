@@ -258,6 +258,10 @@ impl Tx {
 
         Integer::from_digits(&tx_hash, Order::Msf)
     }
+
+    pub fn is_coinbase(&self) -> bool {
+        self.inputs.len() == 1 && self.inputs[0].is_coinbase()
+    }
 }
 
 #[cfg(test)]

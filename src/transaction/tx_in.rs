@@ -16,9 +16,12 @@ use super::{
     tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32},
 };
 
+static COINBASE_PREVIOUS_TX: u32 = 0;
+static COINBASE_INDEX: u32 = 0xFFFFFFFF;
+
 #[derive(Debug, Clone)]
 pub struct TxIn {
-    pub previous_transaction_id: Integer, // will be u256
+    pub previous_transaction_id: Integer, // will be u256 or [u8; 32]
     pub previous_transaction_index: u32,
     pub script_sig: Script,
     pub sequence: u32,
@@ -114,6 +117,10 @@ impl TxIn {
             sequence_serialized.as_slice(),
         ]
         .concat()
+    }
+
+    pub fn is_coinbase(&self) -> bool {
+        self.previous_transaction_id == COINBASE_PREVIOUS_TX && self.previous_transaction_index == COINBASE_INDEX
     }
 }
 

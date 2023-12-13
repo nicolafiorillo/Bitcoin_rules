@@ -10,6 +10,7 @@ Entry point
 // )]
 
 mod bitcoin;
+mod block;
 mod chain;
 mod ecdsa;
 mod flags;

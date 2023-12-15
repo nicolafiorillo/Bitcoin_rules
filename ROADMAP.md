@@ -37,6 +37,7 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Multisig (OP_CHECKMULTISIG)
   - [X] Custom data (OP_RETURN)
   - [ ] Pay-to-Script-Hash (P2SH)
+  - [ ] Multi-Party Computation (MPC)
 - Fees
   - [ ] Fee estimation (from external source)
 - [ ] Block structures and serialization

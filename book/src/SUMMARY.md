@@ -6,3 +6,4 @@
 - [ECDSA](./ecdsa.md)
 - [Addresses](./addresses.md)
 - [Curiosities and technicisms](./curiosities.md)
+- [Bitcoin Improvement Proposals](./bips.md)

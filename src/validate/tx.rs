@@ -10,6 +10,9 @@ use crate::{
     transaction::{tx::Tx, tx_error::TxError, tx_out::TxOut},
 };
 
+const MIN_COINBASE_LENGTH: usize = 2;
+const MAX_COINBASE_LENGTH: usize = 100;
+
 #[derive(Debug, Clone)]
 pub struct Output {
     pub standard: StandardType,
@@ -103,6 +106,11 @@ fn analyze_output(output: &TxOut) -> Output {
     }
 }
 
+pub fn verify_coinbase(tx: &Tx) -> bool {
+    let scripsig = tx.coinbase_scripsig();
+    scripsig.len() >= MIN_COINBASE_LENGTH && scripsig.len() <= MAX_COINBASE_LENGTH
+}
+
 /*
     Analyze and validate a transactions.
 
@@ -111,22 +119,30 @@ fn analyze_output(output: &TxOut) -> Output {
     When all validations are implemented, this function will be refactored.
 */
 pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
-    // * The input of the transaction are previously unspent, to avoid double-spending
-    // TODO - waiting for loading chain and collect UTXO transactions
+    let mut tx_fee: i128 = 0;
 
-    // * The sum of the inputs is greater then or equal to the sum of the outputs. No new bitcoins must be created.
-    // The difference between the sum of the inputs and the sum of the outputs goes is the transaction fee for the miner.
-    let fee = fee(tx)?;
-    log::debug!("Tx fee: {:} ({:})", fee, tx.id());
+    if tx.is_coinbase() {
+        if !verify_coinbase(tx) {
+            return Err(TxError::CoinbaseVerificationFailed);
+        }
+    } else {
+        // * The input of the transaction are previously unspent, to avoid double-spending
+        // TODO - waiting for loading chain and collect UTXO transactions
 
-    if fee < 0 {
-        return Err(TxError::InvalidTransactionFee);
-    }
+        // * The sum of the inputs is greater then or equal to the sum of the outputs. No new bitcoins must be created.
+        // The difference between the sum of the inputs and the sum of the outputs goes is the transaction fee for the miner.
+        tx_fee = fee(tx)?;
+        log::debug!("Tx fee: {:} ({:})", tx_fee, tx.id());
 
-    // * The ScriptSig in the input successfully unlocks the previous ScriptPubKey of the outputs.
-    for i in 0..tx.input_len() {
-        if !verify_input(tx, i)? {
-            return Err(TxError::ScriptVerificationFailed);
+        if tx_fee < 0 {
+            return Err(TxError::InvalidTransactionFee);
+        }
+
+        // * The ScriptSig in the input successfully unlocks the previous ScriptPubKey of the outputs.
+        for i in 0..tx.input_len() {
+            if !verify_input(tx, i)? {
+                return Err(TxError::ScriptVerificationFailed);
+            }
         }
     }
 
@@ -169,7 +185,7 @@ pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
 
     Ok(AnalysisResult {
         valid: true,
-        fee,
+        fee: tx_fee,
         outputs,
     })
 }
@@ -179,8 +195,8 @@ mod verification_test {
     use rug::Integer;
 
     use crate::{
-        chain::tx::get_transaction, flags::network::Network, std_lib::integer_extended::IntegerExtended,
-        transaction::tx_error::TxError,
+        chain::tx::get_transaction, flags::network::Network, scripting::token::Token,
+        std_lib::integer_extended::IntegerExtended, transaction::tx_error::TxError,
     };
 
     use super::*;
@@ -286,5 +302,23 @@ mod verification_test {
         let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
 
         assert!(!transaction.is_coinbase());
+    }
+
+    #[test]
+    fn verify_first_coinbase_transaction() {
+        let transaction_id: Integer =
+            Integer::from_hex_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
+        let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
+
+        assert!(transaction.is_coinbase());
+        assert!(analyze(&transaction).is_ok());
+
+        let satoshi = &transaction.input(0).unwrap().script_sig.script_lang.tokens()[2];
+        let Token::Element(bytes) = satoshi else { todo!() };
+
+        assert_eq!(
+            "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks",
+            std::str::from_utf8(bytes).unwrap()
+        );
     }
 }

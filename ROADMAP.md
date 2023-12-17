@@ -36,9 +36,8 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Pay-to-Public-Key-Hash (P2PKH)
   - [X] Multisig (OP_CHECKMULTISIG)
   - [X] Custom data (OP_RETURN)
-  - [ ] Pay-to-Script-Hash (P2SH)
-  - [ ] Multi-Party Computation (MPC)
-- Fees
+  - [ ] Pay-to-Script-Hash (P2SH, BIP13)
+  Fees
   - [ ] Fee estimation (from external source)
 - [ ] Block structures and serialization
   - [ ] Proof-of-work
@@ -82,6 +81,12 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Private key generation from seed
 - [ ] Passphrase-protected/encrypted private keys ([BIP38](https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki))
   - [ ] Encrypted private key
+- [ ] Other
+  - [ ] Multi-Party Computation (MPC)
+  - [ ] Payjoin (BIP78)
+  - [ ] CoinJoin
+  - [ ] Partially signed bitcoin transactions (BIP174, BIP370)
+  - [ ] Stale-blocks
 
 ## Other (scattered) topics beyond the roadmap
 

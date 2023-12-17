@@ -13,4 +13,5 @@ pub enum TxError {
     InvalidTransactionFee,
     ScriptVerificationFailed,
     InvalidAddress,
+    CoinbaseVerificationFailed,
 }

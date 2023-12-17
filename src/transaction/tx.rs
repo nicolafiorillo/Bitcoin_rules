@@ -262,6 +262,33 @@ impl Tx {
     pub fn is_coinbase(&self) -> bool {
         self.inputs.len() == 1 && self.inputs[0].is_coinbase()
     }
+
+    pub fn coinbase_scripsig(&self) -> &[u8] {
+        if !self.is_coinbase() {
+            panic!("not a coinbase transaction");
+        }
+
+        &self.input(0).unwrap().script_sig.raw
+    }
+
+    pub fn coinbase_height(&self) -> u64 {
+        // Coinbase heigth is the heigth of the block this transaction is included in.
+        // It is encoded in the coinbase transaction as the first element of the coinbase scriptSig.
+        // This is applicalbe when block version is equal or greater than 2.
+
+        // TODO: verify that this is applicable matching block version.
+
+        if !self.is_coinbase() {
+            panic!("not a coinbase transaction");
+        }
+
+        let scripsig = self.coinbase_scripsig();
+
+        match varint_decode(scripsig, 0) {
+            Ok(h) => h.value,
+            Err(_) => 0,
+        }
+    }
 }
 
 #[cfg(test)]

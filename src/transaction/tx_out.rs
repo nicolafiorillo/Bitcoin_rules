@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
 
-use crate::transaction::script::Script;
+use crate::{std_lib::std_result::StdResult, transaction::script::Script};
 
-use super::{tx_error::TxError, tx_lib::u64_le_bytes};
+use super::tx_lib::u64_le_bytes;
 
 #[derive(Debug, Clone)]
 pub struct TxOut {
@@ -15,7 +15,7 @@ impl TxOut {
         TxOut { amount, script_pub_key }
     }
 
-    pub fn from_serialized(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {
+    pub fn deserialize(serialized: &[u8], cursor: usize) -> StdResult<(Self, usize)> {
         let mut cur = cursor;
 
         let amount = u64_le_bytes(serialized, cur)?;

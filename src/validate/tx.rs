@@ -7,7 +7,8 @@ use crate::{
         script_lang::ScriptLang,
         standard::{standard_type, StandardType},
     },
-    transaction::{tx::Tx, tx_error::TxError, tx_out::TxOut},
+    std_lib::std_result::StdResult,
+    transaction::{tx::Tx, tx_out::TxOut},
 };
 
 const MIN_COINBASE_LENGTH: usize = 2;
@@ -26,22 +27,22 @@ pub struct AnalysisResult {
     pub outputs: Vec<Output>,
 }
 
-fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
+fn verify_input(tx: &Tx, input_index: usize) -> StdResult<bool> {
     if tx.input_len() <= input_index {
-        return Err(TxError::InputIndexOutOfBounds);
+        Err("input_index_out_of_bounds")?;
     }
 
     let input_transaction = tx.input(input_index)?;
     let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
         Ok(tx) => tx,
-        Err(_e) => return Err(TxError::TransactionNotFoundInChain),
+        Err(_e) => Err("transaction_not_found_in_chain")?,
     };
 
     let script_sig = &input_transaction.script_sig.script_lang;
 
     let output_index = input_transaction.previous_transaction_index as usize;
     if previous_transaction.output_len() <= output_index {
-        return Err(TxError::OutputIndexOutOfBounds);
+        Err("output_index_out_of_bounds")?;
     }
 
     let output_transaction = previous_transaction.output(output_index)?;
@@ -56,25 +57,25 @@ fn verify_input(tx: &Tx, input_index: usize) -> Result<bool, TxError> {
     match complete_script.evaluate(&mut context) {
         Err(e) => {
             log::debug!("Script error: {:?}", e);
-            Err(TxError::ScriptError)
+            Err("script_error")?
         }
         Ok(val) => Ok(val),
     }
 }
 
-pub fn fee(tx: &Tx) -> Result<i128, TxError> {
+pub fn fee(tx: &Tx) -> StdResult<i128> {
     let mut input_amount: i128 = 0;
 
     for i in 0..tx.input_len() {
         let input_transaction = tx.input(i)?;
         let previous_transaction = match get_transaction(&input_transaction.previous_transaction_id, tx.network) {
             Ok(tx) => tx,
-            Err(_e) => return Err(TxError::TransactionNotFoundInChain),
+            Err(_e) => Err("transaction_not_found_in_chain")?,
         };
 
         let output_index = input_transaction.previous_transaction_index as usize;
         if previous_transaction.output_len() <= output_index {
-            return Err(TxError::OutputIndexOutOfBounds);
+            Err("output_index_out_of_bounds")?;
         }
 
         let output_transaction = previous_transaction.output(output_index)?;
@@ -118,12 +119,12 @@ pub fn verify_coinbase(tx: &Tx) -> bool {
     Not all validations are implemented yet.
     When all validations are implemented, this function will be refactored.
 */
-pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
+pub fn analyze(tx: &Tx) -> StdResult<AnalysisResult> {
     let mut tx_fee: i128 = 0;
 
     if tx.is_coinbase() {
         if !verify_coinbase(tx) {
-            return Err(TxError::CoinbaseVerificationFailed);
+            Err("coinbase_verification_failed")?;
         }
     } else {
         // * The input of the transaction are previously unspent, to avoid double-spending
@@ -135,13 +136,13 @@ pub fn analyze(tx: &Tx) -> Result<AnalysisResult, TxError> {
         log::debug!("Tx fee: {:} ({:})", tx_fee, tx.id());
 
         if tx_fee < 0 {
-            return Err(TxError::InvalidTransactionFee);
+            Err("invalid_transaction_fee")?;
         }
 
         // * The ScriptSig in the input successfully unlocks the previous ScriptPubKey of the outputs.
         for i in 0..tx.input_len() {
             if !verify_input(tx, i)? {
-                return Err(TxError::ScriptVerificationFailed);
+                Err("script_verification_failed")?;
             }
         }
     }
@@ -196,7 +197,7 @@ mod verification_test {
 
     use crate::{
         chain::tx::get_transaction, flags::network::Network, scripting::token::Token,
-        std_lib::integer_extended::IntegerExtended, transaction::tx_error::TxError,
+        std_lib::integer_extended::IntegerExtended,
     };
 
     use super::*;
@@ -218,7 +219,7 @@ mod verification_test {
         let transaction = get_transaction(&transaction_id, Network::Mainnet).unwrap();
 
         let res = verify_input(transaction, 1);
-        assert_eq!(TxError::InputIndexOutOfBounds, res.expect_err("Err"));
+        assert_eq!("input_index_out_of_bounds", res.expect_err("Err").to_string());
     }
 
     #[test]

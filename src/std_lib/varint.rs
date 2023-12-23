@@ -1,3 +1,5 @@
+use super::std_result::StdResult;
+
 pub static FE_LIMIT: u64 = 0x100000000;
 
 // TODO: use enum with size
@@ -7,19 +9,13 @@ pub struct VarInt {
     pub length: usize, // length when serialized
 }
 
-#[derive(Debug, PartialEq)]
-pub enum VarIntError {
-    InvalidLength,
-    InvalidFrom,
-}
-
 impl VarInt {
     pub fn new(value: u64, length: usize) -> Self {
         Self { value, length }
     }
 }
 
-pub fn varint_encode(v: u64) -> Vec<u8> {
+pub fn encode(v: u64) -> Vec<u8> {
     if v < 0xFD {
         return vec![v as u8];
     } else if v < 0x10000 {
@@ -31,15 +27,15 @@ pub fn varint_encode(v: u64) -> Vec<u8> {
     return [[0xFF].as_slice(), v.to_le_bytes().as_slice()].concat();
 }
 
-pub fn varint_decode(v: &[u8], from: usize) -> Result<VarInt, VarIntError> {
+pub fn decode(v: &[u8], from: usize) -> StdResult<VarInt> {
     if v.is_empty() {
         log::error!("varint_decode: invalid length: {}", v.len());
-        return Err(VarIntError::InvalidLength);
+        Err("invalid_length")?;
     }
 
     if v.len() <= from {
         log::error!("varint_decode: invalid from: {}, v len: {}", from, v.len());
-        return Err(VarIntError::InvalidFrom);
+        Err("invalid_from")?;
     }
 
     let (v, length) = match v[from] {
@@ -66,125 +62,125 @@ pub fn varint_decode(v: &[u8], from: usize) -> Result<VarInt, VarIntError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{varint_decode, varint_encode, VarIntError};
+    use super::{decode, encode};
 
     #[test]
     fn varint_encode_0x00() {
-        assert_eq!(varint_encode(0x00), [0x00]);
+        assert_eq!(encode(0x00), [0x00]);
     }
 
     #[test]
     fn varint_encode_0x01() {
-        assert_eq!(varint_encode(0x01), [0x01]);
+        assert_eq!(encode(0x01), [0x01]);
     }
 
     #[test]
     fn varint_encode_0xfc() {
-        assert_eq!(varint_encode(0xFC), [0xFC]);
+        assert_eq!(encode(0xFC), [0xFC]);
     }
 
     #[test]
     fn varint_encode_0xfd() {
-        assert_eq!(varint_encode(0xFD), [0xFD, 0xFD, 0x00]);
+        assert_eq!(encode(0xFD), [0xFD, 0xFD, 0x00]);
     }
 
     #[test]
     fn varint_encode_0xffff() {
-        assert_eq!(varint_encode(0xFFFF), [0xFD, 0xFF, 0xFF]);
+        assert_eq!(encode(0xFFFF), [0xFD, 0xFF, 0xFF]);
     }
 
     #[test]
     fn varint_encode_0x10000() {
-        assert_eq!(varint_encode(0x10000), [0xFE, 0x00, 0x00, 0x01, 0x00]);
+        assert_eq!(encode(0x10000), [0xFE, 0x00, 0x00, 0x01, 0x00]);
     }
 
     #[test]
     fn varint_encode_0xffffffffffffffff() {
         assert_eq!(
-            varint_encode(0xFFFFFFFFFFFFFFFF),
+            encode(0xFFFFFFFFFFFFFFFF),
             [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         );
     }
 
     #[test]
     fn varint_decode_0x00() {
-        let v = varint_decode(&vec![0x00], 0).unwrap();
+        let v = decode(&vec![0x00], 0).unwrap();
         assert_eq!(v.value, 0x00);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x00_with_offset() {
-        let v = varint_decode(&vec![0x00, 0x00], 1).unwrap();
+        let v = decode(&vec![0x00, 0x00], 1).unwrap();
         assert_eq!(v.value, 0x00);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x01() {
-        let v = varint_decode(&vec![0x01], 0).unwrap();
+        let v = decode(&vec![0x01], 0).unwrap();
         assert_eq!(v.value, 0x01);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0x01_with_offset() {
-        let v = varint_decode(&vec![0x00, 0x01], 1).unwrap();
+        let v = decode(&vec![0x00, 0x01], 1).unwrap();
         assert_eq!(v.value, 0x01);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0xfc() {
-        let v = varint_decode(&vec![0xFC], 0).unwrap();
+        let v = decode(&vec![0xFC], 0).unwrap();
         assert_eq!(v.value, 0xFC);
         assert_eq!(v.length, 1);
     }
 
     #[test]
     fn varint_decode_0xfd() {
-        let v = varint_decode(&vec![0xFD, 0xFD, 0x00], 0).unwrap();
+        let v = decode(&vec![0xFD, 0xFD, 0x00], 0).unwrap();
         assert_eq!(v.value, 0xFD);
         assert_eq!(v.length, 3);
     }
 
     #[test]
     fn varint_decode_0xfd_with_offset() {
-        let v = varint_decode(&vec![0x01, 0xFD, 0xFD, 0x00], 1).unwrap();
+        let v = decode(&vec![0x01, 0xFD, 0xFD, 0x00], 1).unwrap();
         assert_eq!(v.value, 0xFD);
         assert_eq!(v.length, 3);
     }
     #[test]
     fn varint_decode_0xffff() {
-        let v = varint_decode(&vec![0xFD, 0xFF, 0xFF], 0).unwrap();
+        let v = decode(&vec![0xFD, 0xFF, 0xFF], 0).unwrap();
         assert_eq!(v.value, 0xFFFF);
         assert_eq!(v.length, 3);
     }
 
     #[test]
     fn varint_decode_0x10000() {
-        let v = varint_decode(&vec![0xFE, 0x00, 0x00, 0x01, 0x00], 0).unwrap();
+        let v = decode(&vec![0xFE, 0x00, 0x00, 0x01, 0x00], 0).unwrap();
         assert_eq!(v.value, 0x10000);
         assert_eq!(v.length, 5);
     }
 
     #[test]
     fn varint_decode_0x10000_with_offset() {
-        let v = varint_decode(&vec![0x00, 0x00, 0x00, 0xFE, 0x00, 0x00, 0x01, 0x00], 3).unwrap();
+        let v = decode(&vec![0x00, 0x00, 0x00, 0xFE, 0x00, 0x00, 0x01, 0x00], 3).unwrap();
         assert_eq!(v.value, 0x10000);
         assert_eq!(v.length, 5);
     }
 
     #[test]
     fn varint_decode_0xffffffffffffffff() {
-        let v = varint_decode(&vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], 0).unwrap();
+        let v = decode(&vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], 0).unwrap();
         assert_eq!(v.value, 0xFFFFFFFFFFFFFFFF);
         assert_eq!(v.length, 9);
     }
 
     #[test]
     fn varint_decode_0xffffffffffffffff_with_offset() {
-        let v = varint_decode(
+        let v = decode(
             &vec![0x01, 0x02, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
             3,
         )
@@ -195,11 +191,14 @@ mod tests {
 
     #[test]
     fn varint_decode_invalid_length() {
-        assert_eq!(varint_decode(&Vec::<u8>::new(), 0), Err(VarIntError::InvalidLength));
+        assert_eq!(
+            decode(&Vec::<u8>::new(), 0).err().unwrap().to_string(),
+            "invalid_length"
+        );
     }
 
     #[test]
     fn varint_decode_invalid_from() {
-        assert_eq!(varint_decode(&vec![0x00], 1), Err(VarIntError::InvalidFrom));
+        assert_eq!(decode(&vec![0x00], 1).err().unwrap().to_string(), "invalid_from");
     }
 }

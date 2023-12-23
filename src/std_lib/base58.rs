@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
 use rug::{integer::Order, Integer};
 
+use super::std_result::StdResult;
+
 static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
         .chars()
@@ -8,12 +10,6 @@ static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
 });
 
 const BASE58_ALPHABET_LENGTH: u8 = 58;
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Base58DecodeError {
-    InvalidLength,
-    InvalidChecksum,
-}
 
 pub fn base58_encode(binary: &[u8]) -> String {
     // We will need it for pay-to-pubkey-hash (p2pkh)
@@ -69,13 +65,13 @@ pub fn base58_encode_with_checksum(b: &[u8]) -> String {
     base58_encode(&bin)
 }
 
-pub fn base58_decode_with_checksum(s: &str) -> Result<Vec<u8>, Base58DecodeError> {
+pub fn base58_decode_with_checksum(s: &str) -> StdResult<Vec<u8>> {
     use crate::hashing::hash256::hash256;
 
     let d = base58_decode(s).to_digits(Order::Msf);
 
     if d.len() < 4 {
-        return Err(Base58DecodeError::InvalidLength);
+        Err("invalid_length")?;
     }
 
     let (data, checksum) = d.split_at(d.len() - 4);
@@ -85,7 +81,7 @@ pub fn base58_decode_with_checksum(s: &str) -> Result<Vec<u8>, Base58DecodeError
     let data_checksum = drained.as_slice();
 
     if checksum != data_checksum {
-        return Err(Base58DecodeError::InvalidChecksum);
+        Err("invalid_checksum")?;
     }
 
     Ok(data.to_vec())
@@ -97,9 +93,7 @@ mod base58_test {
 
     use crate::std_lib::integer_extended::IntegerExtended;
 
-    use super::{
-        base58_decode, base58_decode_with_checksum, base58_encode, base58_encode_with_checksum, Base58DecodeError,
-    };
+    use super::{base58_decode, base58_decode_with_checksum, base58_encode, base58_encode_with_checksum};
 
     #[test]
     fn encode_1() {
@@ -197,12 +191,12 @@ mod base58_test {
     #[test]
     fn decode_checksum_invalid_checksum() {
         let res = base58_decode_with_checksum("SFyVFVE84dMDxTAX88Rq8UJA2mWVNASRdWNorzbCAP22Qums1CuoZcPKU7xkjpBe");
-        assert_eq!(Base58DecodeError::InvalidChecksum, res.err().unwrap())
+        assert_eq!("invalid_checksum", res.err().unwrap().to_string())
     }
 
     #[test]
     fn decode_checksum_invalid_length() {
         let res = base58_decode_with_checksum("a");
-        assert_eq!(Base58DecodeError::InvalidLength, res.err().unwrap())
+        assert_eq!("invalid_length", res.err().unwrap().to_string())
     }
 }

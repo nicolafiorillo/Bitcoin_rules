@@ -1,28 +1,18 @@
 use std::fmt::{Display, Formatter};
 
-use crate::std_lib::vector::{bytes_to_string, string_to_bytes};
-
-use super::{
-    context::{Context, ContextError},
-    opcode::*,
-    token::Token,
+use crate::std_lib::{
+    std_result::StdResult,
+    vector::{bytes_to_string, string_to_bytes},
 };
+
+use super::{context::Context, opcode::*, token::Token};
 
 #[derive(Debug, Clone)]
 pub struct ScriptLang(Vec<Token>);
 
-#[derive(Debug)]
-pub enum ScriptLangError {
-    InvalidScript,
-    InvalidScriptLength,
-    ElementTooLong,
-    PushData4IsDeprecated,
-    InvalidScriptRepresentation,
-}
-
 impl ScriptLang {
     // TODO: refactor
-    pub fn deserialize(data: &[u8], length: u64, offset: usize) -> Result<Self, ScriptLangError> {
+    pub fn deserialize(data: &[u8], length: u64, offset: usize) -> StdResult<Self> {
         let mut tokens: Vec<Token> = vec![];
 
         let mut i = offset as u64;
@@ -106,7 +96,7 @@ impl ScriptLang {
         ScriptLang(new_tokens)
     }
 
-    pub fn from_representation(repr: &str) -> Result<Self, ScriptLangError> {
+    pub fn from_representation(repr: &str) -> StdResult<Self> {
         let trimmed_repr = repr.trim();
         let mut items: Vec<Token> = vec![];
 
@@ -118,7 +108,7 @@ impl ScriptLang {
             } else {
                 match string_to_bytes(item) {
                     Ok(bytes) => items.push(Token::Element(bytes)),
-                    Err(_) => return Err(ScriptLangError::InvalidScriptRepresentation),
+                    Err(_) => Err("invalid_script_representation")?,
                 };
             }
         }
@@ -146,14 +136,14 @@ impl ScriptLang {
         repr.trim_end().to_string()
     }
 
-    pub fn serialize(&self) -> Result<Vec<u8>, ScriptLangError> {
+    pub fn serialize(&self) -> StdResult<Vec<u8>> {
         let Self(tokens) = self;
 
         let raw = ScriptLang::raw_serialize(tokens)?;
         Ok(raw)
     }
 
-    pub fn evaluate<'a>(&'a self, context: &'a mut Context) -> Result<bool, ContextError> {
+    pub fn evaluate<'a>(&'a self, context: &'a mut Context) -> StdResult<bool> {
         while !context.tokens_are_over() {
             let executing = context.executing();
 
@@ -171,7 +161,7 @@ impl ScriptLang {
                 }
                 Token::Command(op_code) => {
                     if *op_code > OPS_LENGTH {
-                        return Err(ContextError::InvalidOpCode);
+                        Err("invalid_opcode")?;
                     }
 
                     ((*OP_TO_FN)[*op_code].exec)(context)?;
@@ -189,7 +179,7 @@ impl ScriptLang {
         ScriptLang([left_items, right_items].concat())
     }
 
-    fn raw_serialize(tokens: &[Token]) -> Result<Vec<u8>, ScriptLangError> {
+    fn raw_serialize(tokens: &[Token]) -> StdResult<Vec<u8>> {
         let mut raw: Vec<u8> = vec![];
 
         for token in tokens {
@@ -205,9 +195,9 @@ impl ScriptLang {
                         raw.push(OP_PUSHDATA2 as u8);
                         raw.extend(len.to_le_bytes().iter());
                     } else if len < 0x100000000 {
-                        return Err(ScriptLangError::PushData4IsDeprecated);
+                        Err("push_data_4_is_deprecated")?;
                     } else {
-                        return Err(ScriptLangError::ElementTooLong);
+                        Err("element_too_long")?;
                     }
 
                     raw.extend(bytes);
@@ -234,7 +224,7 @@ mod script_test {
         flags::{network::Network, sighash::SigHash},
         hashing::hash160::hash160,
         scripting::{opcode::*, standard, token::*},
-        std_lib::varint::{varint_decode, varint_encode},
+        std_lib::varint::{decode, encode},
         std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
         wallet::key::new,
     };
@@ -280,7 +270,7 @@ mod script_test {
 
         let mut serialized = script.serialize().unwrap();
 
-        let length = varint_encode(serialized.len() as u64);
+        let length = encode(serialized.len() as u64);
         serialized = [length, serialized].concat();
 
         let expected = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
@@ -292,7 +282,7 @@ mod script_test {
     fn deserialize() {
         let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
-        let var_int = varint_decode(&data, 0).unwrap();
+        let var_int = decode(&data, 0).unwrap();
         let script = ScriptLang::deserialize(&data, var_int.value, var_int.length).unwrap();
 
         let ScriptLang(tokens) = script;
@@ -425,7 +415,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -434,7 +424,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -458,7 +448,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -467,7 +457,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -528,7 +518,7 @@ mod script_test {
     //     let mut context = Context::new(script.tokens(), Integer::from(0));
     //     let valid = script.evaluate(&mut context);
 
-    //     assert_eq!(ContextError::Overflow, valid.expect_err("Err"));
+    //     assert_eq!("overflow", valid.expect_err("Err").to_string());
     // }
 
     #[test]
@@ -622,7 +612,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::ExitByReturn, valid.expect_err("Err"));
+        assert_eq!("exit_by_return", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -634,7 +624,7 @@ mod script_test {
         let res = context.data().clone();
 
         assert_eq!(vec![0xFF, 0xFF], res.unwrap());
-        assert_eq!(ContextError::ExitByReturn, valid.expect_err("Err"));
+        assert_eq!("exit_by_return", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -646,7 +636,7 @@ mod script_test {
         let res = context.data().clone();
 
         assert_eq!(Vec::<u8>::new(), res.unwrap());
-        assert_eq!(ContextError::ReturnDataTooLong, valid.expect_err("Err"));
+        assert_eq!("return_data_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -965,7 +955,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+        assert_eq!("exit_by_failed_verify", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -984,7 +974,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+        assert_eq!("exit_by_failed_verify", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -993,7 +983,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -1502,7 +1492,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -1583,7 +1573,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -1664,7 +1654,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -1745,7 +1735,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -1838,7 +1828,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+        assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -2109,7 +2099,7 @@ mod script_test {
         let mut context = Context::new(script.tokens(), Integer::from(0));
         let valid = script.evaluate(&mut context);
 
-        assert_eq!(ContextError::ExitByFailedVerify, valid.expect_err("Err"));
+        assert_eq!("exit_by_failed_verify", valid.expect_err("Err").to_string());
     }
 
     #[test]
@@ -2440,7 +2430,7 @@ mod script_test {
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
-                assert_eq!(ContextError::InputLengthTooLong, valid.expect_err("Err"));
+                assert_eq!("input_length_too_long", valid.expect_err("Err").to_string());
             }
         };
     }
@@ -2506,7 +2496,7 @@ mod script_test {
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
-                assert_eq!(ContextError::ExitByReserved, valid.expect_err("Err"));
+                assert_eq!("exit_by_reserved", valid.expect_err("Err").to_string());
             }
         };
     }
@@ -2529,7 +2519,7 @@ mod script_test {
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
-                assert_eq!(ContextError::DeprecatedOpCode, valid.expect_err("Err"));
+                assert_eq!("deprecated_opcode", valid.expect_err("Err").to_string());
             }
         };
     }
@@ -2561,7 +2551,7 @@ mod script_test {
                 let mut context = Context::new(script.tokens(), Integer::from(0));
                 let valid = script.evaluate(&mut context);
 
-                assert_eq!(ContextError::InvalidOpCode, valid.expect_err("Err"));
+                assert_eq!("invalid_opcode", valid.expect_err("Err").to_string());
             }
         };
     }

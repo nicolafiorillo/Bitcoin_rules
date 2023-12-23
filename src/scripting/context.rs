@@ -1,6 +1,8 @@
 use rug::Integer;
 use std::collections::VecDeque;
 
+use crate::std_lib::std_result::StdResult;
+
 use super::{condition_stack::ConditionStack, token::Token};
 
 #[derive(Debug)]
@@ -15,28 +17,6 @@ pub struct Context {
 
     condition_stack: ConditionStack,
     data: Option<Vec<u8>>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ContextError {
-    InvalidOpCode,
-    NotAnElement,
-    NotACommand,
-    NotEnoughItemsInStack,
-    DerError,
-    UnexpectedEndIf,
-    UnexpectedElse,
-    ExitByReturn,
-    ExitByFailedVerify,
-    DeprecatedOpCode,
-    ExitByReserved,
-    Overflow,
-    ReturnDataTooLong,
-    InputLengthTooLong,
-    ExpectedOp0ForMultisig,
-    ExpectedNForMultisig,
-    ExpectedMForMultisig,
-    MGreaterThanNForMultisig,
 }
 
 impl Context {
@@ -105,26 +85,26 @@ impl Context {
         self.stack.len()
     }
 
-    pub fn stack_pop_as_element(&mut self) -> Result<Token, ContextError> {
+    pub fn stack_pop_as_element(&mut self) -> StdResult<Token> {
         assert!(!self.stack.is_empty());
 
         match self.stack.pop_front().unwrap() {
             Token::Element(element) => Ok(Token::Element(element)),
             op => {
                 log::error!("Expected element, found {:?}", op);
-                Err(ContextError::NotAnElement)
+                Err("not_an_element")?
             }
         }
     }
 
-    pub fn stack_pop_as_command(&mut self) -> Result<Token, ContextError> {
+    pub fn stack_pop_as_command(&mut self) -> StdResult<Token> {
         assert!(!self.stack.is_empty());
 
         match self.stack.pop_front().unwrap() {
             Token::Command(command) => Ok(Token::Command(command)),
             elem => {
                 log::error!("Expected command, found {:?}", elem);
-                Err(ContextError::NotACommand)
+                Err("not_a_command")?
             }
         }
     }

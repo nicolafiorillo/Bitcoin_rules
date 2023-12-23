@@ -7,12 +7,11 @@ use std::fmt::{Display, Formatter};
 use crate::{
     flags::{network::Network, sighash::SigHash},
     hashing::hash256::hash256,
-    std_lib::varint::varint_encode,
+    std_lib::{std_result::StdResult, varint::encode},
 };
 
 use super::{
     script::Script,
-    tx_error::TxError,
     tx_in::TxIn,
     tx_ins::TxIns,
     tx_lib::{le_bytes_to_u32, varint_decode},
@@ -88,17 +87,17 @@ impl Tx {
         Integer::from_digits(&serialized, Order::Lsf)
     }
 
-    pub fn input(&self, index: usize) -> Result<&TxIn, TxError> {
+    pub fn input(&self, index: usize) -> StdResult<&TxIn> {
         if self.inputs.len() <= index {
-            return Err(TxError::InputIndexOutOfBounds);
+            Err("input_index_out_of_bounds")?;
         }
 
         Ok(&self.inputs[index])
     }
 
-    pub fn output(&self, index: usize) -> Result<&TxOut, TxError> {
+    pub fn output(&self, index: usize) -> StdResult<&TxOut> {
         if self.outputs.len() <= index {
-            return Err(TxError::OutputIndexOutOfBounds);
+            Err("input_index_out_of_bounds")?;
         }
 
         Ok(&self.outputs[index])
@@ -117,9 +116,9 @@ impl Tx {
     }
 
     // TODO: implement with stream
-    pub fn from_serialized(serialized: &[u8], network: Network) -> Result<Self, TxError> {
+    pub fn deserialize(serialized: &[u8], network: Network) -> StdResult<Self> {
         if serialized.len() < 5 {
-            return Err(TxError::InvalidTransactionLength);
+            Err("invalid_transaction_length")?;
         }
 
         let mut cursor: usize = 0;
@@ -141,7 +140,7 @@ impl Tx {
         let mut txs_in: Vec<TxIn> = vec![];
 
         for _ in 0..tx_in_count.value {
-            let (tx_in, c) = TxIn::from_serialized(serialized, cursor, network)?;
+            let (tx_in, c) = TxIn::deserialize(serialized, cursor, network)?;
             cursor = c;
 
             txs_in.push(tx_in);
@@ -154,7 +153,7 @@ impl Tx {
         let mut txs_out: Vec<TxOut> = vec![];
 
         for _ in 0..tx_out_count.value {
-            let (tx_out, c) = TxOut::from_serialized(serialized, cursor)?;
+            let (tx_out, c) = TxOut::deserialize(serialized, cursor)?;
             cursor = c;
 
             txs_out.push(tx_out);
@@ -189,7 +188,7 @@ impl Tx {
                 cursor,
                 serialized.len()
             );
-            return Err(TxError::PartiallyReadTransaction);
+            Err("partially_read_transaction")?;
         }
 
         let inputs = TxIns::new(txs_in);
@@ -207,9 +206,9 @@ impl Tx {
 
     pub fn serialize(&self) -> Vec<u8> {
         let version_serialized = self.version.to_le_bytes();
-        let inputs_length = varint_encode(self.inputs.len() as u64);
+        let inputs_length = encode(self.inputs.len() as u64);
         let inputs_serialized: Vec<u8> = self.inputs.serialize();
-        let outputs_length = varint_encode(self.outputs.len() as u64);
+        let outputs_length = encode(self.outputs.len() as u64);
         let outputs_serialized: Vec<u8> = self.outputs.serialize();
         let locktime_serialized = self.locktime.to_le_bytes();
 
@@ -309,14 +308,14 @@ mod tx_test {
     #[test]
     fn invalid_transaction_length() {
         let transaction: Vec<u8> = vec![0; 4];
-        assert!(Tx::from_serialized(&transaction, Network::Mainnet).is_err());
+        assert!(Tx::deserialize(&transaction, Network::Mainnet).is_err());
     }
 
     #[test]
     fn deserialize_id() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet);
+        let tx = Tx::deserialize(&transaction, Network::Mainnet);
         assert_eq!(
             tx.unwrap().id(),
             "EE51510D7BBABE28052038D1DEB10C03EC74F06A79E21913C6FCF48D56217C87"
@@ -327,7 +326,7 @@ mod tx_test {
     fn deserialize_version() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet);
+        let tx = Tx::deserialize(&transaction, Network::Mainnet);
         assert_eq!(tx.unwrap().version, 1);
     }
 
@@ -335,7 +334,7 @@ mod tx_test {
     fn deserialize_tx_ins() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx = Tx::deserialize(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.inputs.len(), 4);
     }
@@ -344,7 +343,7 @@ mod tx_test {
     fn deserialize_tx_outs() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx = Tx::deserialize(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.outputs[0].amount, 1000273);
         assert_eq!(tx.outputs[1].amount, 40000000);
@@ -354,7 +353,7 @@ mod tx_test {
     fn deserialize_tx_outs_amount1() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx = Tx::deserialize(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.outputs.len(), 2);
     }
@@ -363,7 +362,7 @@ mod tx_test {
     fn deserialize_locktime() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx = Tx::deserialize(&transaction, Network::Mainnet).unwrap();
 
         assert_eq!(tx.locktime, 410438);
     }
@@ -372,7 +371,7 @@ mod tx_test {
     fn deserialize_and_serialize() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet).unwrap();
+        let tx = Tx::deserialize(&transaction, Network::Mainnet).unwrap();
         let tx_serialized = tx.serialize();
 
         assert_eq!(transaction, tx_serialized);
@@ -382,7 +381,7 @@ mod tx_test {
     fn deserialize_and_get_fee() {
         let transaction: Vec<u8> = string_to_bytes(SERIALIZED_TRANSACTION).unwrap();
 
-        let tx = Tx::from_serialized(&transaction, Network::Mainnet);
+        let tx = Tx::deserialize(&transaction, Network::Mainnet);
         let transaction = tx.unwrap();
 
         assert_eq!(fee(&transaction).unwrap(), 140500);

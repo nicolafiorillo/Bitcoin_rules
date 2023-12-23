@@ -1,10 +1,10 @@
 use rug::{integer::Order, Integer};
 
-use crate::{std_lib::varint::VarInt, transaction::tx_error::TxError};
+use crate::std_lib::{std_result::StdResult, varint::VarInt};
 
-pub fn le_bytes_to_u32(bytes: &[u8], from: usize) -> Result<u32, TxError> {
+pub fn le_bytes_to_u32(bytes: &[u8], from: usize) -> StdResult<u32> {
     if bytes.len() < (from + 4) {
-        return Err(TxError::Invalid4BytesLength);
+        Err("invalid_4_bytes_length")?;
     }
 
     let mut v: [u8; 4] = [0; 4];
@@ -16,9 +16,9 @@ pub fn u32_to_le_bytes(v: u32) -> [u8; 4] {
     v.to_le_bytes()
 }
 
-pub fn u64_le_bytes(bytes: &[u8], from: usize) -> Result<u64, TxError> {
+pub fn u64_le_bytes(bytes: &[u8], from: usize) -> StdResult<u64> {
     if bytes.len() < (from + 8) {
-        return Err(TxError::Invalid8BytesLength);
+        Err("invalid_8_bytes_length")?;
     }
 
     let mut v: [u8; 8] = [0; 8];
@@ -26,18 +26,18 @@ pub fn u64_le_bytes(bytes: &[u8], from: usize) -> Result<u64, TxError> {
     Ok(u64::from_le_bytes(v))
 }
 
-pub fn varint_decode(bytes: &[u8], from: usize) -> Result<VarInt, TxError> {
-    let vi = crate::std_lib::varint::varint_decode(bytes, from);
-    if let Err(_e) = vi {
-        return Err(TxError::VarIntError);
+pub fn varint_decode(bytes: &[u8], from: usize) -> StdResult<VarInt> {
+    let vi = crate::std_lib::varint::decode(bytes, from);
+    if let Err(_e) = &vi {
+        Err("varint_error")?;
     }
 
     Ok(vi.unwrap())
 }
 
-pub fn le_32_bytes_to_integer(bytes: &[u8], from: usize) -> Result<Integer, TxError> {
+pub fn le_32_bytes_to_integer(bytes: &[u8], from: usize) -> StdResult<Integer> {
     if bytes.len() < (from + 32) {
-        return Err(TxError::Invalid32BytesLength);
+        Err("invalid_32_bytes_length")?;
     }
 
     let slice = &bytes[from..(from + 32)];

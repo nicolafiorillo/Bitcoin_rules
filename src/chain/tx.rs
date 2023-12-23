@@ -6,18 +6,13 @@ use std::collections::HashMap;
 
 use crate::{
     flags::network::Network,
-    std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
+    std_lib::{integer_extended::IntegerExtended, std_result::StdResult, vector::string_to_bytes},
     transaction::tx::Tx,
 };
 
-#[derive(Debug)]
-pub enum ChainError {
-    TransactionNotFound,
-}
-
 fn get_id_to_transaction(id: &str, tx: &str, network: Network) -> (Integer, Tx) {
     let s = string_to_bytes(tx).unwrap();
-    let tx = Tx::from_serialized(&s, network).unwrap();
+    let tx = Tx::deserialize(&s, network).unwrap();
     let id = Integer::from_hex_str(id);
 
     (id, tx)
@@ -95,13 +90,13 @@ pub static TESTNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
     h
 });
 
-pub fn get_transaction(transaction_id: &Integer, network: Network) -> Result<&Tx, ChainError> {
+pub fn get_transaction(transaction_id: &Integer, network: Network) -> StdResult<&Tx> {
     let h = match network {
         Network::Testnet => &*TESTNET,
         Network::Mainnet => &*MAINNET,
     };
 
-    let tx = h.get(transaction_id).ok_or(ChainError::TransactionNotFound)?;
+    let tx = h.get(transaction_id).ok_or("transaction_not_found")?;
 
     Ok(tx)
 }

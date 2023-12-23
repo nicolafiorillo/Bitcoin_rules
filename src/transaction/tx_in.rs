@@ -4,17 +4,14 @@ use rug::Integer;
 
 use crate::{
     flags::network::Network,
-    std_lib::integer_extended::IntegerExtended,
+    std_lib::{integer_extended::IntegerExtended, std_result::StdResult},
     transaction::{
         script::Script,
         tx_lib::{integer_to_le_32_bytes, u32_to_le_bytes},
     },
 };
 
-use super::{
-    tx_error::TxError,
-    tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32},
-};
+use super::tx_lib::{le_32_bytes_to_integer, le_bytes_to_u32};
 
 static COINBASE_PREVIOUS_TX: u32 = 0;
 static COINBASE_INDEX: u32 = 0xFFFFFFFF;
@@ -78,7 +75,7 @@ impl TxIn {
         self.script_sig = Script::new_from_raw(script_pub_key.raw);
     }
 
-    pub fn from_serialized(serialized: &[u8], cursor: usize, network: Network) -> Result<(Self, usize), TxError> {
+    pub fn deserialize(serialized: &[u8], cursor: usize, network: Network) -> StdResult<(Self, usize)> {
         let mut cur = cursor;
 
         let tx_in_previous_transaction_id = le_32_bytes_to_integer(serialized, cur)?;

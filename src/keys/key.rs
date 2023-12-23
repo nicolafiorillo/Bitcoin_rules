@@ -12,11 +12,9 @@ use crate::{
     flags::{compression::Compression, network::Network},
     keys::signature::Signature,
     std_lib::base58,
-    std_lib::integer_extended::IntegerExtended,
     std_lib::vector::{padding_left, vect_to_array_32},
+    std_lib::{integer_extended::IntegerExtended, std_result::StdResult},
 };
-
-use super::key_error::KeyError;
 
 /// Key structure.
 #[derive(Debug, Clone)]
@@ -58,12 +56,12 @@ impl Key {
     }
     // ANCHOR_END: fn_address
 
-    pub fn address_to_hash160(address: &str, network: Network) -> Result<Vec<u8>, KeyError> {
+    pub fn address_to_hash160(address: &str, network: Network) -> StdResult<Vec<u8>> {
         let decoded = base58::base58_decode_with_checksum(address).unwrap();
 
         let net = decoded[0];
         if net != network as u8 {
-            return Err(KeyError::IncongruentNetwork);
+            Err("incongruent_network")?;
         }
 
         Ok(decoded[1..].to_vec())

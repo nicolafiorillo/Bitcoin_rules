@@ -1,7 +1,6 @@
 pub mod script;
 pub mod signing;
 pub mod tx;
-pub mod tx_error;
 pub mod tx_in;
 pub mod tx_ins;
 pub mod tx_lib;

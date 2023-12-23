@@ -17,20 +17,17 @@ use crate::{
     ecdsa::point::Point,
     hashing::{hash160::hash160, hash256::hash256, ripemd160::ripemd160, sha1::sha1, sha256::sha256},
     keys::{key::Key, signature::Signature},
+    std_lib::std_result::StdResult,
 };
 
-use super::{
-    constants::MAX_RETURN_DATA_LENGTH,
-    context::{Context, ContextError},
-    token::*,
-};
+use super::{constants::MAX_RETURN_DATA_LENGTH, context::Context, token::*};
 
 /*
    Ref: https://en.bitcoin.it/wiki/Script
 */
 macro_rules! op_n {
     ($n:tt, $f:ident) => {
-        pub fn $f(context: &mut Context) -> Result<bool, ContextError> {
+        pub fn $f(context: &mut Context) -> StdResult<bool> {
             context.stack_push(Token::Element(element_encode($n)));
 
             Ok(true)
@@ -65,25 +62,25 @@ fn element_value_by_result(res: bool) -> Vec<u8> {
     }
 }
 
-pub fn op_0(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_0(context: &mut Context) -> StdResult<bool> {
     context.stack_push(Token::Element(ELEMENT_ZERO.to_vec()));
 
     Ok(true)
 }
 
-pub fn op_1(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_1(context: &mut Context) -> StdResult<bool> {
     context.stack_push(Token::Element(element_encode(1)));
 
     Ok(true)
 }
 
-pub fn op_1negate(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_1negate(context: &mut Context) -> StdResult<bool> {
     context.stack_push(Token::Element(ELEMENT_ONE_NEGATE.to_vec()));
 
     Ok(true)
 }
 
-pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_nop(_context: &mut Context) -> StdResult<bool> {
     Ok(true)
 }
 
@@ -101,7 +98,7 @@ pub fn op_nop(_context: &mut Context) -> Result<bool, ContextError> {
 /// https://blockchain.info/tx/728e24b2e7dd137e574c433a8db08ac2aa0bf0588ad7716e4c5a7da45dbb5933
 /// https://blockchain.info/tx/52dd20f60d6e14e5a783e7668cf410efdea40cd9a92479b0f2423d0bc63575fa
 ///
-pub fn op_return(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_return(context: &mut Context) -> StdResult<bool> {
     context.set_data(Vec::new());
 
     if !context.tokens_are_over() {
@@ -111,22 +108,22 @@ pub fn op_return(context: &mut Context) -> Result<bool, ContextError> {
             let d = data.clone();
 
             if d.len() > MAX_RETURN_DATA_LENGTH {
-                return Err(ContextError::ReturnDataTooLong);
+                Err("return_data_too_long")?;
             }
 
             context.set_data(d);
         }
     }
 
-    Err(ContextError::ExitByReturn)
+    Err("exit_by_return")?
 }
 
-pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_if(context: &mut Context) -> StdResult<bool> {
     let mut exec = false;
 
     if context.executing() {
         if !context.stack_has_enough_items(1) {
-            return Err(ContextError::NotEnoughItemsInStack);
+            Err("not_enough_items_in_stack")?;
         }
 
         let token = context.stack_pop_as_element()?;
@@ -138,12 +135,12 @@ pub fn op_if(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_notif(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_notif(context: &mut Context) -> StdResult<bool> {
     let mut exec = false;
 
     if context.executing() {
         if !context.stack_has_enough_items(1) {
-            return Err(ContextError::NotEnoughItemsInStack);
+            Err("not_enough_items_in_stack")?;
         }
 
         let token = context.stack_pop_as_element()?;
@@ -155,27 +152,27 @@ pub fn op_notif(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_endif(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_endif(context: &mut Context) -> StdResult<bool> {
     if !context.in_condition() {
-        return Err(ContextError::UnexpectedEndIf);
+        Err("unexpected_end_if")?;
     }
 
     context.unset_execute();
     Ok(true)
 }
 
-pub fn op_else(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_else(context: &mut Context) -> StdResult<bool> {
     if !context.in_condition() {
-        return Err(ContextError::UnexpectedElse);
+        Err("unexpected_else")?;
     }
 
     context.toggle_execute();
     Ok(true)
 }
 
-pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_add(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -183,7 +180,7 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(a), Token::Element(b)) = (elem1, elem2) {
         if a.len() > 4 || b.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let left = element_decode(a);
@@ -195,12 +192,12 @@ pub fn op_add(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_sub(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_sub(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let b = context.stack_pop_as_element()?;
@@ -208,24 +205,24 @@ pub fn op_sub(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(a), Token::Element(b)) = (a, b) {
         if a.len() > 4 || b.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let left = element_decode(a);
         let right = element_decode(b);
 
-        let sub = left.checked_sub(right).ok_or(ContextError::Overflow)?;
+        let sub = left.checked_sub(right).ok_or("overflow")?;
         context.stack_push(Token::Element(element_encode(sub)));
 
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_mul(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let a = context.stack_pop_as_element()?;
@@ -241,12 +238,12 @@ pub fn op_mul(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_equal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let a = context.stack_pop_as_element()?;
@@ -259,7 +256,7 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
 /*
@@ -267,9 +264,9 @@ pub fn op_equal(context: &mut Context) -> Result<bool, ContextError> {
 
    TODO: consider OP_CODESEPARATOR
 */
-pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_checksig(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let pub_key = context.stack_pop_as_element()?;
@@ -305,11 +302,11 @@ pub fn op_checksig(context: &mut Context) -> Result<bool, ContextError> {
    Oh, I was forgetting: Bitcoin_rules! now supports OP_CHECKMULTISIG transaction scripts.
 
 */
-pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_checkmultisig(context: &mut Context) -> StdResult<bool> {
     log::debug!("MS: Multisignature check start");
 
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     /*
@@ -319,11 +316,11 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     let n = elem_n.as_number() as usize;
 
     if n == 0 {
-        return Err(ContextError::ExpectedNForMultisig);
+        Err("expected_n_for_multisig")?;
     }
 
     if !context.stack_has_enough_items(n) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let mut sec_pub_keys = Vec::new();
@@ -342,15 +339,15 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     let m = elem_m.as_number() as usize;
 
     if m == 0 {
-        return Err(ContextError::ExpectedMForMultisig);
+        Err("expected_m_for_multisig")?;
     }
 
     if m > n {
-        return Err(ContextError::MGreaterThanNForMultisig);
+        Err("m_greater_than_n_for_multisig")?;
     }
 
     if !context.stack_has_enough_items(m) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let mut der_signatures = Vec::new();
@@ -370,7 +367,7 @@ pub fn op_checkmultisig(context: &mut Context) -> Result<bool, ContextError> {
     */
     let token = context.stack_pop();
     if !token.is_zero_or_empy() {
-        return Err(ContextError::ExpectedOp0ForMultisig);
+        Err("expected_op0_for_multisig")?;
     }
 
     /*
@@ -417,9 +414,9 @@ fn signature_is_valid(der: &[u8], public_key: &[u8], z: &Integer) -> bool {
     Key::verify_signature(&point, z, &signature)
 }
 
-pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_dup(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op = context.top_stack();
@@ -428,9 +425,9 @@ pub fn op_dup(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_2dup(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -444,9 +441,9 @@ pub fn op_2dup(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_3dup(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_3dup(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(3) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -463,9 +460,9 @@ pub fn op_3dup(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_2over(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_2over(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(4) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -483,9 +480,9 @@ pub fn op_2over(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_swap(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -497,9 +494,9 @@ pub fn op_swap(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_2swap(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_2swap(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(4) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -515,9 +512,9 @@ pub fn op_2swap(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_rot(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_rot(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(3) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -531,9 +528,9 @@ pub fn op_rot(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_2rot(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_2rot(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(6) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -553,9 +550,9 @@ pub fn op_2rot(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_verify(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op = context.stack_pop_as_element()?;
@@ -564,17 +561,17 @@ pub fn op_verify(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::ExitByFailedVerify)
+    Err("exit_by_failed_verify")?
 }
 
-pub fn op_equalverify(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_equalverify(context: &mut Context) -> StdResult<bool> {
     op_equal(context)?;
     op_verify(context)
 }
 
-pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_hash256(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -585,12 +582,12 @@ pub fn op_hash256(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_hash160(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -601,12 +598,12 @@ pub fn op_hash160(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_sha256(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -617,12 +614,12 @@ pub fn op_sha256(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_ripemd160(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_ripemd160(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -633,12 +630,12 @@ pub fn op_ripemd160(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_sha1(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -649,19 +646,19 @@ pub fn op_sha1(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_not(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop();
 
     if let Token::Element(bytes) = e {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         if bytes == ELEMENT_ZERO {
@@ -675,9 +672,9 @@ pub fn op_not(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_toaltstack(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_toaltstack(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op = context.stack_pop();
@@ -686,9 +683,9 @@ pub fn op_toaltstack(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_fromaltstack(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_fromaltstack(context: &mut Context) -> StdResult<bool> {
     if !context.alt_stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op = context.alt_stack_pop();
@@ -697,9 +694,9 @@ pub fn op_fromaltstack(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_drop(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_drop(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     context.stack_pop();
@@ -707,9 +704,9 @@ pub fn op_drop(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_2drop(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_2drop(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     context.stack_pop();
@@ -718,9 +715,9 @@ pub fn op_2drop(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_nip(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_nip(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -731,9 +728,9 @@ pub fn op_nip(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_ifdup(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_ifdup(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op = context.top_stack();
@@ -745,16 +742,16 @@ pub fn op_ifdup(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_depth(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_depth(context: &mut Context) -> StdResult<bool> {
     let len = context.stack_len();
     context.stack_push(Token::Element(element_encode(len as i64)));
 
     Ok(true)
 }
 
-pub fn op_over(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_over(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -767,9 +764,9 @@ pub fn op_over(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_tuck(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_tuck(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let op1 = context.stack_pop();
@@ -782,9 +779,9 @@ pub fn op_tuck(context: &mut Context) -> Result<bool, ContextError> {
     Ok(true)
 }
 
-pub fn op_size(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_size(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
@@ -796,12 +793,12 @@ pub fn op_size(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_pick(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -810,7 +807,7 @@ pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
         let un = n as usize;
 
         if !context.stack_has_enough_items(un + 1) {
-            return Err(ContextError::NotEnoughItemsInStack);
+            Err("not_enough_items_in_stack")?;
         }
 
         let elem = context.stack_get_at(un);
@@ -819,12 +816,12 @@ pub fn op_pick(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_roll(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let e = context.stack_pop_as_element()?;
@@ -833,7 +830,7 @@ pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
         let un = n as usize;
 
         if !context.stack_has_enough_items(un + 1) {
-            return Err(ContextError::NotEnoughItemsInStack);
+            Err("not_enough_items_in_stack")?;
         }
 
         let elem = context.stack_remove_at(un);
@@ -842,18 +839,18 @@ pub fn op_roll(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_1add(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let n = element_decode(bytes);
@@ -862,18 +859,18 @@ pub fn op_1add(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_1sub(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let n = element_decode(bytes);
@@ -882,18 +879,18 @@ pub fn op_1sub(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_negate(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let n = element_decode(bytes);
@@ -902,18 +899,18 @@ pub fn op_negate(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_abs(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let n = element_decode(bytes);
@@ -922,12 +919,12 @@ pub fn op_abs(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_booland(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -938,7 +935,7 @@ pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let booland = if elem1_bool && elem2_bool {
@@ -951,12 +948,12 @@ pub fn op_booland(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_boolor(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -967,7 +964,7 @@ pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if elem1_bool || elem2_bool {
@@ -980,18 +977,18 @@ pub fn op_boolor(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_0notequal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(1) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem = context.stack_pop_as_element()?;
     if let Token::Element(bytes) = elem {
         if bytes.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let n = element_decode(bytes);
@@ -1002,12 +999,12 @@ pub fn op_0notequal(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_numequal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1015,7 +1012,7 @@ pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left == right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1024,17 +1021,17 @@ pub fn op_numequal(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_numequalverify(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_numequalverify(context: &mut Context) -> StdResult<bool> {
     op_numequal(context)?;
     op_verify(context)
 }
 
-pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_numnotequal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1042,7 +1039,7 @@ pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left != right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1051,12 +1048,12 @@ pub fn op_numnotequal(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_lessthan(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_lessthan(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1064,7 +1061,7 @@ pub fn op_lessthan(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left < right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1073,12 +1070,12 @@ pub fn op_lessthan(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_lessthanorequal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_lessthanorequal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1086,7 +1083,7 @@ pub fn op_lessthanorequal(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left <= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1095,12 +1092,12 @@ pub fn op_lessthanorequal(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_greaterthan(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_greaterthan(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1108,7 +1105,7 @@ pub fn op_greaterthan(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left > right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1117,12 +1114,12 @@ pub fn op_greaterthan(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_greaterthanorequal(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_greaterthanorequal(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1130,7 +1127,7 @@ pub fn op_greaterthanorequal(context: &mut Context) -> Result<bool, ContextError
 
     if let (Token::Element(left), Token::Element(right)) = (elem2, elem1) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if left >= right { ELEMENT_TRUE } else { ELEMENT_FALSE };
@@ -1139,12 +1136,12 @@ pub fn op_greaterthanorequal(context: &mut Context) -> Result<bool, ContextError
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_min(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_min(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1152,7 +1149,7 @@ pub fn op_min(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         if left < right {
@@ -1164,12 +1161,12 @@ pub fn op_min(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_max(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_max(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(2) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem1 = context.stack_pop_as_element()?;
@@ -1177,7 +1174,7 @@ pub fn op_max(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(left), Token::Element(right)) = (elem1, elem2) {
         if left.len() > 4 || right.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         if left > right {
@@ -1189,12 +1186,12 @@ pub fn op_max(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn op_within(context: &mut Context) -> Result<bool, ContextError> {
+pub fn op_within(context: &mut Context) -> StdResult<bool> {
     if !context.stack_has_enough_items(3) {
-        return Err(ContextError::NotEnoughItemsInStack);
+        Err("not_enough_items_in_stack")?;
     }
 
     let elem_min = context.stack_pop_as_element()?;
@@ -1203,7 +1200,7 @@ pub fn op_within(context: &mut Context) -> Result<bool, ContextError> {
 
     if let (Token::Element(min), Token::Element(max), Token::Element(e)) = (elem_min, elem_max, elem) {
         if min.len() > 4 || max.len() > 4 || e.len() > 4 {
-            return Err(ContextError::InputLengthTooLong);
+            Err("input_length_too_long")?;
         }
 
         let boolean = if e >= min && e < max {
@@ -1216,28 +1213,28 @@ pub fn op_within(context: &mut Context) -> Result<bool, ContextError> {
         return Ok(true);
     }
 
-    Err(ContextError::NotAnElement)
+    Err("not_an_element")?
 }
 
-pub fn not_implemented(_context: &mut Context) -> Result<bool, ContextError> {
+pub fn not_implemented(_context: &mut Context) -> StdResult<bool> {
     unimplemented!("command not implemented")
 }
 
-pub fn deprecated(_context: &mut Context) -> Result<bool, ContextError> {
-    Err(ContextError::DeprecatedOpCode)
+pub fn deprecated(_context: &mut Context) -> StdResult<bool> {
+    Err("deprecated_opcode")?
 }
 
-pub fn reserved(_context: &mut Context) -> Result<bool, ContextError> {
-    Err(ContextError::ExitByReserved)
+pub fn reserved(_context: &mut Context) -> StdResult<bool> {
+    Err("exit_by_reserved")?
 }
 
-pub fn ignored(_context: &mut Context) -> Result<bool, ContextError> {
+pub fn ignored(_context: &mut Context) -> StdResult<bool> {
     Ok(true)
 }
 
 // invalid if used in script
-pub fn invalid(_context: &mut Context) -> Result<bool, ContextError> {
-    Err(ContextError::InvalidOpCode)
+pub fn invalid(_context: &mut Context) -> StdResult<bool> {
+    Err("invalid_opcode")?
 }
 
 #[cfg(test)]

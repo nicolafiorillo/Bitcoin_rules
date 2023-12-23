@@ -1,8 +1,11 @@
 use std::fmt::{Display, Formatter};
 
-use crate::{scripting::script_lang::ScriptLang, std_lib::varint::varint_encode};
+use crate::{
+    scripting::script_lang::ScriptLang,
+    std_lib::{std_result::StdResult, varint::encode},
+};
 
-use super::{tx_error::TxError, tx_lib::varint_decode};
+use super::tx_lib::varint_decode;
 
 #[derive(Debug, Clone)]
 pub struct Script {
@@ -30,7 +33,7 @@ impl Script {
         Script::new_from_raw(Vec::<u8>::new())
     }
 
-    pub fn deserialize(serialized: &[u8], cursor: usize) -> Result<(Self, usize), TxError> {
+    pub fn deserialize(serialized: &[u8], cursor: usize) -> StdResult<(Self, usize)> {
         let mut cur = cursor;
 
         let scriptsig_length = varint_decode(serialized, cur)?;
@@ -45,7 +48,7 @@ impl Script {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        let length = varint_encode(self.raw.len() as u64);
+        let length = encode(self.raw.len() as u64);
         [length.as_slice(), self.raw.as_slice()].concat()
     }
 }

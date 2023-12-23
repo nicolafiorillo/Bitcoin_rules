@@ -4,16 +4,17 @@ use crate::{
     flags::sighash::SigHash,
     keys::key::Key,
     scripting::{script_lang::ScriptLang, token::Token},
+    std_lib::std_result::StdResult,
 };
 
-use super::{script::Script, tx::Tx, tx_error::TxError};
+use super::{script::Script, tx::Tx};
 
 pub fn generate_input_signature(
     tx: &Tx,
     input_index: usize,
     private_key: &Integer,
     script: Script,
-) -> Result<Script, TxError> {
+) -> StdResult<Script> {
     let z = tx.hash_signature(input_index, script);
 
     let key = Key::new(private_key.clone());

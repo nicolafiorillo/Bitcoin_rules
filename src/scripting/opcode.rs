@@ -1,13 +1,12 @@
 use once_cell::sync::Lazy;
 use std::ops::Range;
 
-use super::{
-    context::{Context, ContextError},
-    opcode_fn::*,
-};
+use crate::std_lib::std_result::StdResult;
+
+use super::{context::Context, opcode_fn::*};
 
 // TODO: why exit with bool?
-type CommandExec = fn(&mut Context) -> Result<bool, ContextError>;
+type CommandExec = fn(&mut Context) -> StdResult<bool>;
 
 #[derive(Debug, Copy, Clone)]
 pub struct OpCodeInfo {

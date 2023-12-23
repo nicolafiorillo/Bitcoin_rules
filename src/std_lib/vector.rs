@@ -1,4 +1,4 @@
-use std::num::ParseIntError;
+use super::std_result::StdResult;
 
 /// u8 Msf vector to Msf array with 32 bytes fixed length.
 pub fn vect_to_array_32(v: &[u8]) -> [u8; 32] {
@@ -10,7 +10,7 @@ pub fn vect_to_array_32(v: &[u8]) -> [u8; 32] {
 }
 
 /// u8 byte array from hex string (two chars for single byte).
-pub fn string_to_bytes(s: &str) -> Result<Vec<u8>, ParseIntError> {
+pub fn string_to_bytes(s: &str) -> StdResult<Vec<u8>> {
     let mut input: String = s.to_string();
     if s.len() % 2 != 0 {
         input = format!("0{}", s);

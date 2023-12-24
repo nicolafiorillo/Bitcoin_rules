@@ -1,7 +1,7 @@
 use rug::Integer;
 
 use crate::{
-    chain::tx::get_transaction,
+    chain::transaction::get_transaction,
     scripting::{
         context::Context,
         script_lang::ScriptLang,
@@ -196,7 +196,7 @@ mod verification_test {
     use rug::Integer;
 
     use crate::{
-        chain::tx::get_transaction, flags::network::Network, scripting::token::Token,
+        chain::transaction::get_transaction, flags::network::Network, scripting::token::Token,
         std_lib::integer_extended::IntegerExtended,
     };
 

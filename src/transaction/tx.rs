@@ -394,7 +394,7 @@ mod tx_test {
         let previous_transaction_id =
             Integer::from_hex_str("d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849");
         let previous_tx_index: usize = 0;
-        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let previous_transaction = chain::transaction::get_transaction(&previous_transaction_id, network).unwrap();
         let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
         let script_pub_key = output_transaction.script_pub_key.clone();
 
@@ -437,7 +437,7 @@ mod tx_test {
         let previous_transaction_id =
             Integer::from_hex_str("d896ef1f6c32fc3857b0116cab5067c862a3dc81f295e923e4b22be69115c849");
         let previous_tx_index: usize = 0;
-        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let previous_transaction = chain::transaction::get_transaction(&previous_transaction_id, network).unwrap();
         let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
         let script_pub_key = output_transaction.script_pub_key.clone();
 
@@ -480,7 +480,7 @@ mod tx_test {
 
         let previous_transaction_id =
             Integer::from_hex_str("66142ec32e651f7f5dc0c23cfc4e7a43bc4ba2971196f88ad5ff27477cf57d8c");
-        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let previous_transaction = chain::transaction::get_transaction(&previous_transaction_id, network).unwrap();
 
         let output_transaction_0 = previous_transaction.output(0).unwrap();
         let script_pub_key_0 = output_transaction_0.script_pub_key.clone();
@@ -535,7 +535,7 @@ mod tx_test {
         let previous_transaction_id =
             Integer::from_hex_str("c843441a5e6d6a3b47a686cafa862951d649fea242f016d486dc20d74fa9f61c");
         let previous_tx_index: usize = 0;
-        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let previous_transaction = chain::transaction::get_transaction(&previous_transaction_id, network).unwrap();
         let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
         let script_pub_key = output_transaction.script_pub_key.clone();
 
@@ -580,7 +580,7 @@ mod tx_test {
         let previous_transaction_id =
             Integer::from_hex_str("b3da0e148a202833a4dca8a3f5d0cc336c26e0cd4e213b9cc8c6b6bce69423ce");
         let previous_tx_index: usize = 1;
-        let previous_transaction = chain::tx::get_transaction(&previous_transaction_id, network).unwrap();
+        let previous_transaction = chain::transaction::get_transaction(&previous_transaction_id, network).unwrap();
         let output_transaction = previous_transaction.output(previous_tx_index).unwrap();
         let script_pub_key = output_transaction.script_pub_key.clone();
 

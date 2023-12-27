@@ -27,6 +27,18 @@ pub static MAINNET: Lazy<HashMap<Integer, Header>> = Lazy::new(|| {
     let (id, tx) = get_id_to_header("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048", "010000006fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e61bc6649ffff001d01e36299");
     h.insert(id, tx);
 
+    // block with BIP34 (version 2)
+    let (id, tx) = get_id_to_header("00000000000000d0dfd4c9d588d325dce4f32c1b31b7c0064cba7025a9b9adcc", "02000000b64ea7b7615283a01d9d6019f5bfbd694d2a534ca87a7d07aa0100000000000045ff55adc8d6bc183e9abfa7bdfef3e7b942d786dcd116e776ead8238451a238ac204f516e81021ad0f8cd01");
+    h.insert(id, tx);
+
+    // block with BIP66 (version 3)
+    let (id, tx) = get_id_to_header("00000000000000001121383bdf780af5290a88dcba88ad38c6be5369f4b6023b", "030000000d6ef1e411382c00d8fd5b9d0f1acb1748e4d3de33e4320500000000000000009437e2c5a160c8e40050354ba7eb0ad0df925da3c277d0e2ae7887cab9cd4a8e137f74558b1a1718d1d2bcad");
+    h.insert(id, tx);
+
+    // block with BIP65 (version 4)
+    let (id, tx) = get_id_to_header("0000000000000000098702b1f6f35cc002871e012dbdb383978d4d5ffc8b6617", "040000001cc480a37c0c176d109c45dbdb1289e0ebe83415c5218c0d000000000000000067feb9733954f8a3cb49e9fd0f290952ead9693cae85781e83298bf5dacb6bfd01d64f5689b21018078ee0f5");
+    h.insert(id, tx);
+
     h
 });
 

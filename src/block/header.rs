@@ -221,4 +221,31 @@ mod header_test {
             "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F"
         );
     }
+
+    #[test]
+    pub fn version_2_for_a_block_with_bip34() {
+        let block_id: Integer =
+            Integer::from_hex_str("00000000000000d0dfd4c9d588d325dce4f32c1b31b7c0064cba7025a9b9adcc");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert_eq!(2, header.version);
+    }
+
+    #[test]
+    pub fn version_3_for_a_block_with_bip66() {
+        let block_id: Integer =
+            Integer::from_hex_str("00000000000000001121383bdf780af5290a88dcba88ad38c6be5369f4b6023b");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert_eq!(3, header.version);
+    }
+
+    #[test]
+    pub fn version_4_for_a_block_with_bip65() {
+        let block_id: Integer =
+            Integer::from_hex_str("0000000000000000098702b1f6f35cc002871e012dbdb383978d4d5ffc8b6617");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert_eq!(4, header.version);
+    }
 }

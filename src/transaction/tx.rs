@@ -75,7 +75,7 @@ impl Tx {
     }
 
     pub fn id(&self) -> String {
-        format!("{:02X}", Self::hash(&self.serialize()))
+        format!("{:064X}", Self::hash(&self.serialize()))
     }
 
     pub fn outputs(&self, index: usize) -> &TxOut {

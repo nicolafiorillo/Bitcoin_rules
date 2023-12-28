@@ -9,3 +9,8 @@ The block height is serialized as a 4-byte integer as first element in the coinb
 Its primary purpose is to avoid having the same id for different coinbase transactions (in different blocks), including a serialized block height in it.
 This alse ensures that the block's height is permanently recorded within the chain, making it easily accessible without having to parse the entire chain history.
 
+### BIP 9
+BIP 9 is a method of rolling out soft forks in a way that allows miners to signal that they are ready and willing to upgrade, while providing a fail-safe mechanism that automatically activates the soft fork after a certain period of time.
+However, BIP 9 does not specify how the soft fork is to be implemented, only how it is to be signaled.
+
+Current assignments: https://github.com/bitcoin/bips/blob/master/bip-0009/assignments.mediawiki

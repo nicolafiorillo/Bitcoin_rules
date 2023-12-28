@@ -25,6 +25,10 @@ pub struct Header {
 
 static HEADER_LENGTH: usize = 80;
 
+static BIP9_POS: usize = 29;
+static BIP91_POS: usize = 4;
+static BIP141_POS: usize = 1;
+
 impl Header {
     pub fn new(
         version: Version,
@@ -117,12 +121,28 @@ impl Header {
     }
 }
 
+macro_rules! bip_flag_is_on {
+    ($f:ident, $p:ident) => {
+        pub fn $f(version: u32) -> bool {
+            (version >> $p & 1) == 1
+        }
+    };
+}
+
+// Current assignments: https://github.com/bitcoin/bips/blob/master/bip-0009/assignments.mediawiki
+pub fn bip9(version: u32) -> bool {
+    version >> BIP9_POS == 1 //0b001
+}
+
+bip_flag_is_on!(bip91, BIP91_POS);
+bip_flag_is_on!(bip141, BIP141_POS);
+
 #[cfg(test)]
 mod header_test {
     use rug::Integer;
 
     use crate::{
-        block::header,
+        block::header::{self, *},
         chain::header::get_header,
         flags::network::Network,
         std_lib::{
@@ -247,5 +267,32 @@ mod header_test {
         let header = get_header(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(4, header.version);
+    }
+
+    #[test]
+    pub fn version_with_bip9() {
+        let block_id: Integer =
+            Integer::from_hex_str("000000000000000006e35d6675fb0fec767a5f3b346261a5160f6e2a8d258070");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert!(bip9(header.version));
+    }
+
+    #[test]
+    pub fn version_with_bip91() {
+        let block_id: Integer =
+            Integer::from_hex_str("0000000000000000015411ca4b35f7b48ecab015b14de5627b647e262ba0ec40");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert!(bip91(header.version));
+    }
+
+    #[test]
+    pub fn version_with_bip141() {
+        let block_id: Integer =
+            Integer::from_hex_str("0000000000000000015411ca4b35f7b48ecab015b14de5627b647e262ba0ec40");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        assert!(bip141(header.version));
     }
 }

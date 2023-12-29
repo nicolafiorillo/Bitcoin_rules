@@ -35,7 +35,7 @@ impl Display for UserKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "privkey: {:}\npubkey:  {:} (len: {:})\naddress: {:}",
+            "privkey: {:}\npubkey: {:} (len: {:})\naddress: {:}",
             self.secret,
             bytes_to_string(&self.pubkey),
             self.pubkey.len(),

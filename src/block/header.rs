@@ -1,8 +1,14 @@
-use rug::{integer::Order, ops::Pow, Integer};
+use std::fmt::{Display, Formatter};
+
+use rug::{integer::Order, ops::Pow, Float, Integer};
 
 use crate::{
     hashing::hash256::hash256,
-    std_lib::{std_result::StdResult, vector::padding_right},
+    std_lib::{
+        integer_extended::IntegerExtended,
+        std_result::StdResult,
+        vector::{bytes_to_string_64, padding_right},
+    },
     transaction::tx_lib::le_bytes_to_u32,
 };
 
@@ -28,6 +34,24 @@ static HEADER_LENGTH: usize = 80;
 static BIP9_POS: usize = 29;
 static BIP91_POS: usize = 4;
 static BIP141_POS: usize = 1;
+
+impl Display for Header {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let target = target(self.bits);
+
+        writeln!(
+            f,
+            "version: {:}\nprevious_block: {:}\nmerkle_root: {:}\ntimestamp: {:}\nbits: {:}\nnonce: {:}\n\ntarget: {:}",
+            self.version,
+            bytes_to_string_64(&self.previous_block.to_digits(Order::Msf)),
+            bytes_to_string_64(&self.merkle_root.to_digits(Order::Msf)),
+            self.timestamp,
+            self.bits,
+            self.nonce,
+            bytes_to_string_64(&target.to_digits(Order::Msf)),
+        )
+    }
+}
 
 impl Header {
     pub fn new(
@@ -122,10 +146,20 @@ impl Header {
 }
 
 pub fn target(bits: Bits) -> Integer {
-    // TODO: check if exponend and coefficient must be positive.
     let exponent = bits >> 24;
+    assert!(exponent >= 3);
+
     let coefficient = Integer::from(bits & 0x007fffff);
     Integer::from(256).pow(exponent - 3) * coefficient
+}
+
+pub fn difficulty(target: Integer) -> Float {
+    // num: 0xFFFF * (256^(0x1d - 3))
+    let num = Integer::from_dec_str("26959535291011309493156476344723991336010898738574164086137773096960");
+
+    let f = Float::with_val(64, &num);
+
+    f / target
 }
 
 macro_rules! bip_flag_is_on {
@@ -328,5 +362,27 @@ mod header_test {
             "0000000000000000013CE9000000000000000000000000000000000000000000",
             target_hex
         );
+    }
+
+    #[test]
+    pub fn first_block_difficulty() {
+        let block_id: Integer =
+            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        let target = target(header.bits);
+        let difficulty = difficulty(target);
+
+        assert_eq!(1, difficulty);
+    }
+
+    #[test]
+    pub fn a_difficulty() {
+        let bytes = string_to_bytes("e93c0118").unwrap();
+        let target = target(le_bytes_to_u32(&bytes, 0).unwrap());
+
+        let difficulty = difficulty(target);
+
+        assert_eq!("888171856257.3206", difficulty.to_string_radix(10, Some(16)));
     }
 }

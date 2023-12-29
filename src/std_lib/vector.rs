@@ -31,6 +31,11 @@ pub fn bytes_to_string(bytes: &[u8]) -> String {
     strs.join("")
 }
 
+pub fn bytes_to_string_64(bytes: &[u8]) -> String {
+    let strs: Vec<String> = bytes.iter().map(|b| format!("{:02X}", b)).collect();
+    format!("{:0>64}", strs.join(""))
+}
+
 /// trim left leading byte
 pub fn trim_left(v: &[u8], value: u8) -> Vec<u8> {
     let mut l: usize = 0;
@@ -241,47 +246,83 @@ mod helper_test {
         assert_eq!(v, expected)
     }
 
-    #[test]
-    fn string_to_bytes_0() {
-        assert_eq!(string_to_bytes("").unwrap(), Vec::<u8>::new());
+    macro_rules! string_to_bytes {
+        ($s:literal, $v:expr, $f:ident) => {
+            #[test]
+            fn $f() {
+                assert_eq!(string_to_bytes($s).unwrap(), $v);
+            }
+        };
     }
 
-    #[test]
-    fn string_to_bytes_1() {
-        assert_eq!(string_to_bytes("0").unwrap(), vec![0]);
+    string_to_bytes!("", Vec::<u8>::new(), string_to_bytes_0);
+    string_to_bytes!("0", vec![0], string_to_bytes_1);
+    string_to_bytes!("00", vec![0], string_to_bytes_2);
+    string_to_bytes!("0101", vec![1, 1], string_to_bytes_3);
+    string_to_bytes!("101", vec![1, 1], string_to_bytes_4);
+    string_to_bytes!("FFFF", vec![0xFF, 0xFF], string_to_bytes_5);
+    string_to_bytes!("FFF", vec![0x0F, 0xFF], string_to_bytes_6);
+    string_to_bytes!("0FFF", vec![0x0F, 0xFF], string_to_bytes_7);
+    string_to_bytes!("0F0F", vec![0x0F, 0x0F], string_to_bytes_8);
+
+    macro_rules! bytes_to_string {
+        ($s:literal, $v:expr, $f:ident) => {
+            #[test]
+            fn $f() {
+                assert_eq!(bytes_to_string($v), $s);
+            }
+        };
     }
 
-    #[test]
-    fn string_to_bytes_2() {
-        assert_eq!(string_to_bytes("00").unwrap(), vec![0]);
+    bytes_to_string!("", &Vec::<u8>::new(), bytes_to_string_0);
+    bytes_to_string!("00", &vec![0], bytes_to_string_1);
+    bytes_to_string!("0101", &vec![1, 1], bytes_to_string_2);
+    bytes_to_string!("FFFF", &vec![0xFF, 0xFF], bytes_to_string_3);
+    bytes_to_string!("0FFF", &vec![0x0F, 0xFF], bytes_to_string_4);
+    bytes_to_string!("0F0F", &vec![0x0F, 0x0F], bytes_to_string_5);
+
+    macro_rules! bytes_to_string_64 {
+        ($s:literal, $v:expr, $f:ident) => {
+            #[test]
+            fn $f() {
+                assert_eq!(bytes_to_string_64($v), $s);
+            }
+        };
     }
 
-    #[test]
-    fn string_to_bytes_3() {
-        assert_eq!(string_to_bytes("0101").unwrap(), vec![1, 1]);
-    }
+    bytes_to_string_64!(
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        &Vec::<u8>::new(),
+        bytes_to_string_64_0
+    );
 
-    #[test]
-    fn string_to_bytes_4() {
-        assert_eq!(string_to_bytes("101").unwrap(), vec![1, 1]);
-    }
+    bytes_to_string_64!(
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        &vec![0],
+        bytes_to_string_64_1
+    );
 
-    #[test]
-    fn string_to_bytes_5() {
-        assert_eq!(string_to_bytes("101").unwrap(), vec![1, 1]);
-    }
+    bytes_to_string_64!(
+        "0000000000000000000000000000000000000000000000000000000000000101",
+        &vec![1, 1],
+        bytes_to_string_64_2
+    );
 
-    #[test]
-    fn string_to_bytes_6() {
-        assert_eq!(string_to_bytes("FFFF").unwrap(), vec![0xFF, 0xFF]);
-    }
+    bytes_to_string_64!(
+        "000000000000000000000000000000000000000000000000000000000000FFFF",
+        &vec![0xFF, 0xFF],
+        bytes_to_string_64_3
+    );
 
-    #[test]
-    fn string_to_bytes_7() {
-        assert_eq!(string_to_bytes("FFF").unwrap(), vec![0xF, 0xFF]);
-    }
-    #[test]
-    fn string_to_bytes_8() {
-        assert_eq!(string_to_bytes("0FFF").unwrap(), vec![0xF, 0xFF]);
-    }
+    bytes_to_string_64!(
+        "0000000000000000000000000000000000000000000000000000000000000FFF",
+        &vec![0x0F, 0xFF],
+        bytes_to_string_64_4
+    );
+
+    bytes_to_string_64!(
+        "0000000000000000000000000000000000000000000000000000000000000F0F",
+        &vec![0x0F, 0x0F],
+        bytes_to_string_64_5
+    );
 }

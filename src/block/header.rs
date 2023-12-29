@@ -1,4 +1,4 @@
-use rug::{integer::Order, Integer};
+use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
     hashing::hash256::hash256,
@@ -121,6 +121,13 @@ impl Header {
     }
 }
 
+pub fn target(bits: Bits) -> Integer {
+    // TODO: check if exponend and coefficient must be positive.
+    let exponent = bits >> 24;
+    let coefficient = Integer::from(bits & 0x007fffff);
+    Integer::from(256).pow(exponent - 3) * coefficient
+}
+
 macro_rules! bip_flag_is_on {
     ($f:ident, $p:ident) => {
         pub fn $f(version: u32) -> bool {
@@ -147,7 +154,7 @@ mod header_test {
         flags::network::Network,
         std_lib::{
             integer_extended::IntegerExtended,
-            vector::{self},
+            vector::{self, bytes_to_string_64, string_to_bytes},
         },
     };
 
@@ -294,5 +301,32 @@ mod header_test {
         let header = get_header(&block_id, Network::Mainnet).unwrap();
 
         assert!(bip141(header.version));
+    }
+
+    #[test]
+    pub fn first_block_target() {
+        let block_id: Integer =
+            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        let target = target(header.bits);
+        let target_hex = bytes_to_string_64(&target.to_digits(Order::Lsf));
+
+        assert_eq!(
+            "000000000000000000000000000000000000000000000000000000000000FFFF",
+            target_hex
+        );
+    }
+
+    #[test]
+    pub fn a_target() {
+        let bytes = string_to_bytes("e93c0118").unwrap();
+        let target = target(le_bytes_to_u32(&bytes, 0).unwrap());
+        let target_hex = bytes_to_string_64(&target.to_digits(Order::Msf));
+
+        assert_eq!(
+            "0000000000000000013CE9000000000000000000000000000000000000000000",
+            target_hex
+        );
     }
 }

@@ -162,6 +162,11 @@ pub fn difficulty(target: Integer) -> Float {
     f / target
 }
 
+pub fn check_proof_of_work(header: &Header, target: &Integer) -> bool {
+    let hash = Header::hash(&header.serialize());
+    hash <= *target
+}
+
 macro_rules! bip_flag_is_on {
     ($f:ident, $p:ident) => {
         pub fn $f(version: u32) -> bool {
@@ -193,7 +198,7 @@ mod header_test {
     };
 
     #[test]
-    pub fn deserialize_first_block() {
+    pub fn deserialize_genesis_block() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
         let header = get_header(&block_id, Network::Mainnet).unwrap();
@@ -230,7 +235,7 @@ mod header_test {
     }
 
     #[test]
-    pub fn serialize_first_block() {
+    pub fn serialize_genesis_block() {
         let header = header::Header::new(
             1,
             Integer::from(0),
@@ -266,7 +271,7 @@ mod header_test {
     }
 
     #[test]
-    pub fn id_first_block() {
+    pub fn id_genesis_block() {
         let header = header::Header::new(
             1,
             Integer::from(0),
@@ -338,7 +343,7 @@ mod header_test {
     }
 
     #[test]
-    pub fn first_block_target() {
+    pub fn genesis_block_target() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
         let header = get_header(&block_id, Network::Mainnet).unwrap();
@@ -365,7 +370,7 @@ mod header_test {
     }
 
     #[test]
-    pub fn first_block_difficulty() {
+    pub fn genesis_block_difficulty() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
         let header = get_header(&block_id, Network::Mainnet).unwrap();
@@ -384,5 +389,27 @@ mod header_test {
         let difficulty = difficulty(target);
 
         assert_eq!("888171856257.3206", difficulty.to_string_radix(10, Some(16)));
+    }
+
+    #[test]
+    pub fn verify_genesis_block_proof_of_work() {
+        let block_id: Integer =
+            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        let target = target(header.bits);
+
+        assert!(check_proof_of_work(&header, &target));
+    }
+
+    #[test]
+    pub fn verify_second_block_proof_of_work() {
+        let block_id: Integer =
+            Integer::from_hex_str("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048");
+        let header = get_header(&block_id, Network::Mainnet).unwrap();
+
+        let target = target(header.bits);
+
+        assert!(check_proof_of_work(&header, &target));
     }
 }

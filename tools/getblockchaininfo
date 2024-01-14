@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+HOST=192.168.178.54:8332
+COMMAND=getblockchaininfo
+
+curl --user $BITCOIN_RPC_USER:$BITCOIN_RPC_PASSWORD \
+--data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "'"$COMMAND"'", "params": []}' \
+-H "content-type: text/plain;" \
+http://192.168.178.54:8332/ -s | jq

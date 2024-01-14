@@ -41,6 +41,10 @@ getmininginfo
 
 sendtoaddress <hex_address> <amount>
 
+## bitcoincli RPC
+
+curl --user nicola:nicola --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "getblockchaininfo", "params": []}' -H 'content-type: text/plain;' http://@192.168.178.54:8332/
+
 ----
 openssl rand -hex 32
 

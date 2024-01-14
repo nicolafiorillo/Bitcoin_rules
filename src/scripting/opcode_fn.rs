@@ -37,6 +37,7 @@ macro_rules! op_n {
 
 // TODO: put function in code order
 // TODO: split in more files, one for each category
+// TODO: add documentation for each function
 
 op_n!(2, op_2);
 op_n!(3, op_3);

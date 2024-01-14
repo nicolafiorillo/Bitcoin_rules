@@ -29,7 +29,7 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Transaction output
   - [X] Transaction serialization and deserialization
   - [X] Transaction fees
-- [ ] Bitcoin scripting language (_*in progress now*_)
+- [X] Bitcoin scripting language
   - [ ] see [Opcodes](ROADMAP_OPS.md)
 - [ ] Transaction validation
   - [X] Pay-to-Public-Key (P2PK)
@@ -39,12 +39,13 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Pay-to-Script-Hash (P2SH, BIP13)
   Fees
   - [ ] Fee estimation (from external source)
-- [ ] Block structures and serialization
+- [ ] Block structures and serialization  (_*in progress now*_)
   - [ ] Proof-of-work
 - [ ] Peer-to-peer network
   - [ ] Peer discovery
   - [ ] Peer-to-peer communication
   - [ ] Peer-to-peer synchronization
+  - [ ] Gossip protocol
 - [ ] Payment protocol and verification
   - [ ] SPV
   - [ ] Merkle tree
@@ -70,6 +71,9 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Balance
   - [ ] History
   - [ ] Fee estimation (from local chain data)
+  - [ ] CoinJoin
+  - [ ] Coin selection
+  - [ ] Coin control
   - [ ] Hierarchical Deterministic (HD) key derivation
     - [ ] [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
     - [ ] [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
@@ -84,7 +88,6 @@ The project is ramping up and the roadmap has not time references or milestones.
 - [ ] Other
   - [ ] Multi-Party Computation (MPC)
   - [ ] Payjoin (BIP78)
-  - [ ] CoinJoin
   - [ ] Partially signed bitcoin transactions (BIP174, BIP370)
   - [ ] Stale-blocks
 

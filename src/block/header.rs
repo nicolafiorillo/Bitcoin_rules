@@ -91,7 +91,7 @@ impl Header {
     }
 
     pub fn deserialize(bytes: &[u8]) -> StdResult<Self> {
-        if bytes.len() != HEADER_LENGTH {
+        if bytes.len() < HEADER_LENGTH {
             Err("invalid_header_length")?;
         }
 
@@ -231,8 +231,6 @@ bip_flag_is_on!(bip141, BIP141_POS);
 
 #[cfg(test)]
 mod header_test {
-    use std::u32::MAX;
-
     use rug::Integer;
 
     use crate::{

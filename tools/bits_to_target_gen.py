@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-# import os
-# import util
-# import bitcoin
-# from bitcoin import *
+# Create test fixture for bits_to_target and target_to_bits functions
 
 MAX_BITS = 0x1D00FFFF
 MAX_TARGET = 0x00000000FFFF0000000000000000000000000000000000000000000000000000

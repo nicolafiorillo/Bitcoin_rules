@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# This script ask node for all blocks and write the difficulty and bits when changed to a csv file.
+
 import os
 import asyncio
 from bitcoinrpc import BitcoinRPC
@@ -18,7 +20,7 @@ FILENAME = "./difficulty_by_block.csv"
 FILENAME_LAST = "./difficulty_by_block.last"
 
 FROM_BLOCK_HEIGHT = 0
-TO_BLOCK_HEIGHT = 100000
+TO_BLOCK_HEIGHT = 826154
 BLOCK_HEIGH_LENGTH = TO_BLOCK_HEIGHT - FROM_BLOCK_HEIGHT
 
 def flush_tuple(file, current):

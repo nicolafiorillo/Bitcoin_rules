@@ -40,6 +40,8 @@ The project is ramping up and the roadmap has not time references or milestones.
   Fees
   - [ ] Fee estimation (from external source)
 - [ ] Block structures and serialization  (_*in progress now*_)
+  - [X] Block header
+  - [X] Target-bits-difficulty
   - [ ] Proof-of-work
 - [ ] Peer-to-peer network
   - [ ] Peer discovery

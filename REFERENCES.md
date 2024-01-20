@@ -31,6 +31,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Bitcoins the hard way: Using the raw Bitcoin protocol](http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html)
 - [MIT Bitcoin Club](https://www.youtube.com/@MITBitcoinClub/videos)
 - [What are hash functions used for in bitcoin?](https://bitcoin.stackexchange.com/questions/120418/what-are-hash-functions-used-for-in-bitcoin)
+- [The difficulty in the bitcoin protocol](https://leftasexercise.com/2018/06/04/the-difficulty-in-the-bitcoin-protocol/)
+- [Ch12: Something on Bits, Target, Difficulty](https://medium.com/@ackhor/ch12-something-on-bits-target-difficulty-f863134061fb)
 
 ### Books
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
@@ -46,6 +48,7 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [MIT, MAS.S62-Spring 2018, Cryptocurrency Engineering and Design](https://www.youtube.com/watch?v=l2iv2MiGaYI)
 - [bitcoin-curriculum](https://github.com/chaincodelabs/bitcoin-curriculum)
 - [Seminar for Bitcoin and Lightning protocol](https://chaincode.gitbook.io/seminars/)
+- [Plan B Network](https://planb.network/)
 
 ### Tools
 - [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
@@ -65,8 +68,5 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 ###  Communities
 - [Bitcoin Forum](https://bitcointalk.org/index.php)
 - [Bitcoin Stack Exchange](https://bitcoin.stackexchange.com/)
-
-<!-- Not verified yet:
-- [Bitcoin Core Slack](https://bitcoincore.slack.com/)
-- [Bitcoin Core IRC](https://bitcoincore.org/en/contact/)
-- [Bitcoin Core Mailing List](https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev) for development and protocol discussion. -->
+- [Delving Bitcoin](https://delvingbitcoin.org)
+- [Bitcoin Optech](https://bitcoinops.org/)

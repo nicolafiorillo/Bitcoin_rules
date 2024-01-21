@@ -19,9 +19,10 @@ RETRY_SLEEP = 10
 FILENAME = "./difficulty_by_block.csv"
 FILENAME_LAST = "./difficulty_by_block.last"
 
-FROM_BLOCK_HEIGHT = 0
-TO_BLOCK_HEIGHT = 826154
+FROM_BLOCK_HEIGHT = 826154
+TO_BLOCK_HEIGHT = 826671
 BLOCK_HEIGH_LENGTH = TO_BLOCK_HEIGHT - FROM_BLOCK_HEIGHT
+LAST_CURRENT=(824544, 826153, '1703d869', 73197634206448.34)
 
 def flush_tuple(file, current):
     file.write("{}, {}, 0x{}, {}\n".format(current[0], current[1], current[2], current[3]))
@@ -45,12 +46,12 @@ async def read_block(i):
 async def main():
         with Bar('Loading', fill='@', suffix='%(index)d/%(max)d - %(percent).1f%% - %(eta)ds', max=BLOCK_HEIGH_LENGTH) as bar:
             with open(FILENAME_LAST, "w") as file_last:
-                with open(FILENAME, "w") as file:
-                    file.write("FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT, BITS, DIFFICULTY\n")
+                with open(FILENAME, "a") as file:
+                    # file.write("FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT, BITS, DIFFICULTY\n")
 
-                    current = None
+                    current = LAST_CURRENT
 
-                    for i in range(FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT):
+                    for i in range(FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT + 1):
                         block = await read_block(i)
 
                         if current is None:

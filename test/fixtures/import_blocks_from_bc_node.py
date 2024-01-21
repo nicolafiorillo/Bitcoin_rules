@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# WORK IN PROGRESS
+
 # This script asks Bitcoin Core node for all blocks and write them in a relational db (PostgreSQL)
 
 import os

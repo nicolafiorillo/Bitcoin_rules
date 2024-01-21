@@ -1,0 +1,4 @@
+asyncio=3.4.3
+bitcoinrcp=0.6.1
+postgres=4.0
+progress=1.6

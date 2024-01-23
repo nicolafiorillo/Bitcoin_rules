@@ -7,11 +7,14 @@ use std::collections::HashMap;
 use crate::{
     block::header::Header,
     flags::network::Network,
-    std_lib::{integer_extended::IntegerExtended, std_result::StdResult, vector::string_to_bytes},
+    std_lib::{
+        fixture::load_fixture_file, integer_extended::IntegerExtended, std_result::StdResult,
+        vector::hex_string_to_bytes,
+    },
 };
 
 fn get_id_to_header(id: &str, header: &str) -> (Integer, Header) {
-    let s = string_to_bytes(header).unwrap();
+    let s = hex_string_to_bytes(header).unwrap();
     let h = Header::deserialize(&s).unwrap();
     let id = Integer::from_hex_str(id);
 
@@ -24,24 +27,36 @@ struct BlockFixture {
     pub block: String,
 }
 
-pub static MAINNET: Lazy<HashMap<Integer, Header>> = Lazy::new(|| {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let block_fixture = format!("{}/test/fixtures/blocks.csv", manifest_dir);
+struct NetworkFixture {
+    pub height_to_id: HeightToId,
+    pub id_to_header: IdToHeader,
+}
+
+type HeightToId = HashMap<u32, Integer>;
+type IdToHeader = HashMap<Integer, Header>;
+
+static MAINNET: Lazy<NetworkFixture> = Lazy::new(|| {
+    let block_fixture = load_fixture_file("blocks.csv");
 
     let blocks = read_blocks_from_fixture(&block_fixture);
 
-    let mut h: HashMap<Integer, Header> = HashMap::new();
+    let mut id_to_header: IdToHeader = HashMap::new();
+    let mut height_to_id: HeightToId = HashMap::new();
 
     for block in blocks {
         let (id, tx) = get_id_to_header(&block.id, &block.block);
-        h.insert(id, tx);
+        id_to_header.insert(id.clone(), tx);
+        height_to_id.insert(block.height, id);
     }
 
-    h
+    NetworkFixture {
+        height_to_id,
+        id_to_header,
+    }
 });
 
-fn read_blocks_from_fixture(block_fixture: &str) -> Vec<BlockFixture> {
-    let content = std::fs::read_to_string(block_fixture).unwrap();
+fn read_blocks_from_fixture(fixture: &str) -> Vec<BlockFixture> {
+    let content = std::fs::read_to_string(fixture).unwrap();
     let lines: Vec<&str> = content.lines().collect();
 
     let mut blocks = Vec::<BlockFixture>::new();
@@ -62,15 +77,36 @@ fn read_blocks_from_fixture(block_fixture: &str) -> Vec<BlockFixture> {
     blocks
 }
 
-pub static TESTNET: Lazy<HashMap<Integer, Header>> = Lazy::new(|| HashMap::new());
+static TESTNET: Lazy<NetworkFixture> = Lazy::new(|| NetworkFixture {
+    height_to_id: HashMap::new(),
+    id_to_header: HashMap::new(),
+});
 
-pub fn get_header(block_id: &Integer, network: Network) -> StdResult<&Header> {
+pub fn get_header_by_id(block_id: &Integer, network: Network) -> StdResult<&Header> {
     let h = match network {
-        Network::Testnet => &*TESTNET,
-        Network::Mainnet => &*MAINNET,
+        Network::Testnet => &(TESTNET.id_to_header),
+        Network::Mainnet => &(MAINNET.id_to_header),
     };
 
-    let header = h.get(block_id).ok_or("transaction_not_found")?;
+    let header = h.get(block_id).ok_or("block_not_found")?;
+
+    Ok(header)
+}
+
+pub fn get_header_by_height(block_height: &u32, network: Network) -> StdResult<&Header> {
+    let h = match network {
+        Network::Testnet => &(*TESTNET),
+        Network::Mainnet => &(*MAINNET),
+    };
+
+    let id = h
+        .height_to_id
+        .get(block_height)
+        .ok_or(format!("block_not_found_{block_height}"))?;
+    let header = h
+        .id_to_header
+        .get(id)
+        .ok_or(format!("block_not_found_{block_height}"))?;
 
     Ok(header)
 }

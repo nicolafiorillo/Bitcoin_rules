@@ -1244,7 +1244,7 @@ mod opcode_fn_test {
 
     use crate::{
         scripting::{opcode::*, token::Token},
-        std_lib::vector::string_to_bytes,
+        std_lib::vector::hex_string_to_bytes,
     };
 
     use super::*;
@@ -1252,7 +1252,7 @@ mod opcode_fn_test {
     #[test]
     #[should_panic(expected = "not implemented")]
     fn not_implemented_test() {
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
+        let pubkey = hex_string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
         let ops = vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)];
 
         let mut context = Context::new(ops, Integer::from(0));

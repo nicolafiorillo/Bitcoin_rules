@@ -48,13 +48,13 @@ impl Display for TxOut {
 
 #[cfg(test)]
 mod tx_out {
-    use crate::{std_lib::vector::string_to_bytes, transaction::script::Script};
+    use crate::{std_lib::vector::hex_string_to_bytes, transaction::script::Script};
 
     use super::TxOut;
 
     #[test]
     fn test_tx_out_serialize() {
-        let script_pub_key_content = string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
+        let script_pub_key_content = hex_string_to_bytes("76a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
 
         let script_pub_key = Script::new_from_raw(script_pub_key_content);
         let tx_out = TxOut::new(40000000, script_pub_key);
@@ -62,7 +62,7 @@ mod tx_out {
         let tx_out_serialized = tx_out.serialize();
 
         let expected_tx_out_serialized =
-            string_to_bytes("005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
+            hex_string_to_bytes("005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac").unwrap();
 
         assert_eq!(tx_out_serialized, expected_tx_out_serialized);
     }

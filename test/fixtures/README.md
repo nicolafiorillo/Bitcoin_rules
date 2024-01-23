@@ -12,7 +12,7 @@ Generates `./difficulty_by_block.csv` querying Bitcoin Core node.
 
 Result file containf all epochs (2016 blocks) and the difficulty for each block in the epoch.
 
-# `generate_blocks.py`
+# `blocks.py`
 
 Generates `./blocks.csv` querying Bitcoin Core node.
 

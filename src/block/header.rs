@@ -235,11 +235,11 @@ mod header_test {
 
     use crate::{
         block::header::{self, *},
-        chain::header::get_header,
+        chain::header::{get_header_by_height, get_header_by_id},
         flags::network::Network,
         std_lib::{
             integer_extended::IntegerExtended,
-            vector::{self, bytes_to_string_64, string_to_bytes},
+            vector::{self, bytes_to_string_64, hex_string_to_bytes},
         },
     };
 
@@ -247,7 +247,7 @@ mod header_test {
     pub fn deserialize_genesis_block() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(1, header.version);
         assert_eq!(Integer::from(0), header.previous_block);
@@ -264,7 +264,7 @@ mod header_test {
     pub fn deserialize_second_block() {
         let block_id: Integer =
             Integer::from_hex_str("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(1, header.version);
         assert_eq!(
@@ -338,7 +338,7 @@ mod header_test {
     pub fn version_2_for_a_block_with_bip34() {
         let block_id: Integer =
             Integer::from_hex_str("00000000000000d0dfd4c9d588d325dce4f32c1b31b7c0064cba7025a9b9adcc");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(2, header.version);
     }
@@ -347,7 +347,7 @@ mod header_test {
     pub fn version_3_for_a_block_with_bip66() {
         let block_id: Integer =
             Integer::from_hex_str("00000000000000001121383bdf780af5290a88dcba88ad38c6be5369f4b6023b");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(3, header.version);
     }
@@ -356,7 +356,7 @@ mod header_test {
     pub fn version_4_for_a_block_with_bip65() {
         let block_id: Integer =
             Integer::from_hex_str("0000000000000000098702b1f6f35cc002871e012dbdb383978d4d5ffc8b6617");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(4, header.version);
     }
@@ -365,7 +365,7 @@ mod header_test {
     pub fn version_with_bip9() {
         let block_id: Integer =
             Integer::from_hex_str("000000000000000006e35d6675fb0fec767a5f3b346261a5160f6e2a8d258070");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert!(bip9(header.version));
     }
@@ -374,7 +374,7 @@ mod header_test {
     pub fn version_with_bip91() {
         let block_id: Integer =
             Integer::from_hex_str("0000000000000000015411ca4b35f7b48ecab015b14de5627b647e262ba0ec40");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert!(bip91(header.version));
     }
@@ -383,7 +383,7 @@ mod header_test {
     pub fn version_with_bip141() {
         let block_id: Integer =
             Integer::from_hex_str("0000000000000000015411ca4b35f7b48ecab015b14de5627b647e262ba0ec40");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert!(bip141(header.version));
     }
@@ -392,7 +392,7 @@ mod header_test {
     pub fn genesis_block_target() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
         let target_hex = bytes_to_string_64(&target.to_digits(Order::Lsf));
@@ -407,7 +407,7 @@ mod header_test {
     pub fn genesis_block_difficulty() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
         let difficulty = difficulty(target);
@@ -417,7 +417,7 @@ mod header_test {
 
     #[test]
     pub fn a_difficulty() {
-        let bytes = string_to_bytes("e93c0118").unwrap();
+        let bytes = hex_string_to_bytes("e93c0118").unwrap();
         let target = bits_to_target(le_bytes_to_u32(&bytes, 0).unwrap());
 
         let difficulty = difficulty(target);
@@ -429,7 +429,7 @@ mod header_test {
     pub fn verify_genesis_block_proof_of_work() {
         let block_id: Integer =
             Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
 
@@ -440,7 +440,7 @@ mod header_test {
     pub fn verify_second_block_proof_of_work() {
         let block_id: Integer =
             Integer::from_hex_str("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048");
-        let header = get_header(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
 
@@ -449,10 +449,10 @@ mod header_test {
 
     #[test]
     pub fn verify_adjust_target_1() {
-        let first_block_serialized = string_to_bytes("00000020fdf740b0e49cf75bb3d5168fb3586f7613dcc5cd89675b0100000000000000002e37b144c0baced07eb7e7b64da916cd3121f2427005551aeb0ec6a6402ac7d7f0e4235954d801187f5da9f5").unwrap();
+        let first_block_serialized = hex_string_to_bytes("00000020fdf740b0e49cf75bb3d5168fb3586f7613dcc5cd89675b0100000000000000002e37b144c0baced07eb7e7b64da916cd3121f2427005551aeb0ec6a6402ac7d7f0e4235954d801187f5da9f5").unwrap();
         let first_block_header = Header::deserialize(&first_block_serialized).unwrap();
 
-        let last_block_serialized = string_to_bytes("000000201ecd89664fd205a37566e694269ed76e425803003628ab010000000000000000bfcade29d080d9aae8fd461254b041805ae442749f2a40100440fc0e3d5868e55019345954d80118a1721b2e").unwrap();
+        let last_block_serialized = hex_string_to_bytes("000000201ecd89664fd205a37566e694269ed76e425803003628ab010000000000000000bfcade29d080d9aae8fd461254b041805ae442749f2a40100440fc0e3d5868e55019345954d80118a1721b2e").unwrap();
         let last_block_header = Header::deserialize(&last_block_serialized).unwrap();
 
         let new_target = adjust_target(&first_block_header, &last_block_header);
@@ -466,10 +466,10 @@ mod header_test {
 
     fn verify_adjust_target(first: &str, last: &str, bits: u32, target: &str, diff: f64) {
         let first_block_id: Integer = Integer::from_hex_str(first);
-        let first_block_header = get_header(&first_block_id, Network::Mainnet).unwrap();
+        let first_block_header = get_header_by_id(&first_block_id, Network::Mainnet).unwrap();
 
         let last_block_id: Integer = Integer::from_hex_str(last);
-        let last_block_header = get_header(&last_block_id, Network::Mainnet).unwrap();
+        let last_block_header = get_header_by_id(&last_block_id, Network::Mainnet).unwrap();
 
         let new_target = adjust_target(&first_block_header, &last_block_header);
         let new_bits = target_to_bits(new_target.clone());
@@ -483,6 +483,19 @@ mod header_test {
 
         // difficutly is calculate from the target calculated AFTER compacting
         // target -> bits (compacting) -> target
+        let difficulty = difficulty(check_target).to_f64();
+        assert_eq!(diff, difficulty);
+    }
+
+    fn verify_difficulty(height_first: u32, height_last: u32, diff: f64) {
+        let first_block_header = get_header_by_height(&height_first, Network::Mainnet).unwrap();
+        let last_block_header = get_header_by_height(&height_last, Network::Mainnet).unwrap();
+
+        let new_target = adjust_target(&first_block_header, &last_block_header);
+        let new_bits = target_to_bits(new_target.clone());
+
+        let check_target = bits_to_target(new_bits);
+
         let difficulty = difficulty(check_target).to_f64();
         assert_eq!(diff, difficulty);
     }
@@ -518,6 +531,22 @@ mod header_test {
             "00000000BE710000000000000000000000000000000000000000000000000000",
             1.3442249707710294,
         )
+    }
+
+    #[test]
+    pub fn verify_difficulty_229824_to_231839() {
+        verify_difficulty(229824, 231839, 8974296.01488785)
+    }
+
+    // Round expected difficulty to match Bitcoin Core value: probabily Bitcoin Core algorithm has less precision.
+    #[test]
+    pub fn verify_difficulty_431424_to_433439() {
+        verify_difficulty(431424, 433439, 258522748404.5154 + 0.00004)
+    }
+
+    #[test]
+    pub fn verify_difficulty_633024_to_635039() {
+        verify_difficulty(633024, 635039, 15784744305477.41 - 0.002)
     }
 
     #[test]

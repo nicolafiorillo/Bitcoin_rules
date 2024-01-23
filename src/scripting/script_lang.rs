@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::std_lib::{
     std_result::StdResult,
-    vector::{bytes_to_string, string_to_bytes},
+    vector::{bytes_to_string, hex_string_to_bytes},
 };
 
 use super::{context::Context, opcode::*, token::Token};
@@ -106,7 +106,7 @@ impl ScriptLang {
             if let Some(op_code) = OP_TO_FN.iter().position(|op| op.name == item) {
                 items.push(Token::Command(op_code));
             } else {
-                match string_to_bytes(item) {
+                match hex_string_to_bytes(item) {
                     Ok(bytes) => items.push(Token::Element(bytes)),
                     Err(_) => Err("invalid_script_representation")?,
                 };
@@ -225,7 +225,7 @@ mod script_test {
         hashing::hash160::hash160,
         scripting::{opcode::*, standard, token::*},
         std_lib::varint::{decode, encode},
-        std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
+        std_lib::{integer_extended::IntegerExtended, vector::hex_string_to_bytes},
         wallet::key::new,
     };
 
@@ -260,8 +260,8 @@ mod script_test {
 
     #[test]
     fn serialize() {
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
-        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
+        let pubkey = hex_string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
+        let signature = hex_string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
         let pubkey_script = ScriptLang::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
@@ -273,14 +273,14 @@ mod script_test {
         let length = encode(serialized.len() as u64);
         serialized = [length, serialized].concat();
 
-        let expected = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
+        let expected = hex_string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
         assert_eq!(serialized, expected);
     }
 
     #[test]
     fn deserialize() {
-        let data = string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
+        let data = hex_string_to_bytes("8c483045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6014104887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34ac").unwrap();
 
         let var_int = decode(&data, 0).unwrap();
         let script = ScriptLang::deserialize(&data, var_int.value, var_int.length).unwrap();
@@ -288,8 +288,8 @@ mod script_test {
         let ScriptLang(tokens) = script;
 
         assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0], Token::Element(string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
-        assert_eq!(tokens[1], Token::Element(string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap()));
+        assert_eq!(tokens[0], Token::Element(hex_string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap()));
+        assert_eq!(tokens[1], Token::Element(hex_string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap()));
         assert_eq!(tokens[2], Token::Command(OP_CHECKSIG));
     }
 
@@ -301,14 +301,14 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        assert_eq!(op, Token::Element(string_to_bytes("0F").unwrap()));
+        assert_eq!(op, Token::Element(hex_string_to_bytes("0F").unwrap()));
     }
 
     #[test]
     fn evaluate_checksig() {
         let z: Integer = Integer::from_hex_str("7C076FF316692A3D7EB3C3BB0F8B1488CF72E1AFCD929E29307032997A838A3D");
-        let pubkey = string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
-        let signature = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
+        let pubkey = hex_string_to_bytes("04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34").unwrap();
+        let signature = hex_string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601").unwrap();
 
         let pubkey_script = ScriptLang::from_tokens(vec![Token::Element(pubkey), Token::Command(OP_CHECKSIG)]);
 
@@ -324,8 +324,8 @@ mod script_test {
     #[test]
     fn evaluate_checkmultisig_1_to_1() {
         let z: Integer = Integer::from_hex_str("6CD7818C2ED773A1B19348FEACA92AD664B45CD0");
-        let pubkey = string_to_bytes("02a130c1e1ffa137cf50824ece45fb648ce88cb5570870dc10cfdc8c5f30946861").unwrap();
-        let signature = string_to_bytes("3045022100bebe0c00a59a6c01231790fe8034508c06904289de0e3ddccb897d9cf5794b0202205e1ff2d6f060524bd7da2a598f5205759ef0911a695407999965527ba9629a2501").unwrap();
+        let pubkey = hex_string_to_bytes("02a130c1e1ffa137cf50824ece45fb648ce88cb5570870dc10cfdc8c5f30946861").unwrap();
+        let signature = hex_string_to_bytes("3045022100bebe0c00a59a6c01231790fe8034508c06904289de0e3ddccb897d9cf5794b0202205e1ff2d6f060524bd7da2a598f5205759ef0911a695407999965527ba9629a2501").unwrap();
 
         let script_sig = ScriptLang::from_tokens(vec![Token::Command(OP_0), Token::Element(signature)]);
         let script_multisig = ScriptLang::from_tokens(vec![
@@ -879,7 +879,7 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        let expected = string_to_bytes("D6A8A804D5BE366AE5D3A318CDCED1DC1CFE28EA").unwrap();
+        let expected = hex_string_to_bytes("D6A8A804D5BE366AE5D3A318CDCED1DC1CFE28EA").unwrap();
         assert_eq!(op, Token::Element(expected));
     }
 
@@ -893,7 +893,7 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        let expected = string_to_bytes("2AD16B189B68E7672A886C82A0550BC531782A3A4CFB2F08324E316BB0F3174D").unwrap();
+        let expected = hex_string_to_bytes("2AD16B189B68E7672A886C82A0550BC531782A3A4CFB2F08324E316BB0F3174D").unwrap();
         assert_eq!(op, Token::Element(expected));
     }
 
@@ -907,7 +907,7 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        let expected = string_to_bytes("2B4C342F5433EBE591A1DA77E013D1B72475562D48578DCA8B84BAC6651C3CB9").unwrap();
+        let expected = hex_string_to_bytes("2B4C342F5433EBE591A1DA77E013D1B72475562D48578DCA8B84BAC6651C3CB9").unwrap();
         assert_eq!(op, Token::Element(expected));
     }
 
@@ -921,7 +921,7 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        let expected = string_to_bytes("AC9231DA4082430AFE8F4D40127814C613648D8E").unwrap();
+        let expected = hex_string_to_bytes("AC9231DA4082430AFE8F4D40127814C613648D8E").unwrap();
         assert_eq!(op, Token::Element(expected));
     }
 
@@ -935,7 +935,7 @@ mod script_test {
 
         let op = context.stack_pop_as_element().unwrap();
 
-        let expected = string_to_bytes("F9D4B6DA252769BB4DE563C1FF4EECADDBE937F6").unwrap();
+        let expected = hex_string_to_bytes("F9D4B6DA252769BB4DE563C1FF4EECADDBE937F6").unwrap();
         assert_eq!(op, Token::Element(expected));
     }
 

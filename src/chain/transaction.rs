@@ -6,19 +6,19 @@ use std::collections::HashMap;
 
 use crate::{
     flags::network::Network,
-    std_lib::{integer_extended::IntegerExtended, std_result::StdResult, vector::string_to_bytes},
+    std_lib::{integer_extended::IntegerExtended, std_result::StdResult, vector::hex_string_to_bytes},
     transaction::tx::Tx,
 };
 
 fn get_id_to_transaction(id: &str, tx: &str, network: Network) -> (Integer, Tx) {
-    let s = string_to_bytes(tx).unwrap();
+    let s = hex_string_to_bytes(tx).unwrap();
     let tx = Tx::deserialize(&s, network).unwrap();
     let id = Integer::from_hex_str(id);
 
     (id, tx)
 }
 
-pub static MAINNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
+static MAINNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
     let mut h: HashMap<Integer, Tx> = HashMap::new();
 
     let (id, tx) = get_id_to_transaction("ee51510d7bbabe28052038d1deb10c03ec74f06a79e21913c6fcf48d56217c87", "010000000456919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e010000006a47304402204585bcdef85e6b1c6af5c2669d4830ff86e42dd205c0e089bc2a821657e951c002201024a10366077f87d6bce1f7100ad8cfa8a064b39d4e8fe4ea13a7b71aa8180f012102f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7feffffffeb8f51f4038dc17e6313cf831d4f02281c2a468bde0fafd37f1bf882729e7fd3000000006a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937feffffff567bf40595119d1bb8a3037c356efd56170b64cbcc160fb028fa10704b45d775000000006a47304402204c7c7818424c7f7911da6cddc59655a70af1cb5eaf17c69dadbfc74ffa0b662f02207599e08bc8023693ad4e9527dc42c34210f7a7d1d1ddfc8492b654a11e7620a0012102158b46fbdff65d0172b7989aec8850aa0dae49abfb84c81ae6e5b251a58ace5cfeffffffd63a5e6c16e620f86f375925b21cabaf736c779f88fd04dcad51d26690f7f345010000006a47304402200633ea0d3314bea0d95b3cd8dadb2ef79ea8331ffe1e61f762c0f6daea0fabde022029f23b3e9c30f080446150b23852028751635dcee2be669c2a1686a4b5edf304012103ffd6f4a67e94aba353a00882e563ff2722eb4cff0ad6006e86ee20dfe7520d55feffffff0251430f00000000001976a914ab0c0b2e98b1ab6dbf67d4750b0a56244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac46430600", Network::Mainnet);
@@ -65,7 +65,7 @@ pub static MAINNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
     h
 });
 
-pub static TESTNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
+static TESTNET: Lazy<HashMap<Integer, Tx>> = Lazy::new(|| {
     let mut h: HashMap<Integer, Tx> = HashMap::new();
 
     let (id, tx) = get_id_to_transaction("2ad00c8e79a0c62c613d51e4669a14a4a94302e487be38ce1316a2ecc705c646", "02000000000101e45b8c2d10d7e9f07576a26be6718b757eef2a65ee2351c637ef0525c29b00510000000000fdffffff0254190000000000001976a9144e751caf280c92cf55acd30eca7496c5d3035c7188acf0280600000000001976a914ac2b405552de8eb684026585291c3bc9ccc990d088ac02473044022022488350b70ab58762538aaa57877ddcfdad928383cbae4d6432eb3633dd2ac702204f6fa1f26940e9be4fe316a85f30a75bcc70fe85c2b3650e334ae764e362eb0c0121021d8fa1f4bf367a9d81dfd2e0003cb6aa5a2001522ccec1d16de3fdbce937fcb674a32600", Network::Testnet);

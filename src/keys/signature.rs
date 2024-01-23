@@ -124,7 +124,7 @@ mod signature_test {
     use crate::{
         bitcoin::ecdsa::{G, N, P},
         ecdsa::{field_element::FieldElement, point::Point},
-        std_lib::{integer_extended::IntegerExtended, vector::string_to_bytes},
+        std_lib::{integer_extended::IntegerExtended, vector::hex_string_to_bytes},
     };
 
     #[test]
@@ -168,7 +168,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_length_less_than_9() {
-        let der = string_to_bytes("3045022037206a06").unwrap();
+        let der = hex_string_to_bytes("3045022037206a06").unwrap();
 
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
@@ -178,7 +178,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_length_more_than_73() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec000000").unwrap();
+        let der = hex_string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec000000").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_signature_length"
@@ -187,7 +187,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_length_more_than_73_2() {
-        let der = string_to_bytes("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        let der = hex_string_to_bytes("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_signature_length"
@@ -196,7 +196,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_initial_marker() {
-        let der = string_to_bytes("3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
+        let der = hex_string_to_bytes("3145022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_initial_marker"
@@ -205,7 +205,8 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_missing_s() {
-        let der = string_to_bytes("302202200000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        let der =
+            hex_string_to_bytes("302202200000000000000000000000000000000000000000000000000000000000000000").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "missing_s_marker"
@@ -214,7 +215,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_r_marker() {
-        let der = string_to_bytes("3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
+        let der = hex_string_to_bytes("3045012037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_r_marker"
@@ -223,7 +224,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_r_length() {
-        let der = string_to_bytes("30140200021077777777777777777777777777777777").unwrap();
+        let der = hex_string_to_bytes("30140200021077777777777777777777777777777777").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_rs_lenght"
@@ -232,7 +233,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_marker() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
+        let der = hex_string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60121008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_s_marker"
@@ -241,7 +242,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_length() {
-        let der = string_to_bytes("30140210777777777777777777777777777777770200").unwrap();
+        let der = hex_string_to_bytes("30140210777777777777777777777777777777770200").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_rs_lenght"
@@ -268,7 +269,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_invalid_s_start() {
-        let der = string_to_bytes("301302107777777777777777777777777777777702").unwrap();
+        let der = hex_string_to_bytes("301302107777777777777777777777777777777702").unwrap();
         assert_eq!(
             Signature::new_from_der(der).err().unwrap().to_string(),
             "invalid_rs_start"
@@ -277,7 +278,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_1() {
-        let der = string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
+        let der = hex_string_to_bytes("3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c60221008ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6");
@@ -289,7 +290,7 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_2() {
-        let der = string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6").unwrap();
+        let der = hex_string_to_bytes("3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("00eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c");
@@ -301,15 +302,15 @@ mod signature_test {
 
     #[test]
     fn deserialize_a_der_signature_3() {
-        let der =
-            string_to_bytes("3024021077777777777777777777777777777777021077777777777777777777777777777777").unwrap();
+        let der = hex_string_to_bytes("3024021077777777777777777777777777777777021077777777777777777777777777777777")
+            .unwrap();
         assert!(Signature::new_from_der(der).is_ok());
     }
 
     #[test]
     fn deserialize_a_der_signature_4() {
         let der =
-            string_to_bytes("304402200060558477337b9022e70534f1fea71a318caf836812465a2509931c5e7c4987022078ec32bd50ac9e03a349ba953dfd9fe1c8d2dd8bdb1d38ddca844d3d5c78c118").unwrap();
+            hex_string_to_bytes("304402200060558477337b9022e70534f1fea71a318caf836812465a2509931c5e7c4987022078ec32bd50ac9e03a349ba953dfd9fe1c8d2dd8bdb1d38ddca844d3d5c78c118").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("0060558477337b9022e70534f1fea71a318caf836812465a2509931c5e7c4987");
@@ -322,7 +323,7 @@ mod signature_test {
     #[test]
     fn deserialize_a_der_signature_5() {
         let der =
-            string_to_bytes("304502202de8c03fc525285c9c535631019a5f2af7c6454fa9eb392a3756a4917c420edd02210046130bf2baf7cfc065067c8b9e33a066d9c15edcea9feb0ca2d233e3597925b4").unwrap();
+            hex_string_to_bytes("304502202de8c03fc525285c9c535631019a5f2af7c6454fa9eb392a3756a4917c420edd02210046130bf2baf7cfc065067c8b9e33a066d9c15edcea9feb0ca2d233e3597925b4").unwrap();
         let sig = Signature::new_from_der(der).unwrap();
 
         let expected_r = Integer::from_hex_str("2de8c03fc525285c9c535631019a5f2af7c6454fa9eb392a3756a4917c420edd");

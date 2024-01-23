@@ -25,7 +25,7 @@ BLOCK_HEIGH_LENGTH = TO_BLOCK_HEIGHT - FROM_BLOCK_HEIGHT
 LAST_CURRENT=(824544, 826153, '1703d869', 73197634206448.34)
 
 def flush_tuple(file, current):
-    file.write("{}, {}, 0x{}, {}\n".format(current[0], current[1], current[2], current[3]))
+    file.write("{},{},{},{}\n".format(current[0], current[1], current[2], current[3]))
     file.flush()
 
 async def read_block(i):

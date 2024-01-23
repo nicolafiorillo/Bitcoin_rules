@@ -208,7 +208,7 @@ mod private_key_test {
         keys::key::Key,
         std_lib::{
             integer_extended::IntegerExtended,
-            vector::{bytes_to_string, string_to_bytes},
+            vector::{bytes_to_string, hex_string_to_bytes},
         },
     };
 
@@ -281,7 +281,7 @@ mod private_key_test {
 
     #[test]
     fn deserialize_a_public_key_1() {
-        let point_serialized = string_to_bytes("04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10").unwrap();
+        let point_serialized = hex_string_to_bytes("04FFE558E388852F0120E46AF2D1B370F85854A8EB0841811ECE0E3E03D282D57C315DC72890A4F10A1481C031B03B351B0DC79901CA18A00CF009DBDB157A1D10").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(
@@ -296,7 +296,7 @@ mod private_key_test {
 
     #[test]
     fn deserialize_a_public_key_2() {
-        let point_serialized = string_to_bytes("04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06").unwrap();
+        let point_serialized = hex_string_to_bytes("04027F3DA1918455E03C46F659266A1BB5204E959DB7364D2F473BDF8F0A13CC9DFF87647FD023C13B4A4994F17691895806E1B40B57F4FD22581A4F46851F3B06").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(
@@ -311,7 +311,7 @@ mod private_key_test {
 
     #[test]
     fn deserialize_a_public_key_3() {
-        let point_serialized = string_to_bytes("04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121").unwrap();
+        let point_serialized = hex_string_to_bytes("04D90CD625EE87DD38656DD95CF79F65F60F7273B67D3096E68BD81E4F5342691F842EFA762FD59961D0E99803C61EDBA8B3E3F7DC3A341836F97733AEBF987121").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(
@@ -327,7 +327,7 @@ mod private_key_test {
     #[test]
     fn deserialize_a_compressed_public_key_1() {
         let point_serialized =
-            string_to_bytes("0357A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1").unwrap();
+            hex_string_to_bytes("0357A4F368868A8A6D572991E484E664810FF14C05C0FA023275251151FE0E53D1").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(
@@ -343,7 +343,7 @@ mod private_key_test {
     #[test]
     fn deserialize_a_compressed_public_key_2() {
         let point_serialized =
-            string_to_bytes("02933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701").unwrap();
+            hex_string_to_bytes("02933EC2D2B111B92737EC12F1C5D20F3233A0AD21CD8B36D0BCA7A0CFA5CB8701").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(
@@ -359,7 +359,7 @@ mod private_key_test {
     #[test]
     fn deserialize_a_compressed_public_key_3() {
         let point_serialized =
-            string_to_bytes("0296BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690").unwrap();
+            hex_string_to_bytes("0296BE5B1292F6C856B3C5654E886FC13511462059089CDF9C479623BFCBE77690").unwrap();
         let point = Point::deserialize(point_serialized);
 
         assert_eq!(

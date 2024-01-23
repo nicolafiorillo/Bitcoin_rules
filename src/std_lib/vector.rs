@@ -10,7 +10,7 @@ pub fn vect_to_array_32(v: &[u8]) -> [u8; 32] {
 }
 
 /// u8 byte array from hex string (two chars for single byte).
-pub fn string_to_bytes(s: &str) -> StdResult<Vec<u8>> {
+pub fn hex_string_to_bytes(s: &str) -> StdResult<Vec<u8>> {
     let mut input: String = s.to_string();
     if s.len() % 2 != 0 {
         input = format!("0{}", s);
@@ -24,6 +24,14 @@ pub fn string_to_bytes(s: &str) -> StdResult<Vec<u8>> {
     }
 
     Ok(res)
+}
+
+pub fn hex_string_to_u32(s: &str) -> StdResult<u32> {
+    let bytes = hex_string_to_bytes(s)?;
+    let mut arr: [u8; 4] = [0u8; 4];
+    arr.copy_from_slice(&bytes);
+
+    Ok(u32::from_be_bytes(arr))
 }
 
 pub fn bytes_to_string(bytes: &[u8]) -> String {
@@ -250,7 +258,7 @@ mod helper_test {
         ($s:literal, $v:expr, $f:ident) => {
             #[test]
             fn $f() {
-                assert_eq!(string_to_bytes($s).unwrap(), $v);
+                assert_eq!(hex_string_to_bytes($s).unwrap(), $v);
             }
         };
     }

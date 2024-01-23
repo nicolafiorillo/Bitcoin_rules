@@ -122,3 +122,105 @@ OP_GREATERTHANOREQUAL 	162 	0xa2 	a b 	out 	Returns 1 if a is greater than or eq
 OP_MIN 	163 	0xa3 	a b 	out 	Returns the smaller of a and b.
 OP_MAX 	164 	0xa4 	a b 	out 	Returns the larger of a and b.
 OP_WITHIN 	165 	0xa5 	x min max 	out 	Returns 1 if x is within the specified range (left-inclusive), 0 otherwise. 
+
+--------------------
+This is code for a potential functional test for the difficulty adjustment algorithm.
+Currently it read the difficulty from a csv file and verify that the Bitcoin_rules! algorithm for difficulty is correct for each epoch.
+Better read the difficulty from the blockchain instead of CSV file so I'm waiting for networking implementation.
+
+    #[test]
+    pub fn verify_difficult_for_blocks_from_csv() {
+        let difficulties_fixture = load_fixture_file("difficulty_by_block.csv");
+        let difficulties = read_difficulties_from_fixture(&difficulties_fixture);
+
+        for i in (0..difficulties.len() - 1).step_by(2) {
+            let from = difficulties[i].from_block;
+            let to = difficulties[i].to_block;
+
+            let total_blocks = (to - from) / 2015;
+            let mut current_block: u32 = 0;
+
+            let mut start: u32 = from;
+            let mut end: u32 = start + 2015;
+
+            while current_block < total_blocks {
+                let expected_difficulty = if current_block == (total_blocks - 1) {
+                    difficulties[i + 1].difficulty
+                } else {
+                    difficulties[i].difficulty
+                };
+
+                let first_block_header = get_header_by_height(&start, Network::Mainnet).unwrap();
+                let last_block_header = get_header_by_height(&end, Network::Mainnet).unwrap();
+
+                let new_target = adjust_target(&first_block_header, &last_block_header);
+                let new_bits = target_to_bits(new_target.clone());
+
+                let check_target = bits_to_target(new_bits);
+
+                let difficulty = difficulty(check_target).to_f64();
+
+                assert!(
+                    approx_equal(expected_difficulty, difficulty, 12),
+                    "{} vs {}",
+                    expected_difficulty.to_string(),
+                    difficulty.to_string()
+                );
+
+                current_block = current_block + 1;
+
+                start = end + 1;
+                end = start + 2015;
+            }
+        }
+    }
+
+    struct DifficultyBlockFixture {
+        pub from_block: u32,
+        pub to_block: u32,
+        pub bits: Bits,
+        pub difficulty: f64,
+    }
+
+    fn read_difficulties_from_fixture(fixture: &str) -> Vec<DifficultyBlockFixture> {
+        let content = std::fs::read_to_string(fixture).unwrap();
+        let lines: Vec<&str> = content.lines().collect();
+
+        let mut difficulties = Vec::<DifficultyBlockFixture>::new();
+
+        for line in lines {
+            if line.is_empty() {
+                continue;
+            }
+
+            let h: Vec<&str> = line.split(',').collect();
+            let from_block = h[0].parse::<u32>().unwrap();
+            let to_block = h[1].parse::<u32>().unwrap();
+
+            let bits = hex_string_to_u32(h[2]).unwrap();
+            let difficulty = h[3].parse::<f64>().unwrap();
+
+            difficulties.push(DifficultyBlockFixture {
+                from_block,
+                to_block,
+                bits,
+                difficulty,
+            });
+        }
+
+        difficulties
+    }
+
+    fn approx_equal(a: f64, b: f64, decimal_places: u8) -> bool {
+        let factor = 10.0f64.powi(decimal_places as i32);
+        let a = (a * factor).trunc();
+        let b = (b * factor).trunc();
+        a == b
+    }
+
+    let pow = (10.0_f64).powi(15);
+    let br_round = (pow * br).round() / pow;
+    println!("br_round: {}", br_round);
+
+--------------------
+

@@ -57,3 +57,9 @@ impl ConditionStack {
         }
     }
 }
+
+impl Default for ConditionStack {
+    fn default() -> Self {
+        Self::new()
+    }
+}

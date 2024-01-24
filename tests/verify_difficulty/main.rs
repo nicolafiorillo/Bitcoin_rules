@@ -1,20 +1,9 @@
-/*!
-Entry point
-*/
-
-// #![warn(
-//     missing_docs,
-//     clippy::missing_docs_in_private_items,
-//     clippy::missing_errors_doc,
-//     clippy::missing_panics_doc
-// )]
-
 fn main() {
     env_logger::init();
     println!("Bitcoin_rules! (ver. {})", version());
     println!("A Bitcoin node written in Rust for educational purposes.");
     println!();
-    println!("This is a work in progress: please do not use it in production.");
+    println!("Verifying difficulties.");
 }
 
 fn version() -> &'static str {

@@ -223,4 +223,20 @@ Better read the difficulty from the blockchain instead of CSV file so I'm waitin
     println!("br_round: {}", br_round);
 
 --------------------
+    #[test]
+    fn read_vault_version_okay() {
+        let src = include_str!("vault_version_get_okay.xml");
+        let should_be = Document {
+            response: VaultResponse {
+                uid: String::from("111111111"),
+                session_id: String::from("SESSION-ID"),
+                token: String::from("BASE64ENCODEDTOKEN="),
+                accounts_version: 198,
+            },
+        };
 
+        let got: Document = serde_xml_rs::from_str(src).unwrap();
+
+        assert_eq!(got, should_be);
+    }
+    

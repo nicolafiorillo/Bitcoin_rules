@@ -1,2 +1,5 @@
 [alias]
-to = "test -- --nocapture"
+ti = "test --test *"
+tl = "test --lib"
+tb = "test --bins"
+to = "t -- --nocapture"

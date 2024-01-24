@@ -23,6 +23,11 @@ impl TxOuts {
         outputs.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        let Self(outputs) = self;
+        outputs.is_empty()
+    }
+
     pub fn push(&mut self, o: TxOut) {
         let Self(outputs) = self;
         outputs.push(o);

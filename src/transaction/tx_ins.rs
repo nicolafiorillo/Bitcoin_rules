@@ -18,6 +18,11 @@ impl TxIns {
         inputs.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        let Self(inputs) = self;
+        inputs.is_empty()
+    }
+
     pub fn push(&mut self, i: TxIn) {
         let Self(inputs) = self;
         inputs.push(i);

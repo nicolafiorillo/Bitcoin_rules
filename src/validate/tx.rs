@@ -181,6 +181,8 @@ pub fn analyze(tx: &Tx) -> StdResult<AnalysisResult> {
         * A transaction can only include one NULL DATA locking script for it to be considered a standard transaction (meaning that it will be relayed by nodes).
         This is because a transaction with multiple NULL DATA outputs is considered a non-standard transaction, and will not be relayed by most nodes.
 
+        * Transaction must not contain more than one OP_RETURN output.
+
         * Max sigops: https://github.com/bitcoin/bitcoin/blob/d2b8c5e1234cdaff84bd1f60aea598d219cdac5e/src/policy/policy.h#L33
     */
 

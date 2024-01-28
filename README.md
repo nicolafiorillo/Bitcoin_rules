@@ -32,12 +32,11 @@ For the moment, you can build:
 ```
 cargo build
 ```
-_This produces warnings about unused code: this is normal at this stage because most of the code is not referrenced yet in `main`._
 
 Run the tests:
 
 ```
-cargo test
+cargo test --lib
 ```
 
 And run console app:

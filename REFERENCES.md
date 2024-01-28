@@ -4,6 +4,7 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 
 ## History
 - [The Complete Satoshi](https://satoshi.nakamotoinstitute.org/)
+- [The Bitcoin Legacy Project](https://www.thebitcoinlegacyproject.org/)
 
 ## Documentations, references, and articles
 - [Elliptic Curve Cryptography](docs/ecc/)

@@ -39,11 +39,12 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Pay-to-Script-Hash (P2SH, BIP13)
   Fees
   - [ ] Fee estimation (from external source)
-- [ ] Block structures and serialization  (_*in progress now*_)
+- [ ] Block structures and serialization
   - [X] Block header
   - [X] Target-bits-difficulty
   - [ ] Proof-of-work
 - [ ] Peer-to-peer network
+  - [ ] Network messages serialization and deserialization (_*in progress now*_)
   - [ ] Peer discovery
   - [ ] Peer-to-peer communication
   - [ ] Peer-to-peer synchronization

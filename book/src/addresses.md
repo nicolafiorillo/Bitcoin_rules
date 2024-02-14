@@ -39,6 +39,10 @@ Unlocking script:
   
     <sig> <pubKey>
 
+Notes:
+
+- most expensive
+
 ### Pay To Script Hash - P2SH
 Lock coins with some conditions.
 
@@ -57,6 +61,54 @@ Unlocking script:
   
     <TODO>
 
+Notes:
+
+- cheaper than P2PKH
+- hidden spending confditions
+
+### Native Segregated Witness - P2WPKH
+
+Starts with:
+
+| Example    | Network | version prefix |
+|            |         |                |
+| `bc1q...`  | mainnet |                |
+|            | testnet |                |
+
+Locking script:
+  
+    <TODO>
+
+Unlocking script:
+  
+    <TODO>
+
+Notes:
+
+- smaller transaction size
+- keeps signature and script outside the transaction
+- cheaper than P2SH
+
+### Taproot - P2TR
+
+Starts with:
+
+| Example    | Network | version prefix |
+|            |         |                |
+| `bc1p...`  | mainnet |                |
+|            | testnet |                |
+
+Locking script:
+  
+    <TODO>
+
+Unlocking script:
+  
+    <TODO>
+
+Notes:
+
+- improve privacy
 
 ## Other references
 

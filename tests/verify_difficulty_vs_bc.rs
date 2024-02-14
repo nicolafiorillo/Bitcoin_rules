@@ -50,7 +50,7 @@ mod verify_difficulty_test {
 
                 let check_target = bits_to_target(new_bits);
 
-                let difficulty = difficulty(check_target).to_f64();
+                let difficulty = difficulty(check_target);
 
                 assert_eq!(expected_difficulty, difficulty);
 

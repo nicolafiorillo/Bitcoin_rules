@@ -13,13 +13,13 @@ use crate::{
     bitcoin::ecdsa::P,
     flags::{compression::Compression, network::Network},
     keys::key::Key,
-    std_lib::vector::bytes_to_string,
+    std_lib::{rand::generate_rand_32, vector::bytes_to_string},
 };
 
 struct Seed(*const ());
 impl ThreadRandGen for Seed {
     fn gen(&mut self) -> u32 {
-        generate_seed()
+        generate_rand_32()
     }
 }
 
@@ -42,14 +42,6 @@ impl Display for UserKey {
             self.address,
         )
     }
-}
-
-// Some other ideas at https://blog.orhun.dev/zero-deps-random-in-rust/
-fn generate_seed() -> u32 {
-    use std::collections::hash_map::RandomState;
-    use std::hash::{BuildHasher, Hasher};
-
-    RandomState::new().build_hasher().finish() as u32
 }
 
 // Deep investigate using /dev/urandom

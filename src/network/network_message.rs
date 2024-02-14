@@ -41,17 +41,17 @@ impl NetworkMessage {
 
     pub fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
-        buf.extend(&self.magic.to_le_bytes());
+        buf.extend_from_slice(&self.magic.to_le_bytes());
 
-        buf.extend(self.command);
+        buf.extend_from_slice(&self.command);
 
         let lenght = self.payload.len() as u32;
-        buf.extend(lenght.to_le_bytes());
+        buf.extend_from_slice(&lenght.to_le_bytes());
 
         let payload_checksum = message_checksum(&self.payload);
 
-        buf.extend(payload_checksum);
-        buf.extend(self.payload.as_slice());
+        buf.extend_from_slice(&payload_checksum);
+        buf.extend_from_slice(&self.payload);
         buf
     }
 

@@ -5,6 +5,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 ## History
 - [The Complete Satoshi](https://satoshi.nakamotoinstitute.org/)
 - [The Bitcoin Legacy Project](https://www.thebitcoinlegacyproject.org/)
+- [The Incomplete History of Bitcoin Development](https://b10c.me/blog/004-the-incomplete-history-of-bitcoin-development/#)
+- [Bitcoin 101: past, present and future ](https://www.musclesatz.com/articles/bitcoin-past-present-future)
 
 ## Documentations, references, and articles
 - [Elliptic Curve Cryptography](docs/ecc/)
@@ -34,6 +36,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [What are hash functions used for in bitcoin?](https://bitcoin.stackexchange.com/questions/120418/what-are-hash-functions-used-for-in-bitcoin)
 - [The difficulty in the bitcoin protocol](https://leftasexercise.com/2018/06/04/the-difficulty-in-the-bitcoin-protocol/)
 - [Ch12: Something on Bits, Target, Difficulty](https://medium.com/@ackhor/ch12-something-on-bits-target-difficulty-f863134061fb)
+- [The Challenges of Optimizing Unspent Output Selection](https://blog.lopp.net/the-challenges-of-optimizing-unspent-output-selection/)
+- [How does block synchronization work in Bitcoin Core today?](https://bitcoin.stackexchange.com/questions/121292/how-does-block-synchronization-work-in-bitcoin-core-today)
 
 ### Books
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
@@ -65,6 +69,7 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Peter Todd](https://petertodd.org/)
 - [Hal Finney](https://en.wikipedia.org/wiki/Hal_Finney_(computer_scientist))
 - [Pieter Wuille](https://twitter.com/pwuille)
+- [Jimmi Song](https://medium.com/@jimmysong)
 
 ###  Communities
 - [Bitcoin Forum](https://bitcointalk.org/index.php)

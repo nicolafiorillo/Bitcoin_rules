@@ -186,13 +186,12 @@ pub fn target_to_bits(target: Integer) -> Bits {
     u32::from_be_bytes(v)
 }
 
-pub fn difficulty(target: Integer) -> Float {
+pub fn difficulty(target: Integer) -> f64 {
     // num: 0xFFFF * (256^(0x1d - 3))
     let num = Integer::from_dec_str("26959535291011309493156476344723991336010898738574164086137773096960");
-
     let f = Float::with_val(64, &num);
 
-    f / target
+    (f / target).to_f64()
 }
 
 pub fn check_proof_of_work(header: &Header, target: &Integer) -> bool {
@@ -412,7 +411,7 @@ mod header_test {
         let target = bits_to_target(header.bits);
         let difficulty = difficulty(target);
 
-        assert_eq!(1, difficulty);
+        assert_eq!(1.0, difficulty);
     }
 
     #[test]
@@ -422,7 +421,7 @@ mod header_test {
 
         let difficulty = difficulty(target);
 
-        assert_eq!("888171856257.3206", difficulty.to_string_radix(10, Some(16)));
+        assert_eq!(888171856257.3206, difficulty);
     }
 
     #[test]
@@ -483,8 +482,7 @@ mod header_test {
 
         // difficutly is calculate from the target calculated AFTER compacting
         // target -> bits (compacting) -> target
-        let difficulty = difficulty(check_target).to_f64();
-        assert_eq!(diff, difficulty);
+        assert_eq!(diff, difficulty(check_target));
     }
 
     fn verify_difficulty(height_first: u32, height_last: u32, diff: f64) {
@@ -496,7 +494,7 @@ mod header_test {
 
         let check_target = bits_to_target(new_bits);
 
-        let difficulty = difficulty(check_target).to_f64();
+        let difficulty = difficulty(check_target);
         assert_eq!(diff, difficulty);
     }
 

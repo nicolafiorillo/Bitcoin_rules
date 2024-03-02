@@ -1,0 +1,12 @@
+[package]
+name = "bitcoin_rules_cli"
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.72"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+env_logger = "0.10"
+log = "0.4"
+bitcoin_rules = { path = "../br_lib" }

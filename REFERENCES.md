@@ -64,6 +64,8 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Bitcoin's Academic Pedigree](https://queue.acm.org/detail.cfm?id=3136559) by [Arvind Narayanan](https://twitter.com/random_walker)
 - [BitBox02: Diceware lookup table ](https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf)
 - [Recovering Bitcoin private keys using weak signatures from the blockchain](https://web.archive.org/web/20160308014317/http://www.nilsschneider.net/2013/01/28/recovering-bitcoin-private-keys.html)
+- [Bitcoin private key database](https://isidoroghezzi.bitbucket.io/directory-js/?page=1&network=0)
+- [Satoshi - Sirius emails 2009-2011](https://mmalmi.github.io/satoshi/)
 
 ### People
 - [Peter Todd](https://petertodd.org/)

@@ -11,10 +11,16 @@ Entry point
 
 pub mod cli;
 
+use std::time::SystemTime;
+
 use crate::cli::command_line::{print_exit_help, run_command_line};
 
 fn main() {
     env_logger::init();
+    let now = SystemTime::now();
+
+    log::info!("Application started at {:?}", SystemTime::now());
+
     println!("Bitcoin_rules! (ver. {})", version());
     println!("A Bitcoin node written in Rust for educational purposes.");
     println!();
@@ -24,6 +30,7 @@ fn main() {
     run_command_line();
 
     println!("Bye.");
+    log::info!("Application stop at {:?}", SystemTime::now());
 }
 
 fn version() -> &'static str {

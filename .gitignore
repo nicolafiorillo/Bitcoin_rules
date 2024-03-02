@@ -3,5 +3,5 @@
 .private
 .mypy_cache
 ide
-
+*.log
 /.vscode

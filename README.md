@@ -1,5 +1,5 @@
 <div align="center">
- <img src="https://raw.githubusercontent.com/nicolafiorillo/Bitcoin_rules/main/images/bitcoin_rules.webp" width="800" alt="Bitcoin_rules!" style="border-radius: 5%">
+ <img src="https://raw.githubusercontent.com/nicolafiorillo/Bitcoin_rules/main/book/images/bitcoin_rules.webp" width="700" alt="Bitcoin_rules!" style="border-radius: 5%">
  <br>
  <strong>
    a Bitcoin (the protocol) node written in Rust mainly for educational purposes
@@ -12,7 +12,9 @@
 
 ## Motivation and other info
 
-> _What I cannot create, I do not understand - Richard Feynman_
+> _There's no better way to learn how something works than by trying to reproduce it._
+>
+> Paul Graham, "[How to Do Great Work](https://paulgraham.com/greatwork.html)"
 
 A Bitcoin node is the backbone of the Bitcoin network, functioning as a participant that validates transactions, maintains a copy of the blockchain, and ensure the integrity of the blockchain by enforcing consensus rules.
 
@@ -27,19 +29,19 @@ See [references](REFERENCES.md) for documentations, references, and articles use
 ## Getting started
 
 At time `main()` is almost empty. We are working on structures and algorithms.
-For the moment, you can build:
+For the moment, clone the repo and build it with:
 
-```
+```shell
 cargo build
 ```
 
 Run the tests:
 
-```
-cargo test --lib
+```shell
+cargo test --lib --bins
 ```
 
-And run console app:
+And run console (cli) app:
 
 ```
 cargo run

@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use bitcoin_rules::std_lib::std_result::StdResult;
+use brl::std_lib::std_result::StdResult;
 
 #[derive(Debug, PartialEq)]
 enum Command {

@@ -9,28 +9,20 @@ Entry point
 //     clippy::missing_panics_doc
 // )]
 
-mod command_line;
-use command_line::{print_exit_help, run_command_line};
-
 use tracing::Level;
 
-static LOG_FILE: &str = "brc.log";
+static LOG_FILE: &str = "brn.log";
 static LOG_DIR: &str = "./log";
 
 fn main() {
     init_log();
 
-    log::info!("Application started.");
+    log::info!("Bitcoin Rules! node started.");
 
-    println!("Bitcoin_rules! (ver. {}).", version());
-    println!("A Bitcoin node written in Rust for educational purposes.");
-    println!();
+    println!("Bitcoin_rules! node (ver. {}).", version());
     println!("This is a work in progress: please do not use in production.");
 
-    print_exit_help();
-    run_command_line();
-
-    log::info!("Application stopped.");
+    log::info!("Bitcoin Rules! stopped.");
 }
 
 fn version() -> &'static str {

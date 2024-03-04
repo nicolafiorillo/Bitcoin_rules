@@ -8,12 +8,12 @@
     but it will be changed to read from a real node (Bitcoin_rules! or Bitcoin Core).
 */
 
-extern crate bitcoin_rules;
+extern crate brl;
 
 #[cfg(test)]
 mod verify_difficulty_test {
 
-    use bitcoin_rules::{
+    use brl::{
         block::header::{adjust_target, bits_to_target, difficulty, target_to_bits},
         chain::header::get_header_by_height,
         flags::network::Network,

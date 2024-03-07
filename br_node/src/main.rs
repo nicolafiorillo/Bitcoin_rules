@@ -9,34 +9,24 @@ Entry point
 //     clippy::missing_panics_doc
 // )]
 
-use tracing::Level;
-
-static LOG_FILE: &str = "brn.log";
-static LOG_DIR: &str = "./log";
+mod config;
+use config::{load_config, Configuration};
 
 fn main() {
-    init_log();
+    env_logger::init();
 
-    log::info!("Bitcoin Rules! node started.");
+    log::info!("Application started.");
 
-    println!("Bitcoin_rules! node (ver. {}).", version());
-    println!("This is a work in progress: please do not use in production.");
+    let cfg: Configuration = load_config().unwrap();
+    log::info!("Configuration: {:?}", cfg);
 
-    log::info!("Bitcoin Rules! stopped.");
+    log::info!("Bitcoin_rules! node (ver. {}).", version());
+    log::info!("This is a work in progress: please do not use in production.");
+
+    log::info!("Application stopped.");
 }
 
 fn version() -> &'static str {
     const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
     VERSION.unwrap_or("unknown")
-}
-
-fn init_log() {
-    let file_appender = tracing_appender::rolling::hourly(LOG_DIR, LOG_FILE);
-
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
-
-    tracing_subscriber::fmt()
-        .with_writer(non_blocking)
-        .with_max_level(Level::TRACE)
-        .init();
 }

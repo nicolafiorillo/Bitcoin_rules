@@ -38,6 +38,10 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Ch12: Something on Bits, Target, Difficulty](https://medium.com/@ackhor/ch12-something-on-bits-target-difficulty-f863134061fb)
 - [The Challenges of Optimizing Unspent Output Selection](https://blog.lopp.net/the-challenges-of-optimizing-unspent-output-selection/)
 - [How does block synchronization work in Bitcoin Core today?](https://bitcoin.stackexchange.com/questions/121292/how-does-block-synchronization-work-in-bitcoin-core-today)
+- [Bloom Filters](https://samwho.dev/bloom-filters/)
+- [Testnet](https://bitcoinwiki.org/wiki/testnet)
+- [Networking](https://learnmeabitcoin.com/technical/networking/)
+- [P2SH](https://learnmeabitcoin.com/technical/script/p2sh/)
 
 ### Books
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
@@ -58,6 +62,7 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 ### Tools
 - [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
 - [Hashing Online Tools](https://emn178.github.io/online-tools/index.html)
+- [Bitnodes](https://bitnodes.io/)
 
 ### Interesting stuff
 - [REWARD offered for hash collisions for SHA1, SHA256, RIPEMD160 and other](https://bitcointalk.org/index.php?topic=293382.0) by [Peter Todd](https://twitter.com/peterktodd)
@@ -66,6 +71,10 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Recovering Bitcoin private keys using weak signatures from the blockchain](https://web.archive.org/web/20160308014317/http://www.nilsschneider.net/2013/01/28/recovering-bitcoin-private-keys.html)
 - [Bitcoin private key database](https://isidoroghezzi.bitbucket.io/directory-js/?page=1&network=0)
 - [Satoshi - Sirius emails 2009-2011](https://mmalmi.github.io/satoshi/)
+- [Know Your Coin Privacy](https://kycp.org/)
+- [Debugging Bitcoin Core](https://github.com/fjahr/debugging_bitcoin)
+- [Bitcoin Traffic Sniffer and Analyzer](https://www.codeproject.com/Articles/895917/Bitcoin-Traffic-Sniffer-and-Analyzer)
+- [TimechainStats](https://timechainstats.com/)
 
 ### People
 - [Peter Todd](https://petertodd.org/)

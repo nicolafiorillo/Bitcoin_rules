@@ -16,7 +16,7 @@ pub fn u32_to_le_bytes(v: u32) -> [u8; 4] {
     v.to_le_bytes()
 }
 
-pub fn u64_le_bytes(bytes: &[u8], from: usize) -> StdResult<u64> {
+pub fn le_bytes_to_u64(bytes: &[u8], from: usize) -> StdResult<u64> {
     if bytes.len() < (from + 8) {
         Err("invalid_8_bytes_length")?;
     }

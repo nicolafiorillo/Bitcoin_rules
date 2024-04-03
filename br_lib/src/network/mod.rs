@@ -1,3 +1,4 @@
+pub mod command;
 pub mod ip_address;
 pub mod network_address;
 pub mod network_message;

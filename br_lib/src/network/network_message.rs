@@ -1,16 +1,18 @@
 // https://en.bitcoin.it/wiki/Protocol_documentation
 
+use std::fmt::{Display, Formatter};
+
 use crate::{
     flags::network_magic::NetworkMagic, hashing::hash256::hash256, std_lib::std_result::StdResult,
     transaction::tx_lib::le_bytes_to_u32,
 };
 
-type Command = [u8; 12];
+use super::{
+    command::{Command, Commands, VERACK_COMMAND, VERSION_COMMAND},
+    version::Version,
+};
 
 static PAYLOAD_SIZE: usize = 32_000_000;
-
-pub const VERACK_COMMAND: Command = [0x76, 0x65, 0x72, 0x61, 0x63, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-pub const VERSION_COMMAND: Command = [0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x00, 0x00, 0x00, 0x00, 0x00];
 
 #[derive(Debug, Clone)]
 pub struct NetworkMessage {
@@ -25,7 +27,7 @@ fn message_checksum(payload: &[u8]) -> [u8; 4] {
 }
 
 impl NetworkMessage {
-    pub fn new(command: Command, payload: Vec<u8>, magic: NetworkMagic) -> StdResult<NetworkMessage> {
+    pub fn new(command: Command, payload: Vec<u8>, magic: NetworkMagic) -> StdResult<Self> {
         if payload.len() > PAYLOAD_SIZE {
             return Err("network_message_payload_too_big".into());
         }
@@ -43,7 +45,7 @@ impl NetworkMessage {
         let mut buf = Vec::new();
         buf.extend_from_slice(&self.magic.to_le_bytes());
 
-        buf.extend_from_slice(&self.command);
+        buf.extend_from_slice(&self.command.bytes);
 
         let lenght = self.payload.len() as u32;
         buf.extend_from_slice(&lenght.to_le_bytes());
@@ -55,14 +57,16 @@ impl NetworkMessage {
         buf
     }
 
-    pub fn deserialize(buf: &[u8], network: NetworkMagic) -> StdResult<NetworkMessage> {
+    pub fn deserialize(buf: &[u8], network: NetworkMagic) -> StdResult<Self> {
         let magic_int = le_bytes_to_u32(buf, 0)?;
         let magic: NetworkMagic = magic_int.into();
         if magic != network {
             return Err("network_message_magic_mismatch".into());
         }
 
-        let command: [u8; 12] = buf[4..16].try_into().unwrap();
+        let c: [u8; 12] = buf[4..16].try_into().unwrap();
+        let command = Command { bytes: c };
+
         let payload_lenght = le_bytes_to_u32(buf, 16)?;
         let payload_checksum: [u8; 4] = buf[20..24].try_into().unwrap();
 
@@ -86,9 +90,35 @@ impl NetworkMessage {
     }
 }
 
+impl From<NetworkMessage> for Commands {
+    fn from(val: NetworkMessage) -> Self {
+        match val.command {
+            VERACK_COMMAND => Commands::VerAck,
+            VERSION_COMMAND => {
+                let payload = Version::deserialize(&val.payload).unwrap();
+                Commands::Version(payload)
+            }
+            _ => panic!("unknown_command"),
+        }
+    }
+}
+
+impl Display for NetworkMessage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "magic: {}, command: {}, payload: {:?}",
+            self.magic, self.command, self.payload
+        )
+    }
+}
+
 #[cfg(test)]
 mod network_message_test {
-    use crate::std_lib::vector::{bytes_to_string, hex_string_to_bytes};
+    use crate::{
+        network::command::{VERACK_COMMAND, VERSION_COMMAND},
+        std_lib::vector::{bytes_to_string, hex_string_to_bytes},
+    };
 
     use super::*;
 

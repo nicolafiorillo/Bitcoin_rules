@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::{std_lib::std_result::StdResult, transaction::script::Script};
 
-use super::tx_lib::u64_le_bytes;
+use super::tx_lib::le_bytes_to_u64;
 
 #[derive(Debug, Clone)]
 pub struct TxOut {
@@ -18,7 +18,7 @@ impl TxOut {
     pub fn deserialize(serialized: &[u8], cursor: usize) -> StdResult<(Self, usize)> {
         let mut cur = cursor;
 
-        let amount = u64_le_bytes(serialized, cur)?;
+        let amount = le_bytes_to_u64(serialized, cur)?;
         cur += 8;
 
         let (script_pub_key, c) = Script::deserialize(serialized, cur)?;

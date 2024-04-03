@@ -1,9 +1,15 @@
-use crate::std_lib::varstring::VarString;
+use crate::{
+    std_lib::{
+        std_result::StdResult,
+        varstring::{self, VarString},
+    },
+    transaction::tx_lib::{le_bytes_to_u32, le_bytes_to_u64},
+};
 
 use super::network_address::NetworkAddress;
 
 // https://en.bitcoin.it/wiki/Protocol_documentation#version
-
+#[derive(Debug, PartialEq)]
 pub struct Version {
     version: u32,   // LE
     service: u64,   // LE
@@ -21,13 +27,12 @@ pub struct Version {
 }
 
 static LAST_VERSION: u32 = 70015;
-static AGENT: &str = "/Bitcoin_rules!:0.0/";
 
 impl Version {
-    pub fn new(receiver: NetworkAddress, sender: NetworkAddress) -> Self {
+    pub fn new(receiver: NetworkAddress, sender: NetworkAddress, nonce: u64, agent: &str) -> Self {
         let version = LAST_VERSION;
-        let user_agent = VarString::new(AGENT);
-        let nonce = 0; // generate_rand_64();
+        let user_agent = VarString::new(agent);
+        let nonce = nonce;
         let relay = 0x00;
         let service = 0;
         let timestamp = 0;
@@ -61,6 +66,46 @@ impl Version {
         v.push(self.relay);
         v
     }
+
+    pub fn deserialize(buf: &[u8]) -> StdResult<Self> {
+        let mut offset: usize = 0;
+
+        let version = le_bytes_to_u32(buf, offset)?;
+        offset += 4;
+
+        let service = le_bytes_to_u64(buf, offset)?;
+        offset += 8;
+
+        let timestamp = le_bytes_to_u64(buf, offset)?;
+        offset += 8;
+
+        let (receiver, mut offset) = NetworkAddress::deserialize(&buf[offset..], false)?;
+        let (sender, mut offset) = NetworkAddress::deserialize(&buf[offset..], false)?;
+
+        let nonce = le_bytes_to_u64(buf, offset)?;
+        offset += 8;
+
+        let user_agent = varstring::decode(&buf[offset..], 0)?;
+
+        let height = le_bytes_to_u32(buf, offset)?;
+        offset += 4;
+
+        let relay = buf[offset];
+
+        let v = Version {
+            version,
+            service,
+            timestamp,
+            receiver,
+            sender,
+            nonce,
+            user_agent,
+            height,
+            relay,
+        };
+
+        Ok(v)
+    }
 }
 
 #[cfg(test)]
@@ -77,11 +122,34 @@ mod version_test {
         let receiver = NetworkAddress::new(0, 0, address, 8333);
         let sender = NetworkAddress::new(0, 0, address, 8333);
 
-        let version_message = Version::new(receiver, sender);
+        let agent = "/Bitcoin_rules!:0.0/";
+
+        let version_message = Version::new(receiver, sender, 0, agent);
         let serialized_version = version_message.serialize();
 
         let expected = hex_string_to_bytes("7F11010000000000000000000000000000000000000000000000000000000000000000000000FFFF00000000208D000000000000000000000000000000000000FFFF00000000208D0000000000000000142F426974636F696E5F72756C6573213A302E302F0000000000").unwrap();
 
         assert_eq!(serialized_version, expected);
+    }
+
+    #[test]
+    fn deserialize() {
+        let serialized_version = [
+            128, 17, 1, 0, 9, 4, 0, 0, 0, 0, 0, 0, 167, 133, 8, 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 195, 176, 217, 39, 151, 2, 56, 154, 16, 47, 83, 97, 116, 111, 115, 104, 105, 58, 50, 54, 46, 48,
+            46, 48, 47, 47, 101, 39, 0, 1,
+        ];
+
+        let version = Version::deserialize(&serialized_version).unwrap();
+        assert_eq!(version.version, 70016);
+        assert_eq!(version.service, 1033);
+        assert_eq!(version.timestamp, 1711834535);
+        assert_eq!(version.receiver.time, 0);
+        assert_eq!(version.sender.time, 0);
+        assert_eq!(version.nonce, 0);
+        assert_eq!(String::from_utf8(version.user_agent.value).unwrap(), "");
+        assert_eq!(version.height, 0);
+        assert_eq!(version.relay, 0);
     }
 }

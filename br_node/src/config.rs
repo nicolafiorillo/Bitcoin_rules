@@ -5,8 +5,9 @@ static APP_NAME: &str = "bitcoin_rules";
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct Configuration {
-    remote_node_address: String,
-    remote_node_port: u16,
+    pub network: String,
+    pub remote_node_address: String,
+    pub remote_node_port: u16,
 }
 
 pub fn load_config() -> Result<Configuration, Box<dyn std::error::Error>> {

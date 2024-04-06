@@ -4,5 +4,5 @@ pub fn version() -> &'static str {
 }
 
 pub fn agent() -> String {
-    format!("/Bitcoin_rules!:{}/", version())
+    format!("/Bitcoin_rules:{}/", version())
 }

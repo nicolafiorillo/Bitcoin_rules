@@ -1,1 +1,2 @@
-pub mod version_message;
+pub mod verack;
+pub mod version;

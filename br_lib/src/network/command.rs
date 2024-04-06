@@ -15,9 +15,9 @@ pub enum Commands {
 
 impl Display for Command {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            &VERACK_COMMAND => "VerAck",
-            &VERSION_COMMAND => "Version",
+        let s = match *self {
+            VERACK_COMMAND => "VerAck",
+            VERSION_COMMAND => "Version",
             _ => panic!("unknown_command"),
         };
 

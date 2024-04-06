@@ -11,16 +11,16 @@ use super::network_address::NetworkAddress;
 // https://en.bitcoin.it/wiki/Protocol_documentation#version
 #[derive(Debug, PartialEq)]
 pub struct Version {
-    version: u32,   // LE
-    service: u64,   // LE
-    timestamp: u64, // LE
+    pub version: u32, // LE
+    service: u64,     // LE
+    timestamp: u64,   // LE
     receiver: NetworkAddress,
 
     // if version >= 106, then the following fields are present
     sender: NetworkAddress,
     nonce: u64,
     user_agent: VarString,
-    height: u32,
+    pub height: u32,
 
     // if version >= 70001, then the following field is present (BIP-0037)
     relay: u8, // 0x00 or 0x01
@@ -79,13 +79,17 @@ impl Version {
         let timestamp = le_bytes_to_u64(buf, offset)?;
         offset += 8;
 
-        let (receiver, mut offset) = NetworkAddress::deserialize(&buf[offset..], false)?;
-        let (sender, mut offset) = NetworkAddress::deserialize(&buf[offset..], false)?;
+        let (receiver, off) = NetworkAddress::deserialize(&buf[offset..], false)?;
+        offset += off;
+
+        let (sender, off) = NetworkAddress::deserialize(&buf[offset..], false)?;
+        offset += off;
 
         let nonce = le_bytes_to_u64(buf, offset)?;
         offset += 8;
 
         let user_agent = varstring::decode(&buf[offset..], 0)?;
+        offset += user_agent.length.length + user_agent.length.value as usize;
 
         let height = le_bytes_to_u32(buf, offset)?;
         offset += 4;
@@ -147,9 +151,9 @@ mod version_test {
         assert_eq!(version.timestamp, 1711834535);
         assert_eq!(version.receiver.time, 0);
         assert_eq!(version.sender.time, 0);
-        assert_eq!(version.nonce, 0);
-        assert_eq!(String::from_utf8(version.user_agent.value).unwrap(), "");
-        assert_eq!(version.height, 0);
-        assert_eq!(version.relay, 0);
+        assert_eq!(version.nonce, 11112634928768594115);
+        assert_eq!(String::from_utf8(version.user_agent.value).unwrap(), "/Satoshi:26.0.0/");
+        assert_eq!(version.height, 2581807);
+        assert_eq!(version.relay, 1);
     }
 }

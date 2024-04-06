@@ -1,66 +1,15 @@
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::TcpStream,
-    sync::mpsc,
-};
+use brl::{flags::network_magic::NetworkMagic, std_lib::std_result::StdResult};
 
-use brl::{
-    flags::network_magic::NetworkMagic,
-    network::{command::Commands, network_message::NetworkMessage},
-    std_lib::std_result::StdResult,
-};
+use crate::connection_context::ConnectionContext;
 
-use crate::message::version_message;
+pub async fn connect_to_node(address: &str, network: NetworkMagic) -> StdResult<()> {
+    log::info!("Connecting to remote node: {}", address);
 
-pub async fn connect(address: &str, network: NetworkMagic, sender: mpsc::Sender<u16>) -> StdResult<()> {
-    log::info!("Connecting to {} using {:?} network...", address, network);
-    let mut stream = TcpStream::connect(address).await?;
-    log::info!("Connected.");
+    let mut context = ConnectionContext::new(address, network).await?;
 
-    let local_address = stream.local_addr().unwrap().ip().to_string();
-    log::info!("Local address is {}", local_address);
-
-    let version_message = version_message::new(&local_address, network);
-
-    log::debug!("Sending version message...");
-
-    match stream.write_all(&version_message.serialize()).await {
-        Ok(_) => {
-            log::debug!("Message sent");
-        }
-        Err(err) => {
-            log::error!("Error sending message: {}", err);
-            return Err(err.into());
-        }
-    }
-
-    stream.readable().await?;
-
-    let mut buffer = vec![0; 1024];
-
-    // read server answer for the whole data
-    match stream.try_read(&mut buffer) {
-        Ok(bytes_read) => {
-            if buffer.is_empty() {
-                log::warn!("connection_closed_by_peer");
-                sender.send(1).await?;
-                return Ok(());
-            }
-
-            buffer.truncate(bytes_read);
-            let received = NetworkMessage::deserialize(&buffer, network)?;
-            //            let message: Commands = received.clone().into();
-
-            log::info!("Peer response: {:}", received.command);
-        }
-
-        Err(err) if err.kind() == std::io::ErrorKind::ConnectionReset => {
-            log::warn!("connection_reset_by_peer");
-            sender.send(2).await?;
-            return Ok(());
-        }
-
-        Err(err) => return Err(err.into()),
+    match context.try_handshake().await {
+        Ok(_) => log::info!("Connection established."),
+        Err(err) => log::error!("Error: {}", err),
     }
 
     Ok(())

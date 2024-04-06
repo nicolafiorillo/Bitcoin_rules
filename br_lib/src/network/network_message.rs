@@ -72,6 +72,11 @@ impl NetworkMessage {
 
         let payload = buf[24..].to_vec();
         if payload.len() != payload_lenght as usize {
+            log::error!(
+                "declared payload lenght: {}, real payload lenght: {}",
+                payload_lenght,
+                payload.len()
+            );
             return Err("network_message_payload_lenght_mismatch".into());
         }
 

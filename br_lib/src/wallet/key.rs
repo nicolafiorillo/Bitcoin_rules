@@ -16,7 +16,7 @@ use crate::{
     std_lib::{rand::generate_rand_32, vector::bytes_to_string},
 };
 
-struct Seed(*const ());
+struct Seed();
 impl ThreadRandGen for Seed {
     fn gen(&mut self) -> u32 {
         generate_rand_32()
@@ -61,7 +61,7 @@ fn get_seed_from_system() -> u32 {
 // Usage:
 //  let user_key = new(Network::Testnet);
 pub fn new(network: Network) -> UserKey {
-    let mut seed = Seed(&());
+    let mut seed = Seed();
     let mut rand = ThreadRandState::new_custom(&mut seed);
 
     let max_value = (*P).clone();

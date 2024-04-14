@@ -40,8 +40,8 @@ static MAINNET: Lazy<NetworkFixture> = Lazy::new(|| {
 
     let blocks = read_blocks_from_fixture(&block_fixture);
 
-    let mut id_to_header: IdToHeader = HashMap::new();
-    let mut height_to_id: HeightToId = HashMap::new();
+    let mut id_to_header: IdToHeader = HashMap::with_capacity(blocks.len());
+    let mut height_to_id: HeightToId = HashMap::with_capacity(blocks.len());
 
     for block in blocks {
         let (id, tx) = get_id_to_header(&block.id, &block.block);

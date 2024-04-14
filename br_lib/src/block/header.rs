@@ -133,10 +133,7 @@ impl Header {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        // TODO: check if this implementation is faster than the one in transaction.
-
-        let mut bytes: Vec<u8> = Vec::new();
-        bytes.reserve(HEADER_LENGTH);
+        let mut bytes: Vec<u8> = Vec::with_capacity(HEADER_LENGTH);
 
         bytes.extend(&self.version.to_le_bytes());
 

@@ -51,7 +51,7 @@ fn parse_ipv4_addr(input: &str) -> StdResult<[u8; 4]> {
                 '0'..='9' => {
                     digit_count += 1;
                     if digit_count > 3 {
-                        return Err("invalid_ip_address")?;
+                        Err("invalid_ip_address")?;
                     }
                     octet_value = octet_value * 10 + c.to_digit(10).unwrap() as u16;
                     if octet_value > 255 {

@@ -24,8 +24,7 @@ pub struct ConnectionContext {
 }
 
 impl ConnectionContext {
-    pub async fn new(address: &str, network: NetworkMagic) -> StdResult<Self> {
-        let stream = Self::connect(address, network).await?;
+    pub async fn new(stream: TcpStream, network: NetworkMagic) -> StdResult<Self> {
         let status = HandshakeState::Connected;
 
         Ok(Self {
@@ -33,14 +32,6 @@ impl ConnectionContext {
             network,
             status,
         })
-    }
-
-    async fn connect(address: &str, network: NetworkMagic) -> StdResult<TcpStream> {
-        log::info!("Connecting to {} using {:?} network...", address, network);
-        let stream = TcpStream::connect(address).await?;
-        log::info!("Connected.");
-
-        Ok(stream)
     }
 
     fn version_message(&self) -> StdResult<NetworkMessage> {
@@ -143,7 +134,6 @@ impl ConnectionContext {
                     self.status = HandshakeState::HandshakeCompleted;
                 }
                 HandshakeState::HandshakeCompleted => {
-                    self.status = HandshakeState::HandshakeCompleted;
                     log::info!("Handshake completed.");
                     break;
                 }

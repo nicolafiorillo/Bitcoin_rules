@@ -198,3 +198,28 @@ fn emit_logo4() {
     log::info!("");
 }
 
+---
+
+trait ReadWriteUnpin: Read + Write + Unpin {
+        fn local_addr(&self) -> std::io::Result<SocketAddr>;
+        fn readable(&self) -> std::io::Result<()>;
+        fn try_read(&self, buf: &mut [u8]) -> std::io::Result<usize>;
+    }
+    
+    impl<T: Read + Write + Unpin> ReadWriteUnpin for T {
+        fn local_addr(&self) -> std::io::Result<SocketAddr> {
+            Err(std::io::Error::new(std::io::ErrorKind::Other, ""))
+        }
+    
+        fn readable(&self) -> std::io::Result<()> {
+            Err(std::io::Error::new(std::io::ErrorKind::Other, ""))
+        }
+    
+        fn try_read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::new(std::io::ErrorKind::Other, ""))
+        }
+    }
+    
+    type ConnectionStream = Box<dyn ReadWriteUnpin>;
+    
+    

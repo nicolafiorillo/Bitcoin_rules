@@ -19,6 +19,8 @@ mod message;
 mod network;
 mod utils;
 
+// TODO: move network stuff in a dedicated lib (br_net)
+
 #[tokio::main]
 async fn main() {
     env_logger::init();

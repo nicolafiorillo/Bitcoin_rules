@@ -32,7 +32,6 @@ impl Version {
     pub fn new(receiver: NetworkAddress, sender: NetworkAddress, nonce: u64, agent: &str) -> Self {
         let version = LAST_VERSION;
         let user_agent = VarString::new(agent);
-        let nonce = nonce;
         let relay = 0x00;
         let service = 0;
         let timestamp = 0;

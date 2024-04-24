@@ -43,28 +43,28 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Networking](https://learnmeabitcoin.com/technical/networking/)
 - [P2SH](https://learnmeabitcoin.com/technical/script/p2sh/)
 
-### Books
+## Books
 - [Mastering Bitcoin, 2nd ed.](https://github.com/bitcoinbook/bitcoinbook)
 - [Programming Bitcoin](https://github.com/jimmysong/programmingbitcoin)
 
-### BIPs
+## BIPs
 - [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)
 
-### Literature
+## Literature
 - ["_Bitcoin was not forged in a vacuum_"](https://nakamotoinstitute.org/literature/)
 
-### Courses
+## Courses
 - [MIT, MAS.S62-Spring 2018, Cryptocurrency Engineering and Design](https://www.youtube.com/watch?v=l2iv2MiGaYI)
 - [bitcoin-curriculum](https://github.com/chaincodelabs/bitcoin-curriculum)
 - [Seminar for Bitcoin and Lightning protocol](https://chaincode.gitbook.io/seminars/)
 - [Plan B Network](https://planb.network/)
 
-### Tools
+## Tools
 - [Bitcoin Script Debugger](https://github.com/bitcoin-core/btcdeb)
 - [Hashing Online Tools](https://emn178.github.io/online-tools/index.html)
 - [Bitnodes](https://bitnodes.io/)
 
-### Interesting stuff
+## Interesting stuff
 - [REWARD offered for hash collisions for SHA1, SHA256, RIPEMD160 and other](https://bitcointalk.org/index.php?topic=293382.0) by [Peter Todd](https://twitter.com/peterktodd)
 - [Bitcoin's Academic Pedigree](https://queue.acm.org/detail.cfm?id=3136559) by [Arvind Narayanan](https://twitter.com/random_walker)
 - [BitBox02: Diceware lookup table ](https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf)
@@ -76,14 +76,22 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Bitcoin Traffic Sniffer and Analyzer](https://www.codeproject.com/Articles/895917/Bitcoin-Traffic-Sniffer-and-Analyzer)
 - [TimechainStats](https://timechainstats.com/)
 
-### People
+## People
 - [Peter Todd](https://petertodd.org/)
 - [Hal Finney](https://en.wikipedia.org/wiki/Hal_Finney_(computer_scientist))
 - [Pieter Wuille](https://twitter.com/pwuille)
 - [Jimmi Song](https://medium.com/@jimmysong)
 
-###  Communities
+##  Communities
 - [Bitcoin Forum](https://bitcointalk.org/index.php)
 - [Bitcoin Stack Exchange](https://bitcoin.stackexchange.com/)
 - [Delving Bitcoin](https://delvingbitcoin.org)
 - [Bitcoin Optech](https://bitcoinops.org/)
+
+## `Rust` 
+
+- [Common Rust Lifetime Misconceptions](https://github.com/pretzelhammer/rust-blog/blob/master/posts/common-rust-lifetime-misconceptions.md)
+- [Rust Lifetimes: A Complete Guide to Ownership and Borrowing](https://earthly.dev/blog/rust-lifetimes-ownership-burrowing/)
+- [Rusts Module System Explained](https://aloso.github.io/2021/03/28/module-system.html)
+- [Exploring Binary](https://www.exploringbinary.com/)
+

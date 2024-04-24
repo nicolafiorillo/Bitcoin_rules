@@ -6,12 +6,22 @@
 
     TODO: Currently it read blockchain blocks from a fixture file (`tests/fixtures/blocks.csv`)
     but it will be changed to read from a real node (Bitcoin_rules! or Bitcoin Core).
+
+    How to run:
+        cargo test --test verify_difficulty_vs_bc -- --nocapture
+
 */
 
 extern crate brl;
 
 #[cfg(test)]
 mod verify_difficulty_test {
+
+    use std::ops::Div;
+
+    static DELTA: f64 = 4.0 * 1e-16;
+    static EPSILON_MIN: f64 = 1.0 - DELTA;
+    static EPSILON_MAX: f64 = 1.0 + DELTA;
 
     use brl::{
         block::header::{adjust_target, bits_to_target, difficulty, target_to_bits},
@@ -25,7 +35,7 @@ mod verify_difficulty_test {
         let difficulties_fixture = load_fixture_file("difficulty_by_block.csv");
         let difficulties = read_difficulties_from_fixture(&difficulties_fixture);
 
-        for i in (0..difficulties.len() - 1).step_by(2) {
+        for i in 0..difficulties.len() - 1 {
             let from = difficulties[i].from_block;
             let to = difficulties[i].to_block;
 
@@ -36,30 +46,35 @@ mod verify_difficulty_test {
             let mut end: u32 = start + 2015;
 
             while current_block < total_blocks {
-                let expected_difficulty = if current_block == (total_blocks - 1) {
-                    difficulties[i + 1].difficulty
+                let (expected_difficulty, expected_bits) = if current_block == (total_blocks - 1) {
+                    (difficulties[i + 1].difficulty, difficulties[i + 1].bits)
                 } else {
-                    difficulties[i].difficulty
+                    (difficulties[i].difficulty, difficulties[i].bits)
                 };
 
-                let first_block_header = get_header_by_height(&start, Network::Mainnet).unwrap();
-                let last_block_header = get_header_by_height(&end, Network::Mainnet).unwrap();
+                let first_block_header = get_header_by_height(&start, Network::Testnet).unwrap();
+                let last_block_header = get_header_by_height(&end, Network::Testnet).unwrap();
 
                 let new_target = adjust_target(&first_block_header, &last_block_header);
                 let new_bits = target_to_bits(new_target.clone());
+                assert_eq!(new_bits, expected_bits);
 
                 let check_target = bits_to_target(new_bits);
-
                 let difficulty = difficulty(check_target);
 
-                assert_eq!(expected_difficulty, difficulty);
+                assert!(are_almost_equal(expected_difficulty, difficulty));
 
-                current_block = current_block + 1;
+                current_block += 1;
 
                 start = end + 1;
                 end = start + 2015;
             }
         }
+    }
+
+    fn are_almost_equal(left: f64, right: f64) -> bool {
+        let ratio = left.div(right);
+        ratio >= EPSILON_MIN && ratio <= EPSILON_MAX
     }
 
     struct DifficultyBlockFixture {

@@ -4,6 +4,10 @@ use once_cell::sync::Lazy;
 use rug::Integer;
 use std::collections::HashMap;
 
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::BufReader;
+
 use crate::{
     block::header::Header,
     flags::network::Network,
@@ -37,7 +41,10 @@ type IdToHeader = HashMap<Integer, Header>;
 
 static MAINNET: Lazy<NetworkFixture> = Lazy::new(|| {
     let block_fixture = load_fixture_file("blocks.csv");
+    load_block_from_file(block_fixture)
+});
 
+fn load_block_from_file(block_fixture: String) -> NetworkFixture {
     let blocks = read_blocks_from_fixture(&block_fixture);
 
     let mut id_to_header: IdToHeader = HashMap::with_capacity(blocks.len());
@@ -53,15 +60,17 @@ static MAINNET: Lazy<NetworkFixture> = Lazy::new(|| {
         height_to_id,
         id_to_header,
     }
-});
+}
 
 fn read_blocks_from_fixture(fixture: &str) -> Vec<BlockFixture> {
-    let content = std::fs::read_to_string(fixture).unwrap();
-    let lines: Vec<&str> = content.lines().collect();
+    let file: File = std::fs::File::open(fixture).unwrap();
+    let reader = BufReader::new(file);
 
     let mut blocks = Vec::<BlockFixture>::new();
 
-    for line in lines {
+    for line_result in reader.lines() {
+        let line = line_result.unwrap();
+
         if line.is_empty() {
             continue;
         }
@@ -77,9 +86,9 @@ fn read_blocks_from_fixture(fixture: &str) -> Vec<BlockFixture> {
     blocks
 }
 
-static TESTNET: Lazy<NetworkFixture> = Lazy::new(|| NetworkFixture {
-    height_to_id: HashMap::new(),
-    id_to_header: HashMap::new(),
+static TESTNET: Lazy<NetworkFixture> = Lazy::new(|| {
+    let block_fixture = load_fixture_file("test_blocks.csv");
+    load_block_from_file(block_fixture)
 });
 
 pub fn get_header_by_id(block_id: &Integer, network: Network) -> StdResult<&Header> {

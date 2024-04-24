@@ -19,10 +19,10 @@ RETRY_SLEEP = 10
 FILENAME = "./difficulty_by_block.csv"
 FILENAME_LAST = "./difficulty_by_block.last"
 
-FROM_BLOCK_HEIGHT = 826154
-TO_BLOCK_HEIGHT = 826671
+FROM_BLOCK_HEIGHT = 0
+TO_BLOCK_HEIGHT = 840236
 BLOCK_HEIGH_LENGTH = TO_BLOCK_HEIGHT - FROM_BLOCK_HEIGHT
-LAST_CURRENT=(824544, 826153, '1703d869', 73197634206448.34)
+LAST_CURRENT=None
 
 def flush_tuple(file, current):
     file.write("{},{},{},{}\n".format(current[0], current[1], current[2], current[3]))
@@ -51,16 +51,16 @@ async def main():
 
                     current = LAST_CURRENT
 
-                    for i in range(FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT + 1):
-                        block = await read_block(i)
+                    for block_index in range(FROM_BLOCK_HEIGHT, TO_BLOCK_HEIGHT + 1):
+                        block = await read_block(block_index)
 
                         if current is None:
-                            current = (i, i, block["bits"], block["difficulty"])
+                            current = (block_index, block_index, block["bits"], block["difficulty"])
                         elif block["bits"] != current[2]:
                             flush_tuple(file, current)
-                            current = (i, i, block["bits"], block["difficulty"])
+                            current = (block_index, block_index, block["bits"], block["difficulty"])
                         elif block["bits"] == current[2]:
-                            current = (current[0], i, current[2], current[3])
+                            current = (current[0], block_index, current[2], current[3])
                     
                         file_last.write(str(current))
                         file_last.seek(0)

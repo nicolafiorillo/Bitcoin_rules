@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+BLOCKHEIGHT=$1
+
+HOST=192.168.178.54:8332
+COMMAND=getblockhash
+
+curl --user $BITCOIN_RPC_USER:$BITCOIN_RPC_PASSWORD \
+--data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "'"$COMMAND"'", "params": ['$BLOCKHEIGHT']}' \
+-H "content-type: text/plain;" \
+http://192.168.178.54:8332/ -s | jq -r '.result'
+
+#
+# ./getblockhash 1 | xargs ./getblock
+#

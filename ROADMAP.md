@@ -43,6 +43,9 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Block header
   - [X] Target-bits-difficulty
   - [ ] Proof-of-work
+- [ ] Block validation
+  - [ ] Block reward
+  - [X] Difficulty adjustment
 - [ ] Peer-to-peer network
   - [ ] Network messages serialization and deserialization (_*in progress now*_)
   - [ ] Peer discovery
@@ -120,9 +123,6 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [ ] Mining pool difficulty
   - [ ] Mining pool block reward
   - [ ] Mining pool block reward distribution
-- [ ] Block validation
-  - [ ] Block reward
-  - [ ] Difficulty adjustment
 - [ ] Lightning network
 - [ ] Payment channels
 - [ ] Schnorr signatures

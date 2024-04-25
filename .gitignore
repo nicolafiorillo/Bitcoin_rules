@@ -6,3 +6,7 @@ ide
 *.log
 /.vscode
 /log
+**/*/test_blocks.csv
+
+/tools/diff_cpp/diff_cpp
+

@@ -4,8 +4,9 @@
     for each epoch get a from Bitcoin Core node.
     Then verifies that the Bitcoin_rules! algorithm for difficulty is correct for each epoch.
 
-    TODO: Currently it read blockchain blocks from a fixture file (`tests/fixtures/blocks.csv`)
+    TODO: Currently it read blockchain blocks from a fixture file (`tests/fixtures/test_blocks.csv`)
     but it will be changed to read from a real node (Bitcoin_rules! or Bitcoin Core).
+    Remember to create the file `test_blocks.csv` by the script `blocks.py` that is in the same folder.
 
     How to run:
         cargo test --test verify_difficulty_vs_bc -- --nocapture

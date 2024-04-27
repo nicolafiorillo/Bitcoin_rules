@@ -1,3 +1,5 @@
+use std::{io, net::SocketAddr};
+
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 use brl::{
@@ -17,14 +19,39 @@ enum HandshakeState {
     HandshakeCompleted,
 }
 
-pub struct ConnectionContext {
-    stream: TcpStream,
+pub trait NodeStream {
+    fn local_addr(&self) -> io::Result<SocketAddr>;
+    async fn write_all(&mut self, buf: &[u8]) -> io::Result<()>;
+    async fn readable(&self) -> io::Result<()>;
+    fn try_read(&self, buf: &mut [u8]) -> io::Result<usize>;
+}
+
+impl NodeStream for TcpStream {
+    fn local_addr(&self) -> io::Result<SocketAddr> {
+        self.local_addr()
+    }
+
+    async fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
+        AsyncWriteExt::write_all(self, buf).await
+    }
+
+    async fn readable(&self) -> io::Result<()> {
+        self.readable().await
+    }
+
+    fn try_read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        self.try_read(buf)
+    }
+}
+
+pub struct Connection<C: NodeStream> {
+    stream: C,
     network: NetworkMagic,
     status: HandshakeState,
 }
 
-impl ConnectionContext {
-    pub async fn new(stream: TcpStream, network: NetworkMagic) -> StdResult<Self> {
+impl<C: NodeStream> Connection<C> {
+    pub async fn new(stream: C, network: NetworkMagic) -> StdResult<Self> {
         let status = HandshakeState::Connected;
 
         Ok(Self {

@@ -14,7 +14,7 @@ use brl::flags::network_magic::NetworkMagic;
 mod config;
 use config::{load_config, Configuration};
 
-mod connection_context;
+mod connection;
 mod message;
 mod network;
 mod utils;

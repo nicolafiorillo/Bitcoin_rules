@@ -48,7 +48,7 @@ fn translate_command(command: &str) -> StdResult<Command> {
 }
 
 #[cfg(test)]
-mod tests {
+mod command_line_tests {
     use super::{translate_command, Command};
 
     #[test]

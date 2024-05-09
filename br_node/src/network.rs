@@ -8,10 +8,14 @@ pub async fn connect_to_node(address: &str, network: NetworkMagic) -> StdResult<
 
     let stream = connect(address, network).await?;
 
-    let mut context = Connection::new(stream, network).await?;
+    let mut connection = Connection::new(stream, network).await?;
 
-    context.try_handshake().await?;
+    connection.try_handshake().await?;
     log::info!("Connection established.");
+
+    connection.listen().await?;
+
+    connection.shutdown().await?;
 
     Ok(())
 }

@@ -219,8 +219,8 @@ mod private_key_test {
         let e = hash256(&secret.as_bytes().to_vec());
         let z = hash256(&message.as_bytes().to_vec());
 
-        let e_integer = Integer::from_digits(&e, Order::Msf);
-        let z_integer = Integer::from_digits(&z, Order::Msf);
+        let e_integer = Integer::from_digits(&e.0, Order::Msf);
+        let z_integer = Integer::from_digits(&z.0, Order::Msf);
 
         let private_key = Key::new(e_integer);
         let sign = private_key.sign(z_integer.clone());

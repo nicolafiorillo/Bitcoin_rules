@@ -84,7 +84,7 @@ impl Tx {
 
     fn hash(bin: &[u8]) -> Integer {
         let serialized = hash256(bin);
-        Integer::from_digits(&serialized, Order::Lsf)
+        Integer::from_digits(&serialized.0, Order::Lsf)
     }
 
     pub fn input(&self, index: usize) -> StdResult<&TxIn> {
@@ -255,7 +255,7 @@ impl Tx {
         // 6. hash (hash256) the entire transaction
         let tx_hash = hash256(&tx_serialized);
 
-        Integer::from_digits(&tx_hash, Order::Msf)
+        Integer::from_digits(&tx_hash.0, Order::Msf)
     }
 
     pub fn is_coinbase(&self) -> bool {

@@ -24,6 +24,7 @@ pub trait NodeStream {
     fn local_addr(&self) -> io::Result<SocketAddr>;
     async fn write_all(&mut self, buf: &[u8]) -> io::Result<()>;
     async fn readable(&self) -> io::Result<()>;
+    async fn shutdown(&mut self) -> io::Result<()>;
     fn try_read(&self, buf: &mut [u8]) -> io::Result<usize>;
 }
 
@@ -38,6 +39,10 @@ impl NodeStream for TcpStream {
 
     async fn readable(&self) -> io::Result<()> {
         self.readable().await
+    }
+
+    async fn shutdown(&mut self) -> io::Result<()> {
+        AsyncWriteExt::shutdown(self).await
     }
 
     fn try_read(&self, buf: &mut [u8]) -> io::Result<usize> {
@@ -173,6 +178,23 @@ impl<C: NodeStream> Connection<C> {
 
         Ok(())
     }
+
+    pub async fn shutdown(&mut self) -> StdResult<()> {
+        self.stream.shutdown().await?;
+
+        Ok(())
+    }
+
+    pub async fn listen(&mut self) -> StdResult<()> {
+        loop {
+            self.stream.readable().await?;
+
+            let received = self.wait_for_message().await?;
+            let command: Commands = received.into();
+
+            log::debug!("Received command: {:?}", command);
+        }
+    }
 }
 
 pub fn version_message(addr: SocketAddr, network: NetworkMagic) -> StdResult<NetworkMessage> {
@@ -201,6 +223,7 @@ mod connection_tests {
             fn local_addr(&self) -> io::Result<SocketAddr>;
             async fn write_all(&mut self, buf: &[u8]) -> io::Result<()>;
             async fn readable(&self) -> io::Result<()>;
+            async fn shutdown(&mut self) -> io::Result<()>;
             fn try_read(&self, buf: &mut [u8]) -> io::Result<usize>;
         }
     }

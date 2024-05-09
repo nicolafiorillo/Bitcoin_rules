@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use rug::{integer::Order, ops::Pow, Float, Integer};
 
 use crate::{
-    hashing::hash256::hash256,
+    hashing::hash256::{hash256, Hash256},
     std_lib::{
         integer_extended::IntegerExtended,
         std_result::StdResult,
@@ -81,13 +81,17 @@ impl Header {
         }
     }
 
-    pub fn id(&self) -> String {
+    pub fn id_str(&self) -> String {
         format!("{:064X}", Self::hash(&self.serialize()))
+    }
+
+    pub fn id(&self) -> Hash256 {
+        hash256(&self.serialize())
     }
 
     fn hash(bin: &[u8]) -> Integer {
         let serialized = hash256(bin);
-        Integer::from_digits(&serialized, Order::Lsf)
+        Integer::from_digits(&serialized.0, Order::Lsf)
     }
 
     pub fn deserialize(bytes: &[u8]) -> StdResult<Self> {
@@ -230,6 +234,7 @@ mod header_test {
     use rug::Integer;
 
     use crate::{
+        bitcoin::constants::{GENESIS_BLOCK_ID, GENESIS_BLOCK_ID_STR},
         block::header::{self, *},
         chain::header::{get_header_by_height, get_header_by_id},
         flags::network::Network,
@@ -241,9 +246,7 @@ mod header_test {
 
     #[test]
     pub fn deserialize_genesis_block() {
-        let block_id: Integer =
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&GENESIS_BLOCK_ID, Network::Mainnet).unwrap();
 
         assert_eq!(1, header.version);
         assert_eq!(Integer::from(0), header.previous_block);
@@ -263,10 +266,7 @@ mod header_test {
         let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
 
         assert_eq!(1, header.version);
-        assert_eq!(
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
-            header.previous_block
-        );
+        assert_eq!(*GENESIS_BLOCK_ID, header.previous_block);
         assert_eq!(
             Integer::from_hex_str("0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"),
             header.merkle_root
@@ -298,7 +298,7 @@ mod header_test {
     pub fn serialize_second_block() {
         let header = header::Header::new(
             1,
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
+            (*GENESIS_BLOCK_ID).clone(),
             Integer::from_hex_str("0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"),
             1231469665,
             486604799,
@@ -324,10 +324,7 @@ mod header_test {
         );
 
         let _serialized = header.serialize();
-        assert_eq!(
-            header.id(),
-            "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F"
-        );
+        assert_eq!(header.id_str(), GENESIS_BLOCK_ID_STR);
     }
 
     #[test]
@@ -386,9 +383,7 @@ mod header_test {
 
     #[test]
     pub fn genesis_block_target() {
-        let block_id: Integer =
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&GENESIS_BLOCK_ID, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
         let target_hex = bytes_to_string_64(&target.to_digits(Order::Lsf));
@@ -401,9 +396,7 @@ mod header_test {
 
     #[test]
     pub fn genesis_block_difficulty() {
-        let block_id: Integer =
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&GENESIS_BLOCK_ID, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
         let difficulty = difficulty(target);
@@ -423,9 +416,7 @@ mod header_test {
 
     #[test]
     pub fn verify_genesis_block_proof_of_work() {
-        let block_id: Integer =
-            Integer::from_hex_str("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-        let header = get_header_by_id(&block_id, Network::Mainnet).unwrap();
+        let header = get_header_by_id(&GENESIS_BLOCK_ID, Network::Mainnet).unwrap();
 
         let target = bits_to_target(header.bits);
 
@@ -498,7 +489,7 @@ mod header_test {
     #[test]
     pub fn verify_adjust_target_0_to_2015() {
         verify_adjust_target(
-            "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+            GENESIS_BLOCK_ID_STR,
             "00000000693067b0e6b440bc51450b9f3850561b07f6d3c021c54fbd6abb9763",
             MAX_BITS,
             MAX_TARGET_STR,

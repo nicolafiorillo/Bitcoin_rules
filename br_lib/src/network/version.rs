@@ -6,7 +6,7 @@ use crate::{
     transaction::tx_lib::{le_bytes_to_u32, le_bytes_to_u64},
 };
 
-use super::network_address::NetworkAddress;
+use super::{constants, network_address::NetworkAddress};
 
 // https://en.bitcoin.it/wiki/Protocol_documentation#version
 #[derive(Debug, PartialEq)]
@@ -26,11 +26,9 @@ pub struct Version {
     relay: u8, // 0x00 or 0x01
 }
 
-static LAST_VERSION: u32 = 70015;
-
 impl Version {
     pub fn new(receiver: NetworkAddress, sender: NetworkAddress, nonce: u64, agent: &str) -> Self {
-        let version = LAST_VERSION;
+        let version = constants::LAST_VERSION;
         let user_agent = VarString::new(agent);
         let relay = 0x00;
         let service = 0;

@@ -58,7 +58,10 @@ fn count_first(binary: &[u8], val: u8) -> usize {
 pub fn base58_encode_with_checksum(b: &[u8]) -> String {
     use crate::hashing::hash256::hash256;
 
-    let checksum: Vec<u8> = hash256(b).drain(0..4).collect();
+    // get the first 4 bytes of the hash256(b)
+    let checksum: [u8; 4] = hash256(b).into();
+
+    // attach the checksum to the end of the binary
     let mut bin: Vec<u8> = b.to_vec();
     bin.extend(checksum);
 
@@ -76,9 +79,7 @@ pub fn base58_decode_with_checksum(s: &str) -> StdResult<Vec<u8>> {
 
     let (data, checksum) = d.split_at(d.len() - 4);
 
-    let mut hash = hash256(data);
-    let drained = hash.drain(0..4);
-    let data_checksum = drained.as_slice();
+    let data_checksum: [u8; 4] = hash256(data).into();
 
     if checksum != data_checksum {
         Err("invalid_checksum")?;

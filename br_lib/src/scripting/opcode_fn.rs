@@ -578,7 +578,7 @@ pub fn op_hash256(context: &mut Context) -> StdResult<bool> {
     let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
         let hash = hash256(&value);
-        context.stack_push(Token::Element(hash));
+        context.stack_push(Token::Element(hash.into()));
 
         return Ok(true);
     }

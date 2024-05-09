@@ -8,7 +8,7 @@ use crate::{
 };
 
 use super::{
-    command::{Command, Commands, VERACK_COMMAND, VERSION_COMMAND},
+    command::{Command, Commands, SEND_COMPACT_COMMAND, VERACK_COMMAND, VERSION_COMMAND},
     version::Version,
 };
 
@@ -22,8 +22,7 @@ pub struct NetworkMessage {
 }
 
 fn message_checksum(payload: &[u8]) -> [u8; 4] {
-    let hash = hash256(payload);
-    hash[..4].try_into().unwrap()
+    hash256(payload).into()
 }
 
 impl NetworkMessage {
@@ -103,7 +102,8 @@ impl From<NetworkMessage> for Commands {
                 let payload = Version::deserialize(&val.payload).unwrap();
                 Commands::Version(payload)
             }
-            _ => panic!("unknown_command"),
+            SEND_COMPACT_COMMAND => Commands::SendCompact,
+            _ => panic!("unknown_command: {:?}", val.command),
         }
     }
 }

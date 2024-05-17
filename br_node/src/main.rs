@@ -16,7 +16,7 @@ use config::{load_config, Configuration};
 
 mod connection;
 mod message;
-mod network;
+mod remote_node;
 mod utils;
 
 // TODO: move network stuff in a dedicated lib (br_net)
@@ -43,12 +43,13 @@ async fn main() {
     log::info!("Network: {}", network);
 
     let handle = tokio::spawn(async move {
-        if let Err(e) = network::connect_to_node(&address, network).await {
-            log::error!("Error connecting to {}: {:}", address, e);
-        }
+        let _ = remote_node::connect(&address, network).await;
     });
 
-    let _res = handle.await;
+    let res = handle.await;
+    if let Err(e) = res {
+        log::error!("Connection error: {:}", e);
+    }
 
     log::info!("Application stopped.");
 }

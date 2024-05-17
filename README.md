@@ -35,16 +35,28 @@ For the moment, clone the repo and build it with:
 cargo build
 ```
 
-Run the tests:
+Run the unit tests:
 
 ```shell
 cargo test --lib --bins
 ```
 
-And run console (cli) app:
+Run unit tests only (fast):
+
+```shell
+cargo test --lib --bins
+```
+
+Run unit tests and integration tests (slow):
+
+```shell
+cargo test
+```
+
+Run the node (cli app):
 
 ```
-cargo run
+cargo run --bin brn
 ```
 
 ## Feedback

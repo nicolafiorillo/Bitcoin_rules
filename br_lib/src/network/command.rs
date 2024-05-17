@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use super::version::Version;
+use super::{fee_filter::FeeFilter, ping::Ping, send_compact::SendCompact, version::Version};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Command {
@@ -12,7 +12,9 @@ pub enum Commands {
     VerAck,
     Version(Version),
     GetHeaders,
-    SendCompact,
+    SendCompact(SendCompact),
+    Ping(Ping),
+    FeeFilter(FeeFilter),
 }
 
 impl Display for Command {
@@ -22,6 +24,8 @@ impl Display for Command {
             VERSION_COMMAND => "Version",
             GET_HEADERS_COMMAND => "GetHeaders",
             SEND_COMPACT_COMMAND => "SendCompact",
+            PING_COMMAND => "Ping",
+            FEE_FILTER_COMMAND => "FeeFilter",
             _ => panic!("unknown_command"),
         };
 
@@ -45,4 +49,12 @@ pub const GET_HEADERS_COMMAND: Command = Command {
 
 pub const SEND_COMPACT_COMMAND: Command = Command {
     bytes: [0x73, 0x65, 0x6E, 0x64, 0x63, 0x6D, 0x70, 0x63, 0x74, 0x00, 0x00, 0x00],
+};
+
+pub const PING_COMMAND: Command = Command {
+    bytes: [0x70, 0x69, 0x6E, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+};
+
+pub const FEE_FILTER_COMMAND: Command = Command {
+    bytes: [0x66, 0x65, 0x65, 0x66, 0x69, 0x6C, 0x74, 0x65, 0x72, 0x00, 0x00, 0x00],
 };

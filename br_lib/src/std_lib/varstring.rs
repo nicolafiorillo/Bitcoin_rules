@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use super::{std_result::StdResult, varint::VarInt};
 
 // TODO: use enum with size
@@ -25,6 +27,19 @@ pub fn decode(v: &[u8], from: usize) -> StdResult<VarString> {
     let length: VarInt = super::varint::decode(v, from)?;
     let value = v[(from + length.length)..(from + length.length + length.value as usize)].to_vec();
     Ok(VarString { length, value })
+}
+
+impl Display for VarString {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = String::from_utf8(self.value.clone()).unwrap();
+        write!(f, "{}", s)
+    }
+}
+
+impl From<VarString> for String {
+    fn from(v: VarString) -> Self {
+        String::from_utf8(v.value).unwrap()
+    }
 }
 
 #[cfg(test)]

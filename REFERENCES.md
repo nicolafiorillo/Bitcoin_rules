@@ -75,12 +75,17 @@ Where we list some useful resources for Bitcoin developers gathered during the d
 - [Debugging Bitcoin Core](https://github.com/fjahr/debugging_bitcoin)
 - [Bitcoin Traffic Sniffer and Analyzer](https://www.codeproject.com/Articles/895917/Bitcoin-Traffic-Sniffer-and-Analyzer)
 - [TimechainStats](https://timechainstats.com/)
+- [ECDSA: Revealing the private key, if nonce known (NIST256p)](https://asecuritysite.com/cracking/ecd2)
+- [How to compile Bitcoin Core and run the unit and functional tests](https://jonatack.github.io/articles/how-to-compile-bitcoin-core-and-run-the-tests)
+- [Using debuggers with Bitcoin Core](https://gist.github.com/LarryRuane/8c6e8de82f6e2b360ca54dd751388af6)
 
 ## People
 - [Peter Todd](https://petertodd.org/)
 - [Hal Finney](https://en.wikipedia.org/wiki/Hal_Finney_(computer_scientist))
 - [Pieter Wuille](https://twitter.com/pwuille)
 - [Jimmi Song](https://medium.com/@jimmysong)
+- [Mike Hearn](https://plan99.net/~mike/index.html)
+- [Jameson Lopp](https://github.com/jlopp)
 
 ##  Communities
 - [Bitcoin Forum](https://bitcointalk.org/index.php)

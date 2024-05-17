@@ -19,7 +19,7 @@ pub struct Version {
     // if version >= 106, then the following fields are present
     sender: NetworkAddress,
     nonce: u64,
-    user_agent: VarString,
+    pub user_agent: VarString,
     pub height: u32,
 
     // if version >= 70001, then the following field is present (BIP-0037)
@@ -66,6 +66,8 @@ impl Version {
 
     pub fn deserialize(buf: &[u8]) -> StdResult<Self> {
         let mut offset: usize = 0;
+
+        // TODO: check if buffer has enough bytes to read
 
         let version = le_bytes_to_u32(buf, offset)?;
         offset += 4;

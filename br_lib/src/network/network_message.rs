@@ -7,10 +7,7 @@ use crate::{
     transaction::tx_lib::le_bytes_to_u32,
 };
 
-use super::{
-    command::{Command, Commands, SEND_COMPACT_COMMAND, VERACK_COMMAND, VERSION_COMMAND},
-    version::Version,
-};
+use super::{command::*, fee_filter::FeeFilter, ping::Ping, send_compact::SendCompact, version::Version};
 
 static PAYLOAD_SIZE: usize = 32_000_000;
 
@@ -19,6 +16,7 @@ pub struct NetworkMessage {
     pub magic: NetworkMagic,
     pub command: Command,
     pub payload: Vec<u8>,
+    pub len_serialized: usize,
 }
 
 fn message_checksum(payload: &[u8]) -> [u8; 4] {
@@ -31,10 +29,13 @@ impl NetworkMessage {
             return Err("network_message_payload_too_big".into());
         }
 
+        let len_serialized = 24 + payload.len();
+
         let network_message = NetworkMessage {
             magic,
             command,
             payload,
+            len_serialized,
         };
 
         Ok(network_message)
@@ -66,28 +67,22 @@ impl NetworkMessage {
         let c: [u8; 12] = buf[4..16].try_into().unwrap();
         let command = Command { bytes: c };
 
-        let payload_lenght = le_bytes_to_u32(buf, 16)?;
-        let payload_checksum: [u8; 4] = buf[20..24].try_into().unwrap();
+        let declared_payload_lenght = le_bytes_to_u32(buf, 16)?;
+        let declared_payload_checksum: [u8; 4] = buf[20..24].try_into().unwrap();
 
-        let payload = buf[24..].to_vec();
-        if payload.len() != payload_lenght as usize {
-            log::error!(
-                "declared payload lenght: {}, real payload lenght: {}",
-                payload_lenght,
-                payload.len()
-            );
-            return Err("network_message_payload_lenght_mismatch".into());
-        }
+        let payload = buf[24..24 + declared_payload_lenght as usize].to_vec();
 
         let checksum = message_checksum(&payload);
-        if checksum != payload_checksum {
+        if checksum != declared_payload_checksum {
             return Err("network_message_checksum_mismatch".into());
         }
 
+        let len_serialized = 24 + declared_payload_lenght as usize;
         let network_message = NetworkMessage {
             magic,
             command,
             payload,
+            len_serialized,
         };
 
         Ok(network_message)
@@ -102,7 +97,18 @@ impl From<NetworkMessage> for Commands {
                 let payload = Version::deserialize(&val.payload).unwrap();
                 Commands::Version(payload)
             }
-            SEND_COMPACT_COMMAND => Commands::SendCompact,
+            SEND_COMPACT_COMMAND => {
+                let payload = SendCompact::deserialize(&val.payload).unwrap();
+                Commands::SendCompact(payload)
+            }
+            PING_COMMAND => {
+                let payload = Ping::deserialize(&val.payload).unwrap();
+                Commands::Ping(payload)
+            }
+            FEE_FILTER_COMMAND => {
+                let payload = FeeFilter::deserialize(&val.payload).unwrap();
+                Commands::FeeFilter(payload)
+            }
             _ => panic!("unknown_command: {:?}", val.command),
         }
     }
@@ -154,6 +160,8 @@ mod network_message_test {
         let bytes = hex_string_to_bytes(message).unwrap();
 
         let network_message = NetworkMessage::deserialize(&bytes, NetworkMagic::Mainnet).unwrap();
+
+        assert_eq!(network_message.len_serialized, bytes.len());
         assert_eq!(network_message.magic, NetworkMagic::Mainnet);
         assert_eq!(network_message.command, VERACK_COMMAND);
         assert_eq!(network_message.payload, vec![0; 0]);
@@ -171,6 +179,7 @@ mod network_message_test {
         let version_received = NetworkMessage::deserialize(&received, NetworkMagic::Testnet3).unwrap();
         let message: Commands = version_received.clone().into();
 
+        assert_eq!(version_received.len_serialized, received.len());
         assert!(matches!(message, Commands::Version { .. }));
     }
 }

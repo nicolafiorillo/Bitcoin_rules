@@ -4,14 +4,14 @@ use brl::{
 use tokio::{net::tcp::OwnedReadHalf, sync::mpsc::Sender};
 
 #[derive(Debug)]
-pub struct Connection {
+pub struct NodeListener {
     reader: OwnedReadHalf,
     network: NetworkMagic,
 }
 
-impl Connection {
-    pub fn new(reader: OwnedReadHalf, network: NetworkMagic) -> Connection {
-        Connection { reader, network }
+impl NodeListener {
+    pub fn new(reader: OwnedReadHalf, network: NetworkMagic) -> NodeListener {
+        NodeListener { reader, network }
     }
 
     pub async fn listen(&mut self, sender: Sender<NetworkMessage>) -> StdResult<()> {

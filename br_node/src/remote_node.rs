@@ -12,7 +12,7 @@ use tokio::{
     sync::mpsc::Receiver,
 };
 
-use crate::connection::Connection;
+use crate::node_listener::NodeListener;
 
 /*
    TODO: refactor the entire module
@@ -53,7 +53,7 @@ pub async fn connect(address: &str, network: NetworkMagic) -> StdResult<()> {
 
     let (reader, mut writer) = stream.into_split();
 
-    let mut connection = Connection::new(reader, network);
+    let mut connection = NodeListener::new(reader, network);
 
     let (sender, mut receiver) = tokio::sync::mpsc::channel::<NetworkMessage>(32);
 

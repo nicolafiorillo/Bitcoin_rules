@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use super::{fee_filter::FeeFilter, ping::Ping, send_compact::SendCompact, version::Version};
+use super::{fee_filter::FeeFilter, ping::Ping, pong::Pong, send_compact::SendCompact, version::Version};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Command {
@@ -14,6 +14,7 @@ pub enum Commands {
     GetHeaders,
     SendCompact(SendCompact),
     Ping(Ping),
+    Pong(Pong),
     FeeFilter(FeeFilter),
 }
 
@@ -25,6 +26,7 @@ impl Display for Command {
             GET_HEADERS_COMMAND => "GetHeaders",
             SEND_COMPACT_COMMAND => "SendCompact",
             PING_COMMAND => "Ping",
+            PONG_COMMAND => "Pong",
             FEE_FILTER_COMMAND => "FeeFilter",
             _ => panic!("unknown_command"),
         };
@@ -53,6 +55,10 @@ pub const SEND_COMPACT_COMMAND: Command = Command {
 
 pub const PING_COMMAND: Command = Command {
     bytes: [0x70, 0x69, 0x6E, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+};
+
+pub const PONG_COMMAND: Command = Command {
+    bytes: [0x70, 0x6F, 0x6E, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
 };
 
 pub const FEE_FILTER_COMMAND: Command = Command {

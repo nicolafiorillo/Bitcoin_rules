@@ -48,8 +48,9 @@ The project is ramping up and the roadmap has not time references or milestones.
   - [X] Difficulty adjustment
 - [ ] Peer-to-peer network
   - [ ] Network messages serialization and deserialization (_*in progress now*_)
-  - [ ] Peer discovery
   - [ ] Peer-to-peer communication
+    - [ ] Use stateful property-based testing for network communication validation
+  - [ ] Peer discovery
   - [ ] Peer-to-peer synchronization
   - [ ] Gossip protocol
 - [ ] Payment protocol and verification

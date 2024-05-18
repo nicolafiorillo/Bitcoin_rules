@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, thread, time::Duration};
 
-use crate::message::{verack, version};
+use crate::message::{pong, verack, version};
 use brl::{
     flags::network_magic::NetworkMagic,
     network::{command::Commands, network_message::NetworkMessage},
@@ -63,7 +63,7 @@ pub async fn connect(address: &str, network: NetworkMagic) -> StdResult<()> {
 
     let mut remote_node = handshake(&mut writer, &mut receiver, local_address, network).await?;
 
-    main_loop(&mut remote_node, &mut writer, &mut receiver).await?;
+    main_loop(&mut remote_node, &mut writer, &mut receiver, network).await?;
 
     let res = listener_handle.await;
     if let Err(e) = res {
@@ -86,10 +86,6 @@ pub fn version_message(addr: SocketAddr, network: NetworkMagic) -> StdResult<Net
     log::debug!("Local address is {}", local_address);
 
     version::new(&local_address, network)
-}
-
-pub fn verack_message(network: NetworkMagic) -> StdResult<NetworkMessage> {
-    verack::new(network)
 }
 
 async fn send_message(writer: &mut OwnedWriteHalf, message: &NetworkMessage) -> StdResult<()> {
@@ -123,8 +119,9 @@ async fn receive_message(receiver: &mut Receiver<NetworkMessage>) -> Commands {
 
 async fn main_loop(
     remote_node: &mut RemoteNode,
-    _writer: &mut OwnedWriteHalf,
+    writer: &mut OwnedWriteHalf,
     receiver: &mut Receiver<NetworkMessage>,
+    network: NetworkMagic,
 ) -> StdResult<()> {
     log::info!("Main loop...");
 
@@ -137,8 +134,10 @@ async fn main_loop(
                 log::info!("payload: {:?}", payload);
             }
             Commands::Ping(payload) => {
-                log::info!("Ping command received.");
-                log::info!("payload: {:?}", payload);
+                log::debug!("Ping command received (nonce: {})", payload.nonce);
+
+                let pong_message = pong::new(payload.nonce, network)?;
+                send_message(writer, &pong_message).await?;
             }
             Commands::FeeFilter(payload) => {
                 log::info!("FeeFilter command received.");
@@ -189,7 +188,7 @@ async fn handshake(
                 }
             }
             HandshakeState::RemoteVersionReceived => {
-                let verack_message = verack_message(network)?;
+                let verack_message = verack::new(network)?;
                 send_message(writer, &verack_message).await?;
                 status = HandshakeState::LocalVerackSent;
             }

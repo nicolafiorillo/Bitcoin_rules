@@ -48,7 +48,13 @@ impl NodeListener {
                 }
 
                 Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
-                    log::debug!("connection_would_block");
+                    /*
+                       ErrorKind::WouldBlock occurs when a non-blocking socket operation cannot complete immediately
+                       without blocking the container thread.
+                       This usually means that data isn't fully available or the buffer is full.
+                       The operation should be retried later.
+                    */
+                    std::thread::sleep(std::time::Duration::from_millis(100));
                 }
 
                 Err(err) => {

@@ -1,4 +1,9 @@
-use std::{net::SocketAddr, thread, time::Duration};
+use std::{
+    fmt::{Display, Formatter, Result},
+    net::SocketAddr,
+    thread,
+    time::Duration,
+};
 
 use tokio::{
     io::AsyncWriteExt,
@@ -28,6 +33,16 @@ struct RemoteNode<'a> {
     agent: String,
     version: u32,
     feerate: u64,
+}
+
+impl Display for RemoteNode<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "{{ node_id: {}, agent: {}, version: {}, feerate: {} }}",
+            self.node_id, self.agent, self.version, self.feerate
+        )
+    }
 }
 
 impl<'a> RemoteNode<'a> {
@@ -125,7 +140,7 @@ impl<'a> RemoteNode<'a> {
 
                     self.feerate = payload.feerate;
 
-                    log::info!("Remote node is ready: {:?}", self);
+                    log::info!("Remote node is ready: {}", self);
                     node_to_rest_sender.send(NodeMessage::NodeReady)?;
                 }
                 Commands::GetHeaders => {

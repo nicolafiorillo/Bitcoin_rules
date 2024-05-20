@@ -15,8 +15,6 @@ impl NodeListener {
     }
 
     pub async fn listen(&mut self, sender: Sender<NetworkMessage>) -> StdResult<()> {
-        log::info!("Starting to listen...");
-
         loop {
             let mut buffer = vec![0; 1024];
             self.reader.readable().await?;

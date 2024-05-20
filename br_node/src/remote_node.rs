@@ -16,10 +16,12 @@ use crate::{
     handshake_state::HandshakeState,
     message::{pong, verack, version},
     node_listener::NodeListener,
+    node_message::NodeMessage,
 };
 
 #[derive(Debug)]
 struct RemoteNode<'a> {
+    node_id: u8,
     writer: &'a mut OwnedWriteHalf,
     receiver: &'a mut Receiver<NetworkMessage>,
     network: NetworkMagic,
@@ -29,8 +31,14 @@ struct RemoteNode<'a> {
 }
 
 impl<'a> RemoteNode<'a> {
-    fn new(writer: &'a mut OwnedWriteHalf, receiver: &'a mut Receiver<NetworkMessage>, network: NetworkMagic) -> Self {
+    fn new(
+        node_id: u8,
+        writer: &'a mut OwnedWriteHalf,
+        receiver: &'a mut Receiver<NetworkMessage>,
+        network: NetworkMagic,
+    ) -> Self {
         RemoteNode {
+            node_id,
             writer,
             receiver,
             network,
@@ -52,12 +60,12 @@ impl<'a> RemoteNode<'a> {
                     status = HandshakeState::LocalVersionSent;
                 }
                 HandshakeState::LocalVersionSent => {
-                    let command = receive_message(self.receiver).await;
+                    let command = receive_from_remote(self.receiver).await;
 
                     if let Commands::Version(version) = command {
                         status = HandshakeState::RemoteVersionReceived;
 
-                        log::info!(
+                        log::debug!(
                             "Remote version received (version: {}; height: {}; user_agent: {})",
                             version.version,
                             version.height,
@@ -74,11 +82,11 @@ impl<'a> RemoteNode<'a> {
                     status = HandshakeState::LocalVerackSent;
                 }
                 HandshakeState::LocalVerackSent => {
-                    let command = receive_message(self.receiver).await;
+                    let command = receive_from_remote(self.receiver).await;
 
                     if let Commands::VerAck = command {
                         status = HandshakeState::RemoteVerackReceived;
-                        log::info!("Remote verack received.");
+                        log::debug!("Remote verack received.");
                     }
                 }
                 HandshakeState::RemoteVerackReceived => {
@@ -94,16 +102,17 @@ impl<'a> RemoteNode<'a> {
         Ok(())
     }
 
-    pub async fn main_loop(&mut self) -> StdResult<()> {
-        log::info!("Main loop...");
-
+    pub async fn main_loop(
+        &mut self,
+        node_to_rest_sender: tokio::sync::broadcast::Sender<NodeMessage>,
+        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+    ) -> StdResult<()> {
         loop {
-            let command = receive_message(self.receiver).await;
+            let command = receive(self.receiver, rest_to_node_receiver).await;
 
             match command {
                 Commands::SendCompact(payload) => {
-                    log::info!("SendCompact command received.");
-                    log::info!("payload: {:?}", payload);
+                    log::debug!("SendCompact command received ({:?}).", payload);
                 }
                 Commands::Ping(payload) => {
                     log::debug!("Ping command received (nonce: {})", payload.nonce);
@@ -112,12 +121,15 @@ impl<'a> RemoteNode<'a> {
                     send_message(self.writer, &pong_message).await?;
                 }
                 Commands::FeeFilter(payload) => {
-                    log::info!("FeeFilter command received.");
-                    log::info!("payload: {:?}", payload);
+                    log::debug!("FeeFilter command received ({:?}).", payload);
 
                     self.feerate = payload.feerate;
 
-                    log::info!("remote_node: {:?}", self);
+                    log::info!("Remote node is ready: {:?}", self);
+                    node_to_rest_sender.send(NodeMessage::NodeReady)?;
+                }
+                Commands::GetHeaders => {
+                    log::debug!("GetHeaders should send to remote node.");
                 }
                 _ => continue,
             }
@@ -125,7 +137,13 @@ impl<'a> RemoteNode<'a> {
     }
 }
 
-pub async fn connect(remote_address: &str, network: NetworkMagic) -> StdResult<()> {
+pub async fn connect(
+    node_id: u8,
+    remote_address: String,
+    network: NetworkMagic,
+    node_to_rest_sender: tokio::sync::broadcast::Sender<NodeMessage>,
+    rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+) -> StdResult<()> {
     log::info!("Connecting to {} using {:?} network...", remote_address, network);
     let stream = TcpStream::connect(remote_address).await?;
     log::info!("Connected.");
@@ -140,11 +158,13 @@ pub async fn connect(remote_address: &str, network: NetworkMagic) -> StdResult<(
         let _ = connection.listen(sender).await;
     });
 
-    let mut remote_node = RemoteNode::new(&mut writer, &mut receiver, network);
+    let mut remote_node = RemoteNode::new(node_id, &mut writer, &mut receiver, network);
 
     remote_node.handshake(local_address).await?;
 
-    remote_node.main_loop().await?;
+    remote_node
+        .main_loop(node_to_rest_sender, rest_to_node_receiver)
+        .await?;
 
     let res = listener_handle.await;
     if let Err(e) = res {
@@ -178,13 +198,46 @@ async fn send_message(writer: &mut OwnedWriteHalf, message: &NetworkMessage) -> 
 
 static DELAY: Duration = Duration::from_millis(1000);
 
-async fn receive_message(receiver: &mut Receiver<NetworkMessage>) -> Commands {
-    let received = receiver.recv().await;
-
+async fn receive_from_remote(receiver: &mut Receiver<NetworkMessage>) -> Commands {
     loop {
+        let received = receiver.recv().await;
+
         if let Some(message) = received {
             return message.into();
         }
+
+        thread::sleep(DELAY);
+    }
+}
+
+async fn receive(
+    receiver: &mut Receiver<NetworkMessage>,
+    rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+) -> Commands {
+    loop {
+        tokio::select! {
+            received = receiver.recv() => {
+                if let Some(message) = received {
+                    return message.into();
+                }
+            }
+            received = rest_to_node_receiver.recv() => {
+                match received {
+                    Ok(NodeMessage::GetHeadersRequest) => {
+                        log::debug!("Received GetHeadersRequest from internal.");
+                        return Commands::GetHeaders;
+                    }
+                    Ok(val) => {
+                        log::debug!("Received unknown value from rest_to_node_receiver: {:?}", val);
+                        continue;
+                    }
+                    Err(err) => {
+                        log::error!("Error receiving value from rest_to_node_receiver: {:?}", err);
+                        continue;
+                    }
+                }
+            }
+        };
 
         thread::sleep(DELAY);
     }

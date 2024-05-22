@@ -144,6 +144,7 @@ impl<'a> RemoteNode<'a> {
                     node_to_rest_sender.send(NodeMessage::NodeReady)?;
                 }
                 Commands::GetHeaders => {
+                    //                    get_headers::new(self.network)?;
                     log::debug!("GetHeaders should send to remote node.");
                 }
                 _ => continue,

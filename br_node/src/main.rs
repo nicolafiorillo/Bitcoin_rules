@@ -11,8 +11,8 @@ Entry point
 
 use brl::flags::network_magic::NetworkMagic;
 
-mod config;
-use config::{load_config, Configuration};
+mod environment;
+use environment::{load_config, Environment};
 
 use crate::node_message::NodeMessage;
 
@@ -33,12 +33,12 @@ async fn main() {
 
     log::info!("Application started.");
 
-    let cfg: Configuration = load_config().unwrap();
-    log::info!("Configuration: {:?}", cfg);
+    let env: Environment = load_config().unwrap();
+    log::info!("Environment: {:}", env);
 
-    let network: NetworkMagic = cfg.network.into();
+    let network: NetworkMagic = env.network;
 
-    let address = format!("{}:{}", cfg.remote_node_address, cfg.remote_node_port);
+    let address = format!("{}:{}", env.remote_node_address, env.remote_node_port);
 
     emit_logo();
 
@@ -46,7 +46,6 @@ async fn main() {
     log::info!("This is a work in progress: please do not use in production.");
 
     log::info!("");
-    log::info!("Network: {}", network);
 
     let (node_to_rest_sender, _node_to_rest_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
     let (rest_to_node_sender, _rest_to_node_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
@@ -55,7 +54,7 @@ async fn main() {
     let node_to_rest_rx = node_to_rest_sender.subscribe();
 
     let timechain_synchronyzer_handle = tokio::spawn(async move {
-        let _ = timechain_synchronyzer::start(rest_to_node_sx, node_to_rest_rx).await;
+        let _ = timechain_synchronyzer::start(env.genesis_block_hash, rest_to_node_sx, node_to_rest_rx).await;
     });
 
     let rest_to_node_rx = rest_to_node_sender.subscribe();

@@ -16,6 +16,7 @@ use environment::{load_config, Environment};
 
 use crate::node_message::NodeMessage;
 
+mod custom_log;
 mod handshake_state;
 mod message;
 mod node_listener;
@@ -29,7 +30,7 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
+    custom_log::init();
 
     log::info!("Application started.");
 

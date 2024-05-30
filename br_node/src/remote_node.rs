@@ -19,7 +19,7 @@ use brl::{
 
 use crate::{
     handshake_state::HandshakeState,
-    message::{pong, verack, version},
+    message::{get_headers, pong, verack, version},
     node_listener::NodeListener,
     node_message::NodeMessage,
 };
@@ -33,14 +33,16 @@ struct RemoteNode<'a> {
     agent: String,
     version: u32,
     feerate: u64,
+    addr_v2: bool,
+    wtxid_relay: bool,
 }
 
 impl Display for RemoteNode<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "{{ node_id: {}, agent: {}, version: {}, feerate: {} }}",
-            self.node_id, self.agent, self.version, self.feerate
+            "{{ node_id: {}, agent: {}, version: {}, feerate: {}, addr_v2: {}, wtxid_relay: {}",
+            self.node_id, self.agent, self.version, self.feerate, self.addr_v2, self.wtxid_relay
         )
     }
 }
@@ -60,6 +62,8 @@ impl<'a> RemoteNode<'a> {
             agent: "unknown".to_string(),
             version: 0,
             feerate: 0,
+            addr_v2: false,
+            wtxid_relay: false,
         }
     }
 
@@ -103,9 +107,17 @@ impl<'a> RemoteNode<'a> {
                 HandshakeState::LocalVerackSent => {
                     let command = receive_from_remote(self.receiver).await;
 
+                    // Before verack is received, we can receive SendAddrV2 and WtxIdRelay commands:
+                    // manage them without changing the status
                     if let Commands::VerAck = command {
                         status = HandshakeState::RemoteVerackReceived;
                         log::debug!(NID = self.node_id; "Remote verack received.");
+                    } else if let Commands::SendAddrV2 = command {
+                        log::debug!(NID = self.node_id; "SendAddrV2 command received.");
+                        self.addr_v2 = true;
+                    } else if let Commands::WtxIdRelay = command {
+                        log::debug!(NID = self.node_id; "WtxIdRelay command received.");
+                        self.wtxid_relay = true;
                     }
                 }
                 HandshakeState::RemoteVerackReceived => {
@@ -145,11 +157,13 @@ impl<'a> RemoteNode<'a> {
                     self.feerate = payload.feerate;
 
                     log::info!(NID = self.node_id; "Remote node is ready: {}", self);
-                    node_to_rest_sender.send(NodeMessage::NodeReady)?;
+                    node_to_rest_sender.send(NodeMessage::NodeReady(self.node_id))?;
                 }
-                Commands::GetHeaders => {
-                    //                    get_headers::new(self.network)?;
+                Commands::GetHeaders(gh) => {
                     log::debug!(NID = self.node_id; "GetHeaders should send to remote node.");
+                    let get_header_message = get_headers::as_network_message(&gh, self.network)?;
+
+                    self.send_message(&get_header_message).await?;
                 }
                 _ => continue,
             }
@@ -181,9 +195,11 @@ impl<'a> RemoteNode<'a> {
                 }
                 received = rest_to_node_receiver.recv() => {
                     match received {
-                        Ok(NodeMessage::GetHeadersRequest) => {
+                        Ok(NodeMessage::GetHeadersRequest(start_hash)) => {
                             log::debug!(NID = self.node_id; "Received GetHeadersRequest from internal.");
-                            return Commands::GetHeaders;
+
+                            let gh = get_headers::new(start_hash);
+                            return Commands::GetHeaders(gh);
                         }
                         Ok(val) => {
                             log::debug!(NID = self.node_id; "Received unknown value from rest_to_node_receiver: {:?}", val);
@@ -253,7 +269,7 @@ async fn receive_from_remote(receiver: &mut Receiver<NetworkMessage>) -> Command
     }
 }
 
-// TODO: ADDING TESTS
+// TODO: Add tests
 /*
 #[cfg(test)]
 mod connection_tests {

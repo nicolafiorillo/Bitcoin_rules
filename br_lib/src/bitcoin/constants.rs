@@ -17,8 +17,8 @@ pub static TESTNET_GENESIS_BLOCK_HASH: Lazy<Hash256> = Lazy::new(|| str_to_hash2
 
 pub fn network_to_environment(network: NetworkMagic) -> Hash256 {
     match network {
-        NetworkMagic::Mainnet => MAINNET_GENESIS_BLOCK_HASH.clone(),
-        NetworkMagic::Testnet3 => TESTNET_GENESIS_BLOCK_HASH.clone(),
+        NetworkMagic::Mainnet => *MAINNET_GENESIS_BLOCK_HASH,
+        NetworkMagic::Testnet3 => *TESTNET_GENESIS_BLOCK_HASH,
         _ => panic!("unknown_network"),
     }
 }

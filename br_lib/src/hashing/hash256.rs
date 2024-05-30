@@ -1,7 +1,7 @@
 use ripemd::Digest;
 use sha2::Sha256;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Hash256(pub [u8; 32]);
 
 pub fn hash256(s: &[u8]) -> Hash256 {

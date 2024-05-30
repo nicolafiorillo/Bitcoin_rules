@@ -1,1 +1,1 @@
-pub static LAST_VERSION: u32 = 70015;
+pub static LAST_VERSION: u32 = 70016;

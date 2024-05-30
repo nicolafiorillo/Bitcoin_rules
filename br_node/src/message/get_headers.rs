@@ -6,9 +6,11 @@ use brl::{
 };
 
 // By now the message requests from 'start' to next 2000 headers
-pub fn new(start: Hash256, network: NetworkMagic) -> StdResult<NetworkMessage> {
-    let get_header_message = GetHeader::new(start, Hash256::zero());
-    let payload = get_header_message.serialize();
+pub fn new(start: Hash256) -> GetHeader {
+    GetHeader::new(start, Hash256::zero())
+}
 
+pub fn as_network_message(get_header: &GetHeader, network: NetworkMagic) -> StdResult<NetworkMessage> {
+    let payload = get_header.serialize();
     NetworkMessage::new(GET_HEADERS_COMMAND, payload, network)
 }

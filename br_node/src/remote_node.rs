@@ -202,8 +202,13 @@ impl<'a> RemoteNode<'a> {
                 }
                 received = rest_to_node_receiver.recv() => {
                     match received {
-                        Ok(NodeMessage::GetHeadersRequest(start_hash)) => {
+                        Ok(NodeMessage::GetHeadersRequest(node_id, start_hash)) => {
                             log::debug!(NID = self.node_id; "Received GetHeadersRequest from internal.");
+
+                            if node_id != self.node_id {
+                                // message is not for this node
+                                continue;
+                            }
 
                             let gh = get_headers::new(start_hash);
                             return Ok(Commands::GetHeaders(gh));

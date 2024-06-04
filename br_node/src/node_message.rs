@@ -4,6 +4,6 @@ use brl::{hashing::hash256::Hash256, network::headers::Headers};
 #[derive(Debug, Clone, PartialEq)]
 pub enum NodeMessage {
     NodeReady(u8),
-    GetHeadersRequest(Hash256),
+    GetHeadersRequest(u8, Hash256),
     HeadersResponse(u8, Headers),
 }

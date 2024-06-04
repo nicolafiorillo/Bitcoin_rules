@@ -16,7 +16,7 @@ pub async fn start(
         match message {
             NodeMessage::NodeReady(node_id) => {
                 log::debug!("Node {} is ready", node_id);
-                let _ = sender.send(NodeMessage::GetHeadersRequest(start_block_hash));
+                let _ = sender.send(NodeMessage::GetHeadersRequest(node_id, start_block_hash));
             }
             NodeMessage::HeadersResponse(node_id, headers) => {
                 log::debug!("Received headers from NID-{}: {:?}", node_id, headers.0.len());

@@ -12,7 +12,7 @@ pub async fn start(
     let node_id: u8 = 0; // will be mut when connecting to multiple nodes
 
     let first_remote_node_handle = tokio::spawn(async move {
-        let _ = remote_node::connect(
+        let res = remote_node::connect(
             node_id,
             address,
             network,
@@ -20,18 +20,17 @@ pub async fn start(
             &mut rest_to_node_receiver,
         )
         .await;
+
+        if let Err(e) = res {
+            log::error!("Error managing to remote node: {:?}", e);
+        }
     });
 
     let _res = first_remote_node_handle.await;
 
-    // loop {
-    //     let msg = receiver.recv().await;
-    //     if let Ok(msg) = msg {
-    //         log::info!("Received message: {}", msg);
-
-    //         break;
-    //     }
-    // }
+    // If first remote node fails, here we will try to connect to another one.
+    // Exit for now, until peer discovery will be implemented.
+    log::debug!("remote_nodes_orchestrator exiting...");
 
     Ok(())
 }

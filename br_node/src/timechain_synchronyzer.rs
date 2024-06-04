@@ -11,14 +11,19 @@ pub async fn start(
     loop {
         // get last block in persistence and use its hash as starting block
         // for now use genesis_block_hash as starting block
-        let msg = receiver.recv().await?;
-        match msg {
+        let message = receiver.recv().await?;
+
+        match message {
             NodeMessage::NodeReady(node_id) => {
                 log::debug!("Node {} is ready", node_id);
                 let _ = sender.send(NodeMessage::GetHeadersRequest(start_block_hash));
             }
+            NodeMessage::HeadersResponse(node_id, headers) => {
+                log::debug!("Received headers from NID-{}: {:?}", node_id, headers.0.len());
+                // let _ = sender.send(NodeMessage::GetHeadersRequest(start_block_hash));
+            }
             _ => {
-                log::info!("Received message: {:?}", msg);
+                log::info!("Received message: {:?}", message);
                 log::debug!("timechain_synchronyzer exiting...");
 
                 break;

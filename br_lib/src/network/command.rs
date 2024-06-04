@@ -1,7 +1,8 @@
 use std::fmt::{Display, Formatter};
 
 use super::{
-    fee_filter::FeeFilter, get_header::GetHeader, ping::Ping, pong::Pong, send_compact::SendCompact, version::Version,
+    fee_filter::FeeFilter, get_header::GetHeader, headers::Headers, ping::Ping, pong::Pong, send_compact::SendCompact,
+    version::Version,
 };
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -24,7 +25,7 @@ pub enum Commands {
     // WtxIdRelay is read but behaviour is not implemented. It should be in version >= 70016.
     // Ref: https://github.com/bitcoin/bips/blob/master/bip-0339.mediawiki
     WtxIdRelay,
-    Headers, // Not implemented
+    Headers(Headers),
 }
 
 impl Display for Command {

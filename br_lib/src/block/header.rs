@@ -20,7 +20,7 @@ type Timestamp = u32;
 type Bits = u32;
 type Nonce = u32;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Header {
     pub version: Version,
     pub previous_block: PreviousBlock,
@@ -30,7 +30,7 @@ pub struct Header {
     pub nonce: Nonce,
 }
 
-static HEADER_LENGTH: usize = 80;
+pub static HEADER_LENGTH: usize = 80;
 
 static BIP9_POS: usize = 29;
 static BIP91_POS: usize = 4;

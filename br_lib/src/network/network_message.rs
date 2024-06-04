@@ -2,7 +2,10 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{flags::network_magic::NetworkMagic, hashing::hash256::hash256, std_lib::std_result::StdResult};
+use crate::{
+    flags::network_magic::NetworkMagic, hashing::hash256::hash256, network::headers::Headers,
+    std_lib::std_result::StdResult,
+};
 
 use super::{command::*, fee_filter::FeeFilter, ping::Ping, send_compact::SendCompact, version::Version};
 
@@ -55,31 +58,31 @@ impl NetworkMessage {
     }
 }
 
-impl From<NetworkMessage> for Commands {
+impl From<NetworkMessage> for StdResult<Commands> {
     fn from(val: NetworkMessage) -> Self {
         match val.command {
-            VERACK_COMMAND => Commands::VerAck,
+            VERACK_COMMAND => Ok(Commands::VerAck),
             VERSION_COMMAND => {
-                let payload = Version::deserialize(&val.payload).unwrap();
-                Commands::Version(payload)
+                let payload = Version::deserialize(&val.payload)?;
+                Ok(Commands::Version(payload))
             }
             SEND_COMPACT_COMMAND => {
-                let payload = SendCompact::deserialize(&val.payload).unwrap();
-                Commands::SendCompact(payload)
+                let payload = SendCompact::deserialize(&val.payload)?;
+                Ok(Commands::SendCompact(payload))
             }
             PING_COMMAND => {
-                let payload = Ping::deserialize(&val.payload).unwrap();
-                Commands::Ping(payload)
+                let payload = Ping::deserialize(&val.payload)?;
+                Ok(Commands::Ping(payload))
             }
             FEE_FILTER_COMMAND => {
-                let payload = FeeFilter::deserialize(&val.payload).unwrap();
-                Commands::FeeFilter(payload)
+                let payload = FeeFilter::deserialize(&val.payload)?;
+                Ok(Commands::FeeFilter(payload))
             }
-            WTXID_RELAY_COMMAND => Commands::WtxIdRelay,
-            SENDADDRV2_COMMAND => Commands::SendAddrV2,
+            WTXID_RELAY_COMMAND => Ok(Commands::WtxIdRelay),
+            SENDADDRV2_COMMAND => Ok(Commands::SendAddrV2),
             HEADERS_COMMAND => {
-                log::debug!("HEADERS_COMMAND arrived - payload len is: {}", val.payload.len());
-                Commands::Headers
+                let payload = Headers::deserialize(&val.payload)?;
+                Ok(Commands::Headers(payload))
             }
             _ => panic!("unknown_command: {:?}", val.command),
         }

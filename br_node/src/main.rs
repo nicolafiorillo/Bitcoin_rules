@@ -48,20 +48,28 @@ async fn main() {
 
     log::info!("");
 
+    // These channels create senders and receivers. They are not use diretcly but passed, after cloning, to
+    // the threads that will use them, so that the main thread can keep them alive in its scope.
     let (node_to_rest_sender, _node_to_rest_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
     let (rest_to_node_sender, _rest_to_node_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
 
+    // Run timechain synchronyzer
     let rest_to_node_sx = rest_to_node_sender.clone();
     let node_to_rest_rx = node_to_rest_sender.subscribe();
 
     let timechain_synchronyzer_handle = tokio::spawn(async move {
-        let _ = timechain_synchronyzer::start(env.genesis_block_hash, rest_to_node_sx, node_to_rest_rx).await;
+        let res = timechain_synchronyzer::start(env.genesis_block_hash, rest_to_node_sx, node_to_rest_rx).await;
+        if let Err(e) = res {
+            log::error!("Error managing timechain synchronyzer: {:?}", e);
+        }
     });
 
-    let rest_to_node_rx = rest_to_node_sender.subscribe();
+    // Run remote nodes orchestrator
+    let node_to_rest_sender = node_to_rest_sender.clone();
+    let rest_to_node_receiver = rest_to_node_sender.subscribe();
 
     let remote_nodes_orchestrator_handle = tokio::spawn(async move {
-        let _ = remote_nodes_orchestrator::start(address, network, node_to_rest_sender, rest_to_node_rx).await;
+        let _ = remote_nodes_orchestrator::start(address, network, node_to_rest_sender, rest_to_node_receiver).await;
     });
 
     let _ = timechain_synchronyzer_handle.await;

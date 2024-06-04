@@ -83,7 +83,7 @@ impl<'a> RemoteNode<'a> {
                     status = HandshakeState::LocalVersionSent;
                 }
                 HandshakeState::LocalVersionSent => {
-                    let command = receive_from_remote(self.receiver).await;
+                    let command = receive_from_remote(self.receiver).await?;
 
                     if let Commands::Version(version) = command {
                         status = HandshakeState::RemoteVersionReceived;
@@ -105,7 +105,7 @@ impl<'a> RemoteNode<'a> {
                     status = HandshakeState::LocalVerackSent;
                 }
                 HandshakeState::LocalVerackSent => {
-                    let command = receive_from_remote(self.receiver).await;
+                    let command = receive_from_remote(self.receiver).await?;
 
                     // Before verack is received, we can receive SendAddrV2 and WtxIdRelay commands:
                     // manage them without changing the status
@@ -139,7 +139,7 @@ impl<'a> RemoteNode<'a> {
         rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
     ) -> StdResult<()> {
         loop {
-            let command = self.receive(rest_to_node_receiver).await;
+            let command = self.receive(rest_to_node_receiver).await?;
 
             match command {
                 Commands::SendCompact(payload) => {
@@ -165,6 +165,10 @@ impl<'a> RemoteNode<'a> {
 
                     self.send_message(&get_header_message).await?;
                 }
+                Commands::Headers(headers) => {
+                    log::debug!(NID = self.node_id; "Headers command received ({} headers).", headers.0.len());
+                    node_to_rest_sender.send(NodeMessage::HeadersResponse(self.node_id, headers))?;
+                }
                 _ => continue,
             }
         }
@@ -185,7 +189,10 @@ impl<'a> RemoteNode<'a> {
         }
     }
 
-    async fn receive(&mut self, rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>) -> Commands {
+    async fn receive(
+        &mut self,
+        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+    ) -> StdResult<Commands> {
         loop {
             tokio::select! {
                 received = self.receiver.recv() => {
@@ -199,7 +206,7 @@ impl<'a> RemoteNode<'a> {
                             log::debug!(NID = self.node_id; "Received GetHeadersRequest from internal.");
 
                             let gh = get_headers::new(start_hash);
-                            return Commands::GetHeaders(gh);
+                            return Ok(Commands::GetHeaders(gh));
                         }
                         Ok(val) => {
                             log::debug!(NID = self.node_id; "Received unknown value from rest_to_node_receiver: {:?}", val);
@@ -257,7 +264,7 @@ pub async fn connect(
 
 static DELAY: Duration = Duration::from_millis(1000);
 
-async fn receive_from_remote(receiver: &mut Receiver<NetworkMessage>) -> Commands {
+async fn receive_from_remote(receiver: &mut Receiver<NetworkMessage>) -> StdResult<Commands> {
     loop {
         let received = receiver.recv().await;
 

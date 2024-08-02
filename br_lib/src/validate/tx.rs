@@ -118,6 +118,8 @@ pub fn verify_coinbase(tx: &Tx) -> bool {
     TODO
     Not all validations are implemented yet.
     When all validations are implemented, this function will be refactored.
+
+    Refer to [Protocol rules](https://en.bitcoin.it/wiki/Protocol_rules) for complete list of rules.
 */
 pub fn analyze(tx: &Tx) -> StdResult<AnalysisResult> {
     let mut tx_fee: i128 = 0;

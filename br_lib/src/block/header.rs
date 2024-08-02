@@ -13,21 +13,14 @@ use crate::{
     transaction::tx_lib::le_bytes_to_u32,
 };
 
-type Version = u32;
-type PreviousBlock = Integer; // will be u256 or [u8; 32]
-type MerkleRoot = Integer; // will be u256 or [u8; 32]
-type Timestamp = u32;
-type Bits = u32;
-type Nonce = u32;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Header {
-    pub version: Version,
-    pub previous_block: PreviousBlock,
-    pub merkle_root: MerkleRoot,
-    pub timestamp: Timestamp,
-    pub bits: Bits,
-    pub nonce: Nonce,
+    pub version: u32,
+    pub previous_block: Integer, // will be u256 or [u8; 32]
+    pub merkle_root: Integer,    // will be u256 or [u8; 32]
+    pub timestamp: u32,
+    pub bits: u32,
+    pub nonce: u32,
 }
 
 pub static HEADER_LENGTH: usize = 80;
@@ -50,7 +43,8 @@ impl Display for Header {
 
         writeln!(
             f,
-            "version: {:}\nprevious_block: {:}\nmerkle_root: {:}\ntimestamp: {:}\nbits: {:}\nnonce: {:}\n\ntarget: {:}",
+            "id: {:}\nversion: {:}\nprevious_block: {:}\nmerkle_root: {:}\ntimestamp: {:}\nbits: {:}\nnonce: {:}\n\ntarget: {:}",
+            self.id_str(),
             self.version,
             bytes_to_string_64(&self.previous_block.to_digits(Order::Msf)),
             bytes_to_string_64(&self.merkle_root.to_digits(Order::Msf)),
@@ -64,12 +58,12 @@ impl Display for Header {
 
 impl Header {
     pub fn new(
-        version: Version,
-        previous_block: PreviousBlock,
-        merkle_root: MerkleRoot,
-        timestamp: Timestamp,
-        bits: Bits,
-        nonce: Nonce,
+        version: u32,
+        previous_block: Integer,
+        merkle_root: Integer,
+        timestamp: u32,
+        bits: u32,
+        nonce: u32,
     ) -> Self {
         Self {
             version,
@@ -158,7 +152,7 @@ impl Header {
 // Resources: https://gist.github.com/Someguy123/1e4a1d1ead52c523a3ca4b1578ef1dad
 // Other example: https://github.com/btcsuite/btcd/blob/91cdf0d7fc719022e65c08d0ee8ab791bcc0921d/blockchain/difficulty.go#L62
 // TODO: explain
-pub fn bits_to_target(bits: Bits) -> Integer {
+pub fn bits_to_target(bits: u32) -> Integer {
     if bits > MAX_BITS {
         return (*MAX_TARGET).clone(); // TODO: better with error handling?
     }
@@ -171,7 +165,7 @@ pub fn bits_to_target(bits: Bits) -> Integer {
     Integer::from(256).pow(index - 3) * coefficient
 }
 
-pub fn target_to_bits(target: Integer) -> Bits {
+pub fn target_to_bits(target: Integer) -> u32 {
     if target > *MAX_TARGET {
         return MAX_BITS; // TODO: better with error handling?
     }

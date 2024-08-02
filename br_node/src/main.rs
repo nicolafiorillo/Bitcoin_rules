@@ -17,6 +17,7 @@ use environment::{load_config, Environment};
 use crate::node_message::NodeMessage;
 
 mod custom_log;
+mod database;
 mod handshake_state;
 mod message;
 mod node_listener;
@@ -27,10 +28,12 @@ mod timechain_synchronyzer;
 mod utils;
 
 // TODO: move network stuff in a dedicated lib (br_net)
+// TODO: exit gracefully from all threads in case of error
 
 #[tokio::main]
 async fn main() {
     custom_log::init();
+    dotenvy::dotenv().ok();
 
     log::info!("Application started.");
 

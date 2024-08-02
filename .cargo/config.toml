@@ -2,3 +2,5 @@
 tl = "test --lib"
 tb = "test --bins"
 ba = "build --workspace --all-targets"
+
+[env]

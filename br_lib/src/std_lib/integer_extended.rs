@@ -12,6 +12,7 @@ pub trait IntegerExtended {
     fn invert_by_modulo(&self, modulo: &Integer) -> Self;
     fn from_little_endian_bytes(bytes: &[u8]) -> Self;
     fn to_little_endian_bytes(&self, length: usize) -> Vec<u8>;
+    fn to_vec(&self) -> Vec<u8>;
 }
 
 impl IntegerExtended for Integer {
@@ -51,6 +52,10 @@ impl IntegerExtended for Integer {
     fn to_little_endian_bytes(&self, length: usize) -> Vec<u8> {
         let bytes = self.to_digits::<u8>(Order::Lsf);
         padding_right(&bytes, length, 0)
+    }
+
+    fn to_vec(&self) -> Vec<u8> {
+        self.to_digits::<u8>(Order::Lsf)
     }
 }
 

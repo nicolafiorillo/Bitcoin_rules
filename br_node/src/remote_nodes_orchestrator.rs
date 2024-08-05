@@ -1,13 +1,13 @@
 use brl::{flags::network_magic::NetworkMagic, std_lib::std_result::StdResult};
 use tokio::sync::broadcast::{Receiver, Sender};
 
-use crate::{node_message::NodeMessage, remote_node};
+use crate::{internal_message::InternalMessage, remote_node};
 
 pub async fn start(
     address: String,
     network: NetworkMagic,
-    node_to_rest_sender: Sender<NodeMessage>,
-    mut rest_to_node_receiver: Receiver<NodeMessage>,
+    node_to_rest_sender: Sender<InternalMessage>,
+    mut rest_to_node_receiver: Receiver<InternalMessage>,
 ) -> StdResult<()> {
     let node_id: u8 = 0; // will be mut when connecting to multiple nodes
 

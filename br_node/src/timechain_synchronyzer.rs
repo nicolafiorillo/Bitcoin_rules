@@ -3,13 +3,13 @@ use tokio::sync::broadcast::{Receiver, Sender};
 
 use crate::{
     database::{postgres_repository::PostgresRepository, repository::Repository},
-    node_message::NodeMessage,
+    internal_message::InternalMessage,
 };
 
 pub async fn start(
     start_block_hash: Hash256,
-    sender: Sender<NodeMessage>,
-    mut receiver: Receiver<NodeMessage>,
+    sender: Sender<InternalMessage>,
+    mut receiver: Receiver<InternalMessage>,
 ) -> StdResult<()> {
     // Connecting to database
     let mut repo = PostgresRepository::connect()?;
@@ -20,11 +20,11 @@ pub async fn start(
         let message = receiver.recv().await?;
 
         match message {
-            NodeMessage::NodeReady(node_id) => {
+            InternalMessage::NodeIsReady(node_id) => {
                 log::debug!("Node {} is ready", node_id);
-                let _ = sender.send(NodeMessage::GetHeadersRequest(node_id, start_block_hash));
+                let _ = sender.send(InternalMessage::GetHeadersRequest(node_id, start_block_hash));
             }
-            NodeMessage::HeadersResponse(node_id, headers) => {
+            InternalMessage::GetHeadersResponse(node_id, headers) => {
                 log::debug!(
                     "Received {:?} headers from NID-{}: writing into database",
                     node_id,

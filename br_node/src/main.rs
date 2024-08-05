@@ -14,14 +14,14 @@ use brl::flags::network_magic::NetworkMagic;
 mod environment;
 use environment::{load_config, Environment};
 
-use crate::node_message::NodeMessage;
+use crate::internal_message::InternalMessage;
 
 mod custom_log;
 mod database;
 mod handshake_state;
 mod message;
 mod node_listener;
-mod node_message;
+mod internal_message;
 mod remote_node;
 mod remote_nodes_orchestrator;
 mod timechain_synchronyzer;
@@ -53,8 +53,8 @@ async fn main() {
 
     // These channels create senders and receivers. They are not use diretcly but passed, after cloning, to
     // the threads that will use them, so that the main thread can keep them alive in its scope.
-    let (node_to_rest_sender, _node_to_rest_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
-    let (rest_to_node_sender, _rest_to_node_receiver) = tokio::sync::broadcast::channel::<NodeMessage>(16);
+    let (node_to_rest_sender, _node_to_rest_receiver) = tokio::sync::broadcast::channel::<InternalMessage>(16);
+    let (rest_to_node_sender, _rest_to_node_receiver) = tokio::sync::broadcast::channel::<InternalMessage>(16);
 
     // Run timechain synchronyzer
     let rest_to_node_sx = rest_to_node_sender.clone();

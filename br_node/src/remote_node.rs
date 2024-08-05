@@ -19,9 +19,9 @@ use brl::{
 
 use crate::{
     handshake_state::HandshakeState,
+    internal_message::InternalMessage,
     message::{get_headers, pong, verack, version},
     node_listener::NodeListener,
-    node_message::NodeMessage,
 };
 
 #[derive(Debug)]
@@ -135,8 +135,8 @@ impl<'a> RemoteNode<'a> {
 
     pub async fn main_loop(
         &mut self,
-        node_to_rest_sender: tokio::sync::broadcast::Sender<NodeMessage>,
-        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+        node_to_rest_sender: tokio::sync::broadcast::Sender<InternalMessage>,
+        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<InternalMessage>,
     ) -> StdResult<()> {
         loop {
             let command = self.receive(rest_to_node_receiver).await?;
@@ -157,7 +157,7 @@ impl<'a> RemoteNode<'a> {
                     self.feerate = payload.feerate;
 
                     log::info!(NID = self.node_id; "Remote node is ready: {}", self);
-                    node_to_rest_sender.send(NodeMessage::NodeReady(self.node_id))?;
+                    node_to_rest_sender.send(InternalMessage::NodeIsReady(self.node_id))?;
                 }
                 Commands::GetHeaders(gh) => {
                     log::debug!(NID = self.node_id; "GetHeaders should send to remote node.");
@@ -167,7 +167,7 @@ impl<'a> RemoteNode<'a> {
                 }
                 Commands::Headers(headers) => {
                     log::debug!(NID = self.node_id; "Headers command received ({} headers).", headers.0.len());
-                    node_to_rest_sender.send(NodeMessage::HeadersResponse(self.node_id, headers))?;
+                    node_to_rest_sender.send(InternalMessage::GetHeadersResponse(self.node_id, headers))?;
                 }
                 _ => continue,
             }
@@ -191,7 +191,7 @@ impl<'a> RemoteNode<'a> {
 
     async fn receive(
         &mut self,
-        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+        rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<InternalMessage>,
     ) -> StdResult<Commands> {
         loop {
             tokio::select! {
@@ -202,7 +202,7 @@ impl<'a> RemoteNode<'a> {
                 }
                 received = rest_to_node_receiver.recv() => {
                     match received {
-                        Ok(NodeMessage::GetHeadersRequest(node_id, start_hash)) => {
+                        Ok(InternalMessage::GetHeadersRequest(node_id, start_hash)) => {
                             log::debug!(NID = self.node_id; "Received GetHeadersRequest from internal.");
 
                             if node_id != self.node_id {
@@ -234,8 +234,8 @@ pub async fn connect(
     node_id: u8,
     remote_address: String,
     network: NetworkMagic,
-    node_to_rest_sender: tokio::sync::broadcast::Sender<NodeMessage>,
-    rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<NodeMessage>,
+    node_to_rest_sender: tokio::sync::broadcast::Sender<InternalMessage>,
+    rest_to_node_receiver: &mut tokio::sync::broadcast::Receiver<InternalMessage>,
 ) -> StdResult<()> {
     log::info!(NID = node_id; "Connecting to {} using {:?} network...", remote_address, network);
     let stream = TcpStream::connect(remote_address).await?;

@@ -38,7 +38,7 @@ cargo test --lib --bins
 cargo test --lib --bins
 ```
 
-### Run unit tests and integration tests (slow)
+### Run unit tests and integration tests (also slowest ones)
 
 ```shell
 cargo test

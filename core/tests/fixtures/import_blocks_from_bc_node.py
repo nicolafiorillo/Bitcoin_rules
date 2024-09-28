@@ -11,8 +11,8 @@ from progress.bar import Bar
 from time import sleep
 from postgres import Postgres
 
-BITCOIN_NODE_HOST = "192.168.178.54"
-BITCOIN_NODE_PORT = 8332
+BITCOIN_NODE_HOST = os.environ["TEST_NODE_HOST"]
+BITCOIN_NODE_PORT = os.environ["TEST_NODE_PORT"]
 BITCOIN_RPC_USER = os.environ["BITCOIN_RPC_USER"]
 BITCOIN_RPC_PASSWORD = os.environ["BITCOIN_RPC_PASSWORD"]
 POSTGRES_CONNECTION_STRING = os.environ["POSTGRES_CONNECTION_STRING"]

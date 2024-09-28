@@ -26,10 +26,10 @@ We are working on structures and algorithms and there is nothing to run yet. For
 cargo build
 ```
 
-### Run all tests
+### Run all tests (slowest tests also)
 
 ```shell
-cargo test --lib --bins
+cargo test
 ```
 
 ### Run unit tests only (fast)
@@ -38,15 +38,10 @@ cargo test --lib --bins
 cargo test --lib --bins
 ```
 
-### Run unit tests and integration tests (also slowest ones)
-
-```shell
-cargo test
-```
 
 ### Run the node (cli app)
 
-`DATABASE_URL` must be set as environment variable.
+`DATABASE_URL` must be set as environment variable (eg. `postgres://postgres:postgres@localhost:5432/bitcoin_rules_dev`)
 
 Prepare database: 
 
@@ -56,7 +51,7 @@ diesel setup
 then run
 
 ```
-cargo run --bin brn
+cargo run --bin node
 ```
 
 ## Roadmap

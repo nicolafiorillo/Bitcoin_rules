@@ -20,6 +20,14 @@ Moreover, consider this as a contribute to the Bitcoin spread and adoption.
 
 ## Getting started
 
+### Dependencies
+Install dependencies: `m4`, `libpq-dev` 
+
+Eg.
+```shell
+sudo apt install m4 libpq-dev
+```
+
 We are working on structures and algorithms and there is nothing to run yet. For the moment, clone the repo and build it with:
 
 ```shell

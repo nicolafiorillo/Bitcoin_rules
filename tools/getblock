@@ -8,4 +8,4 @@ COMMAND=getblock
 curl --user $BITCOIN_RPC_USER:$BITCOIN_RPC_PASSWORD \
 --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "'"$COMMAND"'", "params": ["'"$BLOCKHASH"'"]}' \
 -H "content-type: text/plain;" \
-http://192.168.178.54:8332/ -s | jq
+http://$HOST/ -s | jq

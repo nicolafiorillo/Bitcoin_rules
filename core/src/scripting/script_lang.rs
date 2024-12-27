@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::std_lib::{
     std_result::StdResult,
-    vector::{bytes_to_string, hex_string_to_bytes},
+    vector::{bytes_to_hex_string, hex_string_to_bytes},
 };
 
 use super::{context::Context, opcode::*, token::Token};
@@ -123,7 +123,7 @@ impl ScriptLang {
         for item in items {
             match item {
                 Token::Element(bytes) => {
-                    let e = bytes_to_string(bytes);
+                    let e = bytes_to_hex_string(bytes);
                     repr.push_str(&e);
                 }
                 Token::Command(op_code) => {

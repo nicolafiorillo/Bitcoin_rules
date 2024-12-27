@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
 use rug::{integer::Order, Integer};
 
+use crate::hashing::hash256::Hash256;
+
 use super::std_result::StdResult;
 
 static BASE58_ALPHABET: Lazy<Vec<char>> = Lazy::new(|| {
@@ -56,10 +58,8 @@ fn count_first(binary: &[u8], val: u8) -> usize {
 }
 
 pub fn base58_encode_with_checksum(b: &[u8]) -> String {
-    use crate::hashing::hash256::hash256;
-
     // get the first 4 bytes of the hash256(b)
-    let checksum: [u8; 4] = hash256(b).into();
+    let checksum: [u8; 4] = Hash256::calc(b).into();
 
     // attach the checksum to the end of the binary
     let mut bin: Vec<u8> = b.to_vec();
@@ -69,8 +69,6 @@ pub fn base58_encode_with_checksum(b: &[u8]) -> String {
 }
 
 pub fn base58_decode_with_checksum(s: &str) -> StdResult<Vec<u8>> {
-    use crate::hashing::hash256::hash256;
-
     let d = base58_decode(s).to_digits(Order::Msf);
 
     if d.len() < 4 {
@@ -79,7 +77,7 @@ pub fn base58_decode_with_checksum(s: &str) -> StdResult<Vec<u8>> {
 
     let (data, checksum) = d.split_at(d.len() - 4);
 
-    let data_checksum: [u8; 4] = hash256(data).into();
+    let data_checksum: [u8; 4] = Hash256::calc(data).into();
 
     if checksum != data_checksum {
         Err("invalid_checksum")?;

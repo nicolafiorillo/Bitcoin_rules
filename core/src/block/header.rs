@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use rug::{integer::Order, ops::Pow, Float, Integer};
 
 use crate::{
-    hashing::hash256::{hash256, Hash256},
+    hashing::hash256::Hash256,
     std_lib::{
         integer_extended::IntegerExtended,
         std_result::StdResult,
@@ -80,11 +80,11 @@ impl Header {
     }
 
     pub fn id(&self) -> Hash256 {
-        hash256(&self.serialize())
+        Hash256::calc(&self.serialize())
     }
 
     fn hash(bin: &[u8]) -> Integer {
-        let serialized = hash256(bin);
+        let serialized = Hash256::calc(bin);
         Integer::from_digits(&serialized.0, Order::Lsf)
     }
 
@@ -284,7 +284,7 @@ mod header_test {
         let serialized = header.serialize();
         assert_eq!(serialized.len(), 80);
 
-        let res = vector::bytes_to_string(&serialized);
+        let res = vector::bytes_to_hex_string(&serialized);
         assert_eq!(res, "0100000000000000000000000000000000000000000000000000000000000000000000003BA3EDFD7A7B12B27AC72C3E67768F617FC81BC3888A51323A9FB8AA4B1E5E4A29AB5F49FFFF001D1DAC2B7C");
     }
 
@@ -302,7 +302,7 @@ mod header_test {
         let serialized = header.serialize();
         assert_eq!(serialized.len(), 80);
 
-        let res = vector::bytes_to_string(&serialized);
+        let res = vector::bytes_to_hex_string(&serialized);
         assert_eq!(res, "010000006FE28C0AB6F1B372C1A6A246AE63F74F931E8365E15A089C68D6190000000000982051FD1E4BA744BBBE680E1FEE14677BA1A3C3540BF7B1CDB606E857233E0E61BC6649FFFF001D01E36299");
     }
 

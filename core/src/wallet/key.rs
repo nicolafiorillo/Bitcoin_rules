@@ -13,7 +13,7 @@ use crate::{
     bitcoin::ecdsa::P,
     flags::{compression::Compression, network::Network},
     keys::key::Key,
-    std_lib::{rand::generate_rand_32, vector::bytes_to_string},
+    std_lib::{rand::generate_rand_32, vector::bytes_to_hex_string},
 };
 
 struct Seed();
@@ -37,7 +37,7 @@ impl Display for UserKey {
             f,
             "privkey: {:}\npubkey: {:} (len: {:})\naddress: {:}",
             self.secret,
-            bytes_to_string(&self.pubkey),
+            bytes_to_hex_string(&self.pubkey),
             self.pubkey.len(),
             self.address,
         )

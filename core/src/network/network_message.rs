@@ -3,7 +3,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    flags::network_magic::NetworkMagic, hashing::hash256::hash256, network::headers::Headers,
+    flags::network_magic::NetworkMagic, hashing::hash256::Hash256, network::headers::Headers,
     std_lib::std_result::StdResult,
 };
 
@@ -20,7 +20,7 @@ pub struct NetworkMessage {
 }
 
 fn message_checksum(payload: &[u8]) -> [u8; 4] {
-    hash256(payload).into()
+    Hash256::calc(payload).into()
 }
 
 impl NetworkMessage {
@@ -103,7 +103,7 @@ impl Display for NetworkMessage {
 mod network_message_test {
     use crate::{
         network::command::{VERACK_COMMAND, VERSION_COMMAND},
-        std_lib::vector::bytes_to_string,
+        std_lib::vector::bytes_to_hex_string,
     };
 
     use super::*;
@@ -124,7 +124,7 @@ mod network_message_test {
         let magic = NetworkMagic::Mainnet;
         let network_message = NetworkMessage::new(VERACK_COMMAND, payload, magic).unwrap();
         let bytes = network_message.serialize();
-        let serialized = bytes_to_string(&bytes);
+        let serialized = bytes_to_hex_string(&bytes);
 
         assert_eq!(serialized, "F9BEB4D976657261636B000000000000000000005DF6E0E2");
     }

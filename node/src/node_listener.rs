@@ -1,6 +1,6 @@
 use core::{
     flags::network_magic::NetworkMagic,
-    hashing::hash256::hash256,
+    hashing::hash256::Hash256,
     network::{command::Command, network_message::NetworkMessage},
     std_lib::std_result::StdResult,
     transaction::tx_lib::le_bytes_to_u32,
@@ -30,7 +30,7 @@ impl NodeListener {
 
 //    #[cfg(inline)]
 fn message_checksum(payload: &[u8]) -> [u8; 4] {
-    hash256(payload).into()
+    Hash256::calc(payload).into()
 }
 
 async fn read_exact(reader: &mut OwnedReadHalf, buf: &mut [u8]) -> StdResult<()> {

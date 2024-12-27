@@ -17,6 +17,7 @@ pub mod ecdsa;
 pub mod flags;
 pub mod hashing;
 pub mod keys;
+pub mod merkle;
 pub mod network;
 pub mod scripting;
 pub mod std_lib;

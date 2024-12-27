@@ -34,7 +34,7 @@ pub fn hex_string_to_u32(s: &str) -> StdResult<u32> {
     Ok(u32::from_be_bytes(arr))
 }
 
-pub fn bytes_to_string(bytes: &[u8]) -> String {
+pub fn bytes_to_hex_string(bytes: &[u8]) -> String {
     let strs: Vec<String> = bytes.iter().map(|b| format!("{:02X}", b)).collect();
     strs.join("")
 }
@@ -277,7 +277,7 @@ mod helper_test {
         ($s:literal, $v:expr, $f:ident) => {
             #[test]
             fn $f() {
-                assert_eq!(bytes_to_string($v), $s);
+                assert_eq!(bytes_to_hex_string($v), $s);
             }
         };
     }

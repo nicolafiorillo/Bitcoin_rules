@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::{
     flags::{network::Network, sighash::SigHash},
-    hashing::hash256::hash256,
+    hashing::hash256::Hash256,
     std_lib::{std_result::StdResult, varint::encode},
 };
 
@@ -83,7 +83,7 @@ impl Tx {
     }
 
     fn hash(bin: &[u8]) -> Integer {
-        let serialized = hash256(bin);
+        let serialized = Hash256::calc(bin);
         Integer::from_digits(&serialized.0, Order::Lsf)
     }
 
@@ -253,7 +253,7 @@ impl Tx {
         tx_serialized = [tx_serialized, hash_type].concat();
 
         // 6. hash (hash256) the entire transaction
-        let tx_hash = hash256(&tx_serialized);
+        let tx_hash = Hash256::calc(&tx_serialized);
 
         Integer::from_digits(&tx_hash.0, Order::Msf)
     }
@@ -425,7 +425,7 @@ mod tx_test {
         let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
         tx.substitute_script(0, script);
 
-        let res = vector::bytes_to_string(&tx.serialize());
+        let res = vector::bytes_to_hex_string(&tx.serialize());
 
         assert_eq!(res, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006A473044022074494219882616A1922C3067C042F900451E01BF43C0258446B948D05D9DE6E002201F11ECF14A2EF846305BB0FAFB5D02C184A4C4FCABE584FE824CC807E7178A6501210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF02E8030000000000001976A91493894AC0A123F716291374F8BB414B3532EB872A88ACA00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
     }
@@ -468,7 +468,7 @@ mod tx_test {
         let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
         tx.substitute_script(0, script);
 
-        let serialized = vector::bytes_to_string(&tx.serialize());
+        let serialized = vector::bytes_to_hex_string(&tx.serialize());
         assert_eq!(serialized, "010000000149C81591E62BB2E423E995F281DCA362C86750AB6C11B05738FC326C1FEF96D8000000006A473044022074494219882616A1922C3067C042F900451E01BF43C0258446B948D05D9DE6E002201F11ECF14A2EF846305BB0FAFB5D02C184A4C4FCABE584FE824CC807E7178A6501210280FD09653481B15ECD969BDB36B6454EC082913FBC4C6E360C0196C313395827FFFFFFFF02E8030000000000001976A91493894AC0A123F716291374F8BB414B3532EB872A88ACA00F0000000000001976A914F87B3A4B4F29D7E379DBCF1E9CADB95611F0439D88AC00000000");
 
         assert!(analyze(&tx).is_ok());
@@ -522,7 +522,7 @@ mod tx_test {
         let script_1 = signing::generate_input_signature(&tx, 1, &private_key_1, script_pub_key_1).unwrap();
         tx.substitute_script(1, script_1);
 
-        let serialized = vector::bytes_to_string(&tx.serialize());
+        let serialized = vector::bytes_to_hex_string(&tx.serialize());
         assert_eq!(serialized, "01000000028C7DF57C4727FFD58AF8961197A24BBC437A4EFC3CC2C05D7F1F652EC32E1466000000006A473044022065AB7F50AA5E4A2FF0B1FEE463F55E6D51A5D8427D1205B1FA281E8E873C8E3902202B5D0B5451BB1AAC17B7C007BEA84F18104BB7205395998F278E6651B0B23DB70121031620D8DD422DC901A3B62973F8E9C0E10087DEA8D29B676DB432431053F20A1CFFFFFFFF8C7DF57C4727FFD58AF8961197A24BBC437A4EFC3CC2C05D7F1F652EC32E1466010000006B483045022100CD7A262042988F765FC11EE2C111BDFBBA24C2DAEDB2BE4149546D0558528BDE0220539A56666D147DBE5491B31BB370B044AC873EA0627B12BBEFD7EA7EA10EA05B012103EF5EDA9D7D4898493D6E49F853504C57B05FD94C920A937202FFD28DEACE1F45FFFFFFFF0135120000000000001976A9149B0B65266E7938E4EB5148CD90F3479126EE76F888AC00000000");
 
         assert!(analyze(&tx).is_ok());
@@ -566,7 +566,7 @@ mod tx_test {
         let script = signing::generate_input_signature(&tx, 0, &private_key, script_pub_key).unwrap();
         tx.substitute_script(0, script);
 
-        let res = vector::bytes_to_string(&tx.serialize());
+        let res = vector::bytes_to_hex_string(&tx.serialize());
 
         assert_eq!(res, "01000000011CF6A94FD720DC86D416F042A2FE49D6512986FACA86A6473B6A6D5E1A4443C80000000069463043021F4F5D3404C0E0E949F54150747FAE09C5D6D01482C9055AB2D51B4436336B8702201D679F8885A3E894DC68E1A85B1B84EB7AE445F5733CE4C512DDE34E18B1F06B012102B32BDD5A9F0DFF17AC7E92A920666081BDAD54356FCAB3CF7343963ABDB16195FFFFFFFF020000000000000000166A1448656C6C6F20426974636F696E5F72756C657321A00F0000000000001976A9146FCD5EE01651D668A50B5529ACF57FB0A28C948488AC00000000");
 
@@ -606,7 +606,7 @@ mod tx_test {
         let script = signing::generate_input_signature(&tx, 0, &key.private_key(), script_pub_key).unwrap();
         tx.substitute_script(0, script);
 
-        let res = vector::bytes_to_string(&tx.serialize());
+        let res = vector::bytes_to_hex_string(&tx.serialize());
         assert_eq!(res, "0100000001CE2394E6BCB6C6C89C3B214ECDE0266C33CCD0F5A3A8DCA43328208A140EDAB3010000006A473044022020867C3596C2CC01AB8E04EEF81B7B965E353BF95D9667AFF6A86DDA07AC8A0A022014C5EFF1C54E95084C660CE545D639EBB10DA670F8228C1E9963E30E683894190121030C4FE97C6E5397A7E7BE16D89D02627F248C5CB3ED1EFD1B517304EC844EFAFBFFFFFFFF0193380000000000002321030C4FE97C6E5397A7E7BE16D89D02627F248C5CB3ED1EFD1B517304EC844EFAFBAC00000000");
 
         assert!(analyze(&tx).is_ok());

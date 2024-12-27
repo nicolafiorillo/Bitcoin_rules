@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::std_lib::vector::bytes_to_string;
+use crate::std_lib::vector::bytes_to_hex_string;
 
 use super::script_lang::ScriptLang;
 
@@ -59,21 +59,21 @@ pub fn standard_type(script: &ScriptLang) -> StandardType {
 */
 // ANCHOR_END: p2pk_script
 pub fn p2pk_script(address: &[u8]) -> ScriptLang {
-    let addr_str = bytes_to_string(address);
+    let addr_str = bytes_to_hex_string(address);
     let script_repr = format!("{addr_str} OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
 pub fn p2pkh_script(h160: &[u8]) -> ScriptLang {
-    let hash_str = bytes_to_string(h160);
+    let hash_str = bytes_to_hex_string(h160);
     let script_repr = format!("OP_DUP OP_HASH160 {hash_str} OP_EQUALVERIFY OP_CHECKSIG");
 
     ScriptLang::from_representation(&script_repr).unwrap()
 }
 
 pub fn data_script(data: &[u8]) -> ScriptLang {
-    let data_str = bytes_to_string(data);
+    let data_str = bytes_to_hex_string(data);
     let script_repr = format!("OP_RETURN {data_str}");
 
     ScriptLang::from_representation(&script_repr).unwrap()
@@ -83,7 +83,7 @@ pub fn p2ms_script(m: usize, pub_keys: &[&[u8]]) -> ScriptLang {
     let mut keys = String::new();
 
     for pub_key in pub_keys {
-        let pub_key_str = bytes_to_string(pub_key);
+        let pub_key_str = bytes_to_hex_string(pub_key);
         keys.push_str(&pub_key_str);
 
         keys.push(' ');

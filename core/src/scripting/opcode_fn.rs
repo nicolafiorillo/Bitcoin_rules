@@ -15,7 +15,7 @@ use rug::Integer;
 
 use crate::{
     ecdsa::point::Point,
-    hashing::{hash160::hash160, hash256::hash256, ripemd160::ripemd160, sha1::sha1, sha256::sha256},
+    hashing::{hash160::hash160, hash256::Hash256, ripemd160::ripemd160, sha1::sha1, sha256::sha256},
     keys::{key::Key, signature::Signature},
     std_lib::std_result::StdResult,
 };
@@ -577,7 +577,7 @@ pub fn op_hash256(context: &mut Context) -> StdResult<bool> {
 
     let e = context.stack_pop_as_element()?;
     if let Token::Element(value) = e {
-        let hash = hash256(&value);
+        let hash = Hash256::calc(&value);
         context.stack_push(Token::Element(hash.into()));
 
         return Ok(true);

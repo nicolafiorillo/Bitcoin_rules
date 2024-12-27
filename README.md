@@ -436,5 +436,4 @@ All kind of feedback are welcome! Please open an [issue](https://github.com/nico
 
 If you want to support this project, you can donate to: 
 
-- [BTCPayServer](https://priorato.btcpayserver.it/api/v1/invoices?storeId=6ZWNeeMiCdJcAPGVtBG31NMGK3dHjg1xweuMMyGKUsVA&price=1000&currency=SATS)
 - [Paypal](https://paypal.me/nicolafiorillo)

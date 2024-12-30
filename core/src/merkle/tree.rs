@@ -56,7 +56,7 @@ mod tree_test {
         let e = hex_string_to_bytes("8b30c5ba100f6f2e5ad1e2a742e5020491240f8eb514fe97c713c31718ad7ecd").unwrap();
         let expected = Hash256::new(e.try_into().unwrap());
 
-        assert!(parent == expected);
+        assert_eq!(parent, expected);
     }
 
     fn hashes_str_to_hash256(s: Vec<&str>) -> Vec<Hash256> {
@@ -87,7 +87,7 @@ mod tree_test {
 
         let expected = hashes_str_to_hash256(str_expected);
 
-        assert!(parent == expected);
+        assert_eq!(parent, expected);
     }
 
     #[test]
@@ -114,6 +114,6 @@ mod tree_test {
         let str_expected = "acbcab8bcc1af95d8d563b77d24c3d19b18f1486383d75a5085c4e86c86beed6";
         let expected = Hash256::new(hex_string_to_bytes(str_expected).unwrap().try_into().unwrap());
 
-        assert!(root == expected);
+        assert_eq!(root, expected);
     }
 }

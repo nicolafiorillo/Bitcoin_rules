@@ -33,4 +33,14 @@ mod hashing_test {
 
         assert_eq!(hashed_integer, expected);
     }
+
+    #[test]
+    fn sha256_planb() {
+        let hashed = sha256(&"PlanB".to_string().as_bytes().to_vec());
+        let hashed_integer = Integer::from_digits(&hashed, Order::Msf);
+
+        let expected = Integer::from_hex_str("24F1B93B68026BFC24F5C8265F287B4C940FB1664B0D75053589D7A4F821B688");
+
+        assert_eq!(hashed_integer, expected);
+    }
 }

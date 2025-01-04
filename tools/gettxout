@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Documentation: https://developer.bitcoin.org/reference/rpc/gettxout.html
+# Usage:
+#   ./gettxout abc123...
+
+TX_ID=$1
+
+HOST=192.168.178.54:8332
+COMMAND=gettxout
+
+curl --user $BITCOIN_RPC_USER:$BITCOIN_RPC_PASSWORD \
+--data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "'"$COMMAND"'", "params": ["'"$TX_ID"'", 0]}' \
+-H "content-type: text/plain;" \
+http://$HOST/ -s | jq

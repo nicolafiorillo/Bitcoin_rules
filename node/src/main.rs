@@ -29,8 +29,13 @@ mod utils;
 
 // TODO: exit gracefully from all threads in case of error
 
-#[tokio::main]
-async fn main() {
+
+fn main() {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
     custom_log::init();
     dotenvy::dotenv().ok();
 
@@ -80,4 +85,4 @@ async fn main() {
     log::debug!("remote_nodes_orchestrator thread exit.");
 
     log::info!("Application stopped.");
-}
+})}

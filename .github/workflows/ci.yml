@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-test:
@@ -64,6 +65,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
+          path-type: inherit
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-gmp
@@ -72,17 +74,20 @@ jobs:
             mingw-w64-x86_64-postgresql
             mingw-w64-x86_64-pkg-config
 
-      - name: Configure Windows build env
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          echo "PKG_CONFIG_PATH=C:/msys64/mingw64/lib/pkgconfig" >> "$GITHUB_ENV"
-          echo "C:/msys64/mingw64/bin" >> "$GITHUB_PATH"
-          echo "C:/msys64/usr/bin" >> "$GITHUB_PATH"
-          echo "CC=gcc" >> "$GITHUB_ENV"
-
       - name: Build
+        if: runner.os != 'Windows'
+        run: cargo build --verbose
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
         run: cargo build --verbose
 
       - name: Test
+        if: runner.os != 'Windows'
+        run: cargo test --workspace --verbose
+
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
         run: cargo test --workspace --verbose

@@ -32,6 +32,7 @@ mod verify_difficulty_test {
     };
 
     #[test]
+    #[ignore = "requires test_blocks.csv generated from a live Bitcoin node"]
     pub fn verify_difficult_for_blocks_from_csv() {
         let difficulties_fixture = load_fixture_file("difficulty_by_block.csv");
         let difficulties = read_difficulties_from_fixture(&difficulties_fixture);

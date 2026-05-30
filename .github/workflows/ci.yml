@@ -31,8 +31,7 @@ jobs:
             args: ""
           - os: windows-latest
             name: windows-x86_64
-            cargo_target: x86_64-pc-windows-gnu
-            args: "--target x86_64-pc-windows-gnu"
+            toolchain: stable-x86_64-pc-windows-gnu
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +39,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.cargo_target }}
+          toolchain: ${{ matrix.toolchain || 'stable' }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -82,10 +81,10 @@ jobs:
         run: |
           echo "PKG_CONFIG_PATH=C:/msys64/mingw64/lib/pkgconfig" >> "$GITHUB_ENV"
           echo "C:/msys64/mingw64/bin" >> "$GITHUB_PATH"
-          echo "CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=C:/msys64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
+          echo "CC=C:/msys64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
 
       - name: Build
-        run: cargo build --verbose ${{ matrix.args }}
+        run: cargo build --verbose
 
       - name: Test
-        run: cargo test --workspace --verbose ${{ matrix.args }}
+        run: cargo test --workspace --verbose

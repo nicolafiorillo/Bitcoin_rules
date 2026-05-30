@@ -2,11 +2,11 @@
 name = "cli"
 version = "0.0.1"
 edition = "2021"
-rust-version = "1.81"
+rust-version = "1.96"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 core = { path = "../core" }
-env_logger = "0.11.3"
-log = "0.4"
+env_logger = "0.11.10"
+log = "0.4.30"

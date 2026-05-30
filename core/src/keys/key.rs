@@ -1,5 +1,6 @@
 //! Private key management and verification
 
+use hmac::KeyInit;
 use rug::{integer::Order, Integer};
 use std::fmt::{Display, Formatter};
 

@@ -81,7 +81,8 @@ jobs:
         run: |
           echo "PKG_CONFIG_PATH=C:/msys64/mingw64/lib/pkgconfig" >> "$GITHUB_ENV"
           echo "C:/msys64/mingw64/bin" >> "$GITHUB_PATH"
-          echo "CC=C:/msys64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
+          echo "C:/msys64/usr/bin" >> "$GITHUB_PATH"
+          echo "CC=gcc" >> "$GITHUB_ENV"
 
       - name: Build
         run: cargo build --verbose

@@ -15,7 +15,7 @@ log = { version = "0.4.30", features = ["kv"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_derive = "1.0.228"
 tokio = { version = "1.52.3", features = ["full"] }
-diesel = { version = "2.3.9", features = ["postgres"] }
+diesel = { version = "2.3.11", features = ["postgres"] }
 
 [dev-dependencies]
 mockall = "0.14.0"

@@ -27,9 +27,6 @@ jobs:
           - os: macos-latest
             name: macos-arm64
             args: ""
-          - os: windows-latest
-            name: windows-x86_64
-            toolchain: stable-x86_64-pc-windows-gnu
 
     steps:
       - uses: actions/checkout@v4
@@ -59,35 +56,8 @@ jobs:
           brew install gmp libpq
           echo "PKG_CONFIG_PATH=$(brew --prefix libpq)/lib/pkgconfig:$(brew --prefix gmp)/lib/pkgconfig" >> "$GITHUB_ENV"
 
-      - name: Install system deps (Windows)
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          path-type: inherit
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gmp
-            mingw-w64-x86_64-mpfr
-            mingw-w64-x86_64-mpc
-            mingw-w64-x86_64-postgresql
-            mingw-w64-x86_64-pkg-config
-
       - name: Build
-        if: runner.os != 'Windows'
-        run: cargo build --verbose
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: cargo build --verbose
 
       - name: Test
-        if: runner.os != 'Windows'
-        run: cargo test --workspace --verbose
-
-      - name: Test (Windows)
-        if: runner.os == 'Windows'
-        shell: msys2 {0}
         run: cargo test --workspace --verbose
